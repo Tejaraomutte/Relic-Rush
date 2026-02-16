@@ -5,47 +5,77 @@ const Question = require("../models/Question");
 const User = require("../models/user");
 const { protect } = require("../middleware/authMiddleware");
 
-
-// ----------------------------------------
-// 1️⃣ Add Question
+// ======================================================
+// 1️⃣ ADD QUESTION (TEXT OR IMAGE)
 // POST /api/questions/add
-// ----------------------------------------
-router.post("/add", async (req, res) => {
+// ======================================================
+router.post("/add", protect, async (req, res) => {
   try {
-    const question = await Question.create(req.body);
-    res.json(question);
+    // Only admin can add questions
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access only" });
+    }
+
+    const {
+      questionText,
+      questionImage,
+      options,
+      correctAnswer,
+      round
+    } = req.body;
+
+    const question = await Question.create({
+      questionText,
+      questionImage,
+      options,
+      correctAnswer,
+      round
+    });
+
+    res.status(201).json(question);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 
-// ----------------------------------------
-// 2️⃣ Get Round 1 Questions
-// GET /api/questions/round1
-// ----------------------------------------
-router.get("/round1", async (req, res) => {
+// ======================================================
+// 2️⃣ GET ROUND QUESTIONS (HIDE ANSWERS)
+// GET /api/questions/round/:roundNumber
+// ======================================================
+router.get("/round/:roundNumber", async (req, res) => {
   try {
-    const questions = await Question.find({ round: 1 })
-      .select("-correctAnswer"); // hide answers
+    const questions = await Question.find({
+      round: req.params.roundNumber
+    }).select("-correctAnswer");
 
     res.json(questions);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 
-// ----------------------------------------
-// 3️⃣ Submit Round 1
-// POST /api/questions/round1/submit
-// ----------------------------------------
-router.post("/round1/submit", protect, async (req, res) => {
+// ======================================================
+// 3️⃣ SUBMIT ROUND
+// POST /api/questions/round/:roundNumber/submit
+// ======================================================
+router.post("/round/:roundNumber/submit", protect, async (req, res) => {
   try {
-    const { answers } = req.body;
+    const { answers, timeTaken } = req.body;
+    const roundNumber = Number(req.params.roundNumber);
 
     if (!answers || answers.length === 0) {
       return res.status(400).json({ message: "No answers submitted" });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    // Prevent re-submission
+    if (user.currentRound >= roundNumber) {
+      return res.status(400).json({ message: "Round already submitted" });
     }
 
     let score = 0;
@@ -58,19 +88,14 @@ router.post("/round1/submit", protect, async (req, res) => {
       }
     }
 
-    const user = await User.findById(req.user._id);
+    user.score += score;
+    user.currentRound = roundNumber;
+    user.timeTaken = timeTaken || 0;
 
-    // Prevent re-submission
-    if (user.currentRound >= 1) {
-      return res.status(400).json({ message: "Round already submitted" });
-    }
-
-    user.score = score;
-    user.currentRound = 1; // Round 1 completed
     await user.save();
 
     res.json({
-      message: "Round 1 submitted successfully",
+      message: `Round ${roundNumber} submitted successfully`,
       score
     });
 
@@ -79,5 +104,41 @@ router.post("/round1/submit", protect, async (req, res) => {
   }
 });
 
+
+// ======================================================
+// 4️⃣ LEADERBOARD
+// GET /api/questions/leaderboard
+// ======================================================
+router.get("/leaderboard", async (req, res) => {
+  try {
+    const users = await User.find({ eliminated: false })
+      .sort({ score: -1, timeTaken: 1 })
+      .select("-password");
+
+    res.json(users);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// ======================================================
+// 5️⃣ DELETE ALL QUESTIONS (ADMIN)
+// DELETE /api/questions/delete-all
+// ======================================================
+router.delete("/delete-all", protect, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access only" });
+    }
+
+    await Question.deleteMany({});
+    res.json({ message: "All questions deleted successfully" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;
