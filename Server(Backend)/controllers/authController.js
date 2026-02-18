@@ -2,24 +2,20 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// 🔹 Generate JWT Token
+// Generate Token
 const generateToken = (id) => {
-  return jwt.sign(
-    { id },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
-  );
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "1d"
+  });
 };
 
-// ===============================
-// 🟢 REGISTER USER
-// ===============================
+// ================= REGISTER =================
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "All fields required" });
     }
 
     const userExists = await User.findOne({ email });
@@ -48,17 +44,10 @@ const registerUser = async (req, res) => {
   }
 };
 
-
-// ===============================
-// 🟢 LOGIN USER
-// ===============================
+// ================= LOGIN =================
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -74,6 +63,7 @@ const loginUser = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      score: user.score,
       token: generateToken(user._id)
     });
 
@@ -82,45 +72,21 @@ const loginUser = async (req, res) => {
   }
 };
 
-
-// ===============================
-// 🟢 UPDATE USER (Email / Password)
-// ===============================
-const updateUser = async (req, res) => {
+// ================= LEADERBOARD =================
+const getLeaderboard = async (req, res) => {
   try {
+    const users = await User.find()
+      .sort({ score: -1 })
+      .select("-password");
 
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Update Email
-    if (req.body.email) {
-      user.email = req.body.email;
-    }
-
-    // Update Password
-    if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(req.body.password, salt);
-    }
-
-    await user.save();
-
-    res.json({
-      message: "Profile updated successfully",
-      token: generateToken(user._id)
-    });
-
+    res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 module.exports = {
   registerUser,
   loginUser,
-  updateUser
+  getLeaderboard
 };

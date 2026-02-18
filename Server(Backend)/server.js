@@ -1,22 +1,21 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const connectDB = require("./config/db");
 
 const app = express();
 
-// 🔥 VERY IMPORTANT MIDDLEWARE
+app.use(cors());
 app.use(express.json());
 
-// Connect Database
 connectDB();
 
-// Routes
 app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/questions", require("./routes/questionRoutes"));
+console.log("Auth routes loaded");
 
 
 app.get("/", (req, res) => {
-  res.send("Server is running 🚀");
+  res.send("Relic Rush Backend Running 🚀");
 });
 
 const PORT = process.env.PORT || 5000;
@@ -24,13 +23,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-const { protect } = require("./middleware/authMiddleware");
-
-app.get("/protected", protect, (req, res) => {
-  res.json({
-    message: "Access granted 🎉",
-    user: req.user
-  });
-});
-

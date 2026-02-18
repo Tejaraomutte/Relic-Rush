@@ -4,11 +4,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  currentRound: { type: Number, default: 0 },
-  eliminated: { type: Boolean, default: false },
-  score: { type: Number, default: 0 },
-  timeTaken: { type: Number, default: 0 },
-  role: { type: String, default: "user" }
+  score: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);
