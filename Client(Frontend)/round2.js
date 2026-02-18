@@ -1,71 +1,70 @@
 // ===============================
-// ROUND 1 QUESTIONS WITH IMAGES
+// ROUND 2 QUESTIONS
 // ===============================
 
 const questions = [
   {
-    question: "Find the intruder",
-    questionImage: "assets/images/q1.webp",
+    question: "What does CSS stand for?",
+    questionImage: "assets/images/q6.jpg",
     options: [
-      { text: "1", image: null },
-      { text: "2", image: null },
-      { text: "3", image: null },
-      { text: "4", image: null },
-      { text: "5", image: null }
+      { text: "Cascading Style Sheets", image: null },
+      { text: "Computer Style Sheets", image: null },
+      { text: "Cascading Syntax Sheets", image: null },
+      { text: "None of the above", image: null }
     ],
-    correct: 1
+    correct: 0
   },
   {
-    question: "A directed graph has four nodes: A, B, C, and D. The edges and their weights are: A -> B (weight 2), A -> C (weight 5), B -> C (weight 1), B -> D (weight 4), C -> D (weight 1). What is the weight of the shortest path from A to D?",
-    questionImage: "assets/images/q2.jpg",
+    question: "Which of these is NOT a JavaScript data type?",
+    questionImage: "assets/images/q7.jpg",
     options: [
-      { text: "7", image: null },
-      { text: "4", image: null },
-      { text: "6", image: null },
-      { text: "5", image: null }
-    ],
-    correct: 2
-  },
-  {
-    question: "Solve this number visual riddle",
-    questionImage: "assets/images/q3.webp",
-    options: [
-      { text: "4", image: null },
-      { text: "6", image: null },
-      { text: "8", image: null },
-      { text: "10", image: null }
+      { text: "String", image: null },
+      { text: "Boolean", image: null },
+      { text: "Character", image: null },
+      { text: "Number", image: null }
     ],
     correct: 2
   },
   {
-    question: "Solve this question",
-    questionImage: "assets/images/q4.webp",
+    question: "What is the time complexity of binary search?",
+    questionImage: "assets/images/q8.jpg",
     options: [
-      { text: "12", image: null },
-      { text: "13", image: null },
-      { text: "14", image: null },
-      { text: "15", image: null }
+      { text: "O(n)", image: null },
+      { text: "O(log n)", image: null },
+      { text: "O(n²)", image: null },
+      { text: "O(n log n)", image: null }
     ],
     correct: 1
   },
   {
-    question: "Find the figure from the option, that will replace the question mark (?) from the problem figure.",
-    questionImage: "assets/images/q5.png",
+    question: "In what year was Python first released?",
+    questionImage: "assets/images/q9.jpg",
     options: [
-      { text: null, image: "assets/images/q5-1.png" },
-      { text: null, image: "assets/images/q5-2.png" },
-      { text: null, image: "assets/images/q5-3.png" },
-      { text: null, image: "assets/images/q5-4.png" }
+      { text: "1989", image: null },
+      { text: "1995", image: null },
+      { text: "2000", image: null },
+      { text: "2005", image: null }
+    ],
+    correct: 0
+  },
+  {
+    question: "What does REST stand for?",
+    questionImage: "assets/images/q10.jpg",
+    options: [
+      { text: "Representational State Transfer", image: null },
+      { text: "Remote Enhanced Service Transfer", image: null },
+      { text: "Request Enhanced Store Transfer", image: null },
+      { text: "Response Encoding Service Transfer", image: null }
     ],
     correct: 0
   }
 ];
 
 // ===============================
-// ROUND 1 LOGIC
+// ROUND 2 LOGIC
 // ===============================
 
-const ROUND_NUMBER = 1;
+const ROUND_NUMBER = 2;
 const ROUND_DURATION = 300; // 5 minutes in seconds
 let currentQuestionIndex = 0;
 let selectedAnswers = new Array(questions.length).fill(null);
@@ -211,10 +210,10 @@ function calculateAndSubmitRound() {
     });
 
     // Store score in localStorage
-    localStorage.setItem('round1Score', score.toString());
+    localStorage.setItem('round2Score', score.toString());
 
     // Update lamps remaining
-    const lampsRemaining = parseInt(localStorage.getItem('lampsRemaining')) || 4;
+    const lampsRemaining = parseInt(localStorage.getItem('lampsRemaining')) || 3;
     const newLampsRemaining = Math.max(lampsRemaining - 1, 1);
     localStorage.setItem('lampsRemaining', newLampsRemaining.toString());
 
@@ -232,16 +231,16 @@ function showRoundComplete(score) {
     const resultDiv = document.getElementById('resultDiv');
     resultDiv.innerHTML = `
         <div style="animation: resultAppear 0.6s ease-out;">
-            <h2>🎉 Round 1 Completed!</h2>
+            <h2>🎉 Round 2 Completed!</h2>
             <p>Your Score: <strong>${score} / ${questions.length}</strong></p>
-            <p>Proceeding to Round 2...</p>
+            <p>Proceeding to Round 3...</p>
         </div>
     `;
     resultDiv.style.display = 'block';
 
     // Redirect to next round after delay
     setTimeout(() => {
-        window.location.href = 'round2.html';
+        window.location.href = 'round3.html';
     }, 2000);
 }
 

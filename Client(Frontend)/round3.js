@@ -1,71 +1,70 @@
 // ===============================
-// ROUND 1 QUESTIONS WITH IMAGES
+// ROUND 3 QUESTIONS
 // ===============================
 
 const questions = [
   {
-    question: "Find the intruder",
-    questionImage: "assets/images/q1.webp",
+    question: "What does HTML stand for?",
+    questionImage: "assets/images/q11.jpg",
     options: [
-      { text: "1", image: null },
-      { text: "2", image: null },
-      { text: "3", image: null },
-      { text: "4", image: null },
-      { text: "5", image: null }
+      { text: "HyperText Markup Language", image: null },
+      { text: "High Tech Modern Language", image: null },
+      { text: "Home Tool Markup Language", image: null },
+      { text: "Hyperlinks and Text Markup Language", image: null }
+    ],
+    correct: 0
+  },
+  {
+    question: "Which sorting algorithm has the best average time complexity?",
+    questionImage: "assets/images/q12.jpg",
+    options: [
+      { text: "Bubble Sort", image: null },
+      { text: "Quick Sort", image: null },
+      { text: "Insertion Sort", image: null },
+      { text: "Selection Sort", image: null }
     ],
     correct: 1
   },
   {
-    question: "A directed graph has four nodes: A, B, C, and D. The edges and their weights are: A -> B (weight 2), A -> C (weight 5), B -> C (weight 1), B -> D (weight 4), C -> D (weight 1). What is the weight of the shortest path from A to D?",
-    questionImage: "assets/images/q2.jpg",
+    question: "What does API stand for?",
+    questionImage: "assets/images/q13.jpg",
     options: [
-      { text: "7", image: null },
-      { text: "4", image: null },
-      { text: "6", image: null },
-      { text: "5", image: null }
+      { text: "Application Programming Interface", image: null },
+      { text: "Applied Programming Interface", image: null },
+      { text: "Application Process Interface", image: null },
+      { text: "Advanced Programming Interface", image: null }
     ],
-    correct: 2
+    correct: 0
   },
   {
-    question: "Solve this number visual riddle",
-    questionImage: "assets/images/q3.webp",
+    question: "Which data structure uses LIFO principle?",
+    questionImage: "assets/images/q14.jpg",
     options: [
-      { text: "4", image: null },
-      { text: "6", image: null },
-      { text: "8", image: null },
-      { text: "10", image: null }
-    ],
-    correct: 2
-  },
-  {
-    question: "Solve this question",
-    questionImage: "assets/images/q4.webp",
-    options: [
-      { text: "12", image: null },
-      { text: "13", image: null },
-      { text: "14", image: null },
-      { text: "15", image: null }
+      { text: "Queue", image: null },
+      { text: "Stack", image: null },
+      { text: "Tree", image: null },
+      { text: "Graph", image: null }
     ],
     correct: 1
   },
   {
-    question: "Find the figure from the option, that will replace the question mark (?) from the problem figure.",
-    questionImage: "assets/images/q5.png",
+    question: "What is the primary purpose of version control?",
+    questionImage: "assets/images/q15.jpg",
     options: [
-      { text: null, image: "assets/images/q5-1.png" },
-      { text: null, image: "assets/images/q5-2.png" },
-      { text: null, image: "assets/images/q5-3.png" },
-      { text: null, image: "assets/images/q5-4.png" }
+      { text: "Track changes and manage code history", image: null },
+      { text: "Encrypt code files", image: null },
+      { text: "Compress code files", image: null },
+      { text: "Optimize code performance", image: null }
     ],
     correct: 0
   }
 ];
 
 // ===============================
-// ROUND 1 LOGIC
+// ROUND 3 LOGIC
 // ===============================
 
-const ROUND_NUMBER = 1;
+const ROUND_NUMBER = 3;
 const ROUND_DURATION = 300; // 5 minutes in seconds
 let currentQuestionIndex = 0;
 let selectedAnswers = new Array(questions.length).fill(null);
@@ -211,12 +210,10 @@ function calculateAndSubmitRound() {
     });
 
     // Store score in localStorage
-    localStorage.setItem('round1Score', score.toString());
+    localStorage.setItem('round3Score', score.toString());
 
-    // Update lamps remaining
-    const lampsRemaining = parseInt(localStorage.getItem('lampsRemaining')) || 4;
-    const newLampsRemaining = Math.max(lampsRemaining - 1, 1);
-    localStorage.setItem('lampsRemaining', newLampsRemaining.toString());
+    // Update lamps remaining - only 1 lamp remains
+    localStorage.setItem('lampsRemaining', '1');
 
     // Submit score to backend
     const user = JSON.parse(localStorage.getItem('user'));
@@ -232,16 +229,16 @@ function showRoundComplete(score) {
     const resultDiv = document.getElementById('resultDiv');
     resultDiv.innerHTML = `
         <div style="animation: resultAppear 0.6s ease-out;">
-            <h2>🎉 Round 1 Completed!</h2>
+            <h2>🎉 Round 3 Completed!</h2>
             <p>Your Score: <strong>${score} / ${questions.length}</strong></p>
-            <p>Proceeding to Round 2...</p>
+            <p>Proceeding to Final Results...</p>
         </div>
     `;
     resultDiv.style.display = 'block';
 
-    // Redirect to next round after delay
+    // Redirect to results page after delay
     setTimeout(() => {
-        window.location.href = 'round2.html';
+        window.location.href = 'result.html';
     }, 2000);
 }
 

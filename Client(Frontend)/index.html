@@ -3,99 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relic Rush - Quiz Interface</title>
+    <title>Relic Rush - Find the True Relic</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <h1 class="logo">Relic Rush</h1>
-            <div class="header-info">
-                <span class="round-badge" id="roundBadge">Round 1</span>
-                <span class="timer" id="timer">00:00</span>
-            </div>
-        </div>
-    </header>
+<body class="home-page">
+    <!-- Mystical Background -->
+    <div class="mystical-background"></div>
+    
+    <!-- Stars Animation -->
+    <div class="stars-container"></div>
 
-    <!-- Main Container -->
-    <main class="container">
-        <!-- Loading State -->
-        <div id="loadingState" class="state-container loading-state">
-            <div class="spinner"></div>
-            <p>Loading questions...</p>
-        </div>
+    <main class="event-container">
+        <!-- Header Section -->
+        <header class="home-header">
+            <h1 class="event-title">RELIC RUSH</h1>
+            <p class="event-subtitle">Find the True Relic Among the Fakes</p>
+            <p class="event-description">A mystical journey through Arabian Nights</p>
+        </header>
 
-        <!-- Quiz Container -->
-        <div id="quizContainer" class="quiz-container hidden">
-            <!-- Question Progress -->
-            <div class="progress-section">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+        <!-- Lamps Container -->
+        <div class="lamps-container">
+            <div class="lamp-wrapper">
+                <div class="lamp genie-lamp" data-lamp="1">
+                    <div class="lamp-body"></div>
+                    <div class="lamp-spout"></div>
+                    <div class="lamp-handle"></div>
+                    <div class="genie-smoke"></div>
                 </div>
-                <p class="progress-text"><span id="currentQuestion">1</span> / <span id="totalQuestions">0</span></p>
+                <p class="lamp-label">Lamp 1</p>
             </div>
 
-            <!-- Questions Grid -->
-            <div id="questionsGrid" class="questions-grid"></div>
-
-            <!-- Navigation Buttons -->
-            <div class="button-group">
-                <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()" disabled>
-                    ← Previous
-                </button>
-                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">
-                    Next →
-                </button>
+            <div class="lamp-wrapper">
+                <div class="lamp genie-lamp" data-lamp="2">
+                    <div class="lamp-body"></div>
+                    <div class="lamp-spout"></div>
+                    <div class="lamp-handle"></div>
+                    <div class="genie-smoke"></div>
+                </div>
+                <p class="lamp-label">Lamp 2</p>
             </div>
 
-            <!-- Submit Button -->
-            <div class="submit-section">
-                <button class="btn btn-submit" id="submitBtn" onclick="submitQuiz()" disabled>
-                    Submit Quiz
-                </button>
-                <p class="submit-hint">Answer all questions before submitting</p>
+            <div class="lamp-wrapper">
+                <div class="lamp genie-lamp" data-lamp="3">
+                    <div class="lamp-body"></div>
+                    <div class="lamp-spout"></div>
+                    <div class="lamp-handle"></div>
+                    <div class="genie-smoke"></div>
+                </div>
+                <p class="lamp-label">Lamp 3</p>
+            </div>
+
+            <div class="lamp-wrapper">
+                <div class="lamp genie-lamp" data-lamp="4">
+                    <div class="lamp-body"></div>
+                    <div class="lamp-spout"></div>
+                    <div class="lamp-handle"></div>
+                    <div class="genie-smoke"></div>
+                </div>
+                <p class="lamp-label">Lamp 4</p>
             </div>
         </div>
 
-        <!-- Results Container -->
-        <div id="resultsContainer" class="state-container hidden">
-            <div class="results-card">
-                <div class="results-header">
-                    <h2>Quiz Complete! 🎉</h2>
-                </div>
-                <div class="results-body">
-                    <div class="score-circle">
-                        <span class="score-value" id="scoreValue">0</span>
-                        <span class="score-label">out of</span>
-                        <span class="score-total" id="totalScore">0</span>
-                    </div>
-                    <div class="results-stats">
-                        <p class="result-percentage" id="resultPercentage">0%</p>
-                        <p class="result-message" id="resultMessage">Great effort!</p>
-                    </div>
-                </div>
-                <div class="results-footer">
-                    <button class="btn btn-primary" onclick="restartQuiz()">Retake Quiz</button>
-                </div>
-            </div>
+        <!-- CTA Button -->
+        <div class="cta-section">
+            <button class="btn btn-golden" id="enterBtn">
+                <span class="btn-text">Enter the Desert</span>
+                <span class="btn-glow"></span>
+            </button>
         </div>
 
-        <!-- Error State -->
-        <div id="errorState" class="state-container error-state hidden">
-            <div class="error-card">
-                <h2>⚠️ Something went wrong</h2>
-                <p id="errorMessage">Unable to load questions. Please try again.</p>
-                <button class="btn btn-primary" onclick="location.reload()">Reload Page</button>
-            </div>
-        </div>
+        <!-- Footer Info -->
+        <footer class="home-footer">
+            <p>Complete all 3 rounds to discover the True Relic</p>
+        </footer>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2026 Relic Rush Quiz | Teaching Made Interactive</p>
-    </footer>
-
-    <script src="script.js"></script>
+    <script src="home.js"></script>
+</body>
+</html>
 </body>
 </html>
