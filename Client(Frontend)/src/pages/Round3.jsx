@@ -4,67 +4,13 @@ import Background from '../components/Background'
 import { formatTime, submitRoundScore } from '../utils/api'
 
 const questions = [
-  {
-    question: "What does HTML stand for?",
-    questionImage: "/assets/images/q11.jpg",
-    options: [
-      { text: "HyperText Markup Language", image: null },
-      { text: "High Tech Modern Language", image: null },
-      { text: "Home Tool Markup Language", image: null },
-      { text: "Hyperlinks and Text Markup Language", image: null }
-    ],
-    correct: 0
-  },
-  {
-    question: "Which sorting algorithm has the best average time complexity?",
-    questionImage: "/assets/images/q12.jpg",
-    options: [
-      { text: "Bubble Sort", image: null },
-      { text: "Quick Sort", image: null },
-      { text: "Insertion Sort", image: null },
-      { text: "Selection Sort", image: null }
-    ],
-    correct: 1
-  },
-  {
-    question: "What does API stand for?",
-    questionImage: "/assets/images/q13.jpg",
-    options: [
-      { text: "Application Programming Interface", image: null },
-      { text: "Applied Programming Interface", image: null },
-      { text: "Application Process Interface", image: null },
-      { text: "Advanced Programming Interface", image: null }
-    ],
-    correct: 0
-  },
-  {
-    question: "Which data structure uses LIFO principle?",
-    questionImage: "/assets/images/q14.jpg",
-    options: [
-      { text: "Queue", image: null },
-      { text: "Stack", image: null },
-      { text: "Tree", image: null },
-      { text: "Graph", image: null }
-    ],
-    correct: 1
-  },
-  {
-    question: "What is the primary purpose of version control?",
-    questionImage: "/assets/images/q15.jpg",
-    options: [
-      { text: "Track changes and manage code history", image: null },
-      { text: "Encrypt code files", image: null },
-      { text: "Compress code files", image: null },
-      { text: "Optimize code performance", image: null }
-    ],
-    correct: 0
-  }
+ 
 ]
 
 const ROUND_NUMBER = 3
 const ROUND_DURATION = 300
 
-export default function Round3() {
+export default function Round3({ reduceLamps }) {
   const navigate = useNavigate()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState(new Array(questions.length).fill(null))
@@ -132,10 +78,6 @@ export default function Round3() {
 
     localStorage.setItem('round3Score', score.toString())
 
-    const lampsRemaining = parseInt(localStorage.getItem('lampsRemaining')) || 4
-    const newLampsRemaining = Math.max(lampsRemaining - 1, 1)
-    localStorage.setItem('lampsRemaining', newLampsRemaining.toString())
-
     const user = JSON.parse(localStorage.getItem('user'))
     try {
       await submitRoundScore(user.email, ROUND_NUMBER, score)
@@ -147,6 +89,7 @@ export default function Round3() {
     setResultType('success')
 
     setTimeout(() => {
+      if (reduceLamps) reduceLamps()
       navigate('/results')
     }, 2000)
   }

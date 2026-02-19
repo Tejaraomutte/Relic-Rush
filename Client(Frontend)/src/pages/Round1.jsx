@@ -6,7 +6,7 @@ import { formatTime, submitRoundScore } from '../utils/api'
 const questions = [
   {
     question: "Find the intruder",
-    questionImage: "/assets/images/q1.webp",
+    questionImage: "src/assets/images/q1.webp",
     options: [
       { text: "1", image: null },
       { text: "2", image: null },
@@ -18,7 +18,7 @@ const questions = [
   },
   {
     question: "A directed graph has four nodes: A, B, C, and D. The edges and their weights are: A -> B (weight 2), A -> C (weight 5), B -> C (weight 1), B -> D (weight 4), C -> D (weight 1). What is the weight of the shortest path from A to D?",
-    questionImage: "/assets/images/q2.jpg",
+    questionImage: "src/assets/images/q2.jpg",
     options: [
       { text: "7", image: null },
       { text: "4", image: null },
@@ -29,7 +29,7 @@ const questions = [
   },
   {
     question: "Solve this number visual riddle",
-    questionImage: "/assets/images/q3.webp",
+    questionImage: "src/assets/images/q3.webp",
     options: [
       { text: "4", image: null },
       { text: "6", image: null },
@@ -40,7 +40,7 @@ const questions = [
   },
   {
     question: "Solve this question",
-    questionImage: "/assets/images/q4.webp",
+    questionImage: "src/assets/images/q4.webp",
     options: [
       { text: "12", image: null },
       { text: "13", image: null },
@@ -51,12 +51,12 @@ const questions = [
   },
   {
     question: "Find the figure from the option, that will replace the question mark (?) from the problem figure.",
-    questionImage: "/assets/images/q5.png",
+    questionImage: "src/assets/images/q5.png",
     options: [
-      { text: null, image: "/assets/images/q5-1.png" },
-      { text: null, image: "/assets/images/q5-2.png" },
-      { text: null, image: "/assets/images/q5-3.png" },
-      { text: null, image: "/assets/images/q5-4.png" }
+      { text: null, image: "src/assets/images/q5-1.png" },
+      { text: null, image: "src/assets/images/q5-2.png" },
+      { text: null, image: "src/assets/images/q5-3.png" },
+      { text: null, image: "src/assets/images/q5-4.png" }
     ],
     correct: 0
   }
@@ -65,7 +65,7 @@ const questions = [
 const ROUND_NUMBER = 1
 const ROUND_DURATION = 300
 
-export default function Round1() {
+export default function Round1({ reduceLamps }) {
   const navigate = useNavigate()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState(new Array(questions.length).fill(null))
@@ -133,10 +133,6 @@ export default function Round1() {
 
     localStorage.setItem('round1Score', score.toString())
 
-    const lampsRemaining = parseInt(localStorage.getItem('lampsRemaining')) || 4
-    const newLampsRemaining = Math.max(lampsRemaining - 1, 1)
-    localStorage.setItem('lampsRemaining', newLampsRemaining.toString())
-
     const user = JSON.parse(localStorage.getItem('user'))
     try {
       await submitRoundScore(user.email, ROUND_NUMBER, score)
@@ -148,6 +144,7 @@ export default function Round1() {
     setResultType('success')
 
     setTimeout(() => {
+      if (reduceLamps) reduceLamps()
       navigate('/round2')
     }, 2000)
   }

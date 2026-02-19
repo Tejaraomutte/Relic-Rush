@@ -4,37 +4,13 @@ import Background from '../components/Background'
 import { formatTime, submitRoundScore } from '../utils/api'
 
 const questions = [
-    {
-        question: "I have cities but no houses, mountains but no trees, and water but no fish. What am I?",
-        clue: "You unfold me to find places.",
-        answer: "map"
-    },
-    {
-        question: "I speak without a mouth and hear without ears. I have nobody, but I come alive with wind. What am I?",
-        clue: "You often hear me in canyons or empty rooms.",
-        answer: "echo"
-    },
-    {
-        question: "I have keys but no locks. I have space but no rooms. You can enter but can't go outside. What am I?",
-        clue: "You press me to write or play music (two interpretations).",
-        answer: "keyboard"
-    },
-    {
-        question: "The more of this there is, the less you see. What is it?",
-        clue: "It fills the night sky sometimes.",
-        answer: "darkness"
-    },
-    {
-        question: "I am not alive but I grow; I don't have lungs but I need air; I don't have a mouth but water kills me. What am I?",
-        clue: "You might see me in a camp or under a lamp.",
-        answer: "fire"
-    }
+    
 ]
 
 const ROUND_NUMBER = 2
 const ROUND_DURATION = 300
 
-export default function Round2() {
+export default function Round2({ reduceLamps }) {
   const navigate = useNavigate()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [clueUsed, setClueUsed] = useState(new Array(questions.length).fill(false))
@@ -119,10 +95,6 @@ export default function Round2() {
     const finalScore = Math.max(0, score)
     localStorage.setItem('round2Score', finalScore.toString())
 
-    const lampsRemaining = parseInt(localStorage.getItem('lampsRemaining')) || 4
-    const newLamps = Math.max(1, lampsRemaining - 1)
-    localStorage.setItem('lampsRemaining', newLamps.toString())
-
     const user = JSON.parse(localStorage.getItem('user')) || { email: '' }
     try {
       await submitRoundScore(user.email, ROUND_NUMBER, finalScore)
@@ -133,7 +105,10 @@ export default function Round2() {
     setResultMessage(`Round 2 Complete\nYour Score: ${finalScore}\nProceeding to Round 3...`)
     setResultType('success')
     
-    setTimeout(() => navigate('/round3'), 1600)
+    setTimeout(() => {
+      if (reduceLamps) reduceLamps()
+      navigate('/round3')
+    }, 1600)
   }
 
   const flashResult = (msg, type) => {

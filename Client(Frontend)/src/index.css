@@ -227,6 +227,14 @@ body {
     position: relative;
 }
 
+.lamp-image-home {
+    width: 120px;
+    height: 140px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.4));
+    animation: lampFloat 3s ease-in-out infinite;
+}
+
 .lamp {
     width: 120px;
     height: 140px;
@@ -700,24 +708,19 @@ body {
 }
 
 .final-lamp-section {
-    display: flex;
-    justify-content: center;
-    margin: 40px 0;
+    display: none; /* Hidden - using LampDisplay component instead */
 }
 
 .final-lamp-wrapper {
-    transform: scale(2);
-    filter: drop-shadow(0 0 50px rgba(255, 215, 0, 0.5));
+    display: none; /* Hidden - using LampDisplay component instead */
 }
 
 .final-lamp {
-    animation: lampFloat 4s ease-in-out infinite;
+    display: none; /* Hidden - using LampDisplay component instead */
 }
 
 .victory-message {
-    text-align: center;
-    margin: 40px 0;
-    animation: resultAppear 0.8s ease-out;
+    display: none; /* Hidden - using LampDisplay component instead */
 }
 
 .relic-found-text {
@@ -931,7 +934,7 @@ body {
         gap: 30px;
     }
 
-    .lamp {
+    .lamp-image-home {
         width: 100px;
         height: 120px;
     }
@@ -1012,6 +1015,255 @@ body {
 
     .btn {
         padding: 10px 15px;
+        font-size: 14px;
+    }
+
+    /* Info Sections Mobile */
+    .section-card {
+        padding: 20px;
+    }
+
+    .section-title {
+        font-size: 24px;
+    }
+
+    .section-content p, 
+    .feature-list li, 
+    .rules-list li,
+    .skills-list li {
+        font-size: 13px;
+    }
+}
+
+/* ===============================
+   INFO SECTIONS (About & Rules)
+   =============================== */
+
+.info-section {
+    width: 100%;
+    margin: 20px 0;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-card {
+    background: rgba(45, 27, 78, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        inset 0 0 20px rgba(255, 215, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.section-card:hover {
+    border-color: rgba(255, 215, 0, 0.4);
+    box-shadow: 
+        0 6px 25px rgba(0, 0, 0, 0.4),
+        inset 0 0 25px rgba(255, 215, 0, 0.1),
+        0 0 20px rgba(255, 215, 0, 0.15);
+}
+
+.section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--primary-gold);
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    margin-bottom: 25px;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.section-content {
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.section-intro {
+    font-size: 18px;
+    color: var(--soft-gold);
+    margin-bottom: 20px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* About Section Specific */
+.event-flow {
+    margin: 25px 0;
+}
+
+.flow-intro {
+    font-size: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.flow-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-gold);
+    margin: 20px 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.feature-list {
+    list-style: none;
+    margin: 15px 0 25px 0;
+    padding: 0;
+}
+
+.feature-list li {
+    font-size: 15px;
+    padding: 10px 0 10px 30px;
+    position: relative;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.feature-list li:before {
+    content: '✦';
+    position: absolute;
+    left: 0;
+    color: var(--primary-gold);
+    font-size: 18px;
+    opacity: 0.8;
+}
+
+.feature-list li:hover {
+    color: var(--primary-gold);
+    padding-left: 35px;
+}
+
+/* Skills Section */
+.skills-section {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.skills-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-gold);
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.skills-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.skills-list li {
+    font-size: 15px;
+    padding: 12px 15px;
+    background: rgba(255, 215, 0, 0.08);
+    border-left: 3px solid var(--primary-gold);
+    border-radius: 4px;
+    color: var(--soft-gold);
+    transition: all 0.3s ease;
+}
+
+.skills-list li:hover {
+    background: rgba(255, 215, 0, 0.15);
+    transform: translateX(5px);
+    box-shadow: 0 2px 10px rgba(255, 215, 0, 0.2);
+}
+
+/* Rules Section Specific */
+.rules-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.rules-list li {
+    font-size: 15px;
+    padding: 16px 20px 16px 50px;
+    margin-bottom: 15px;
+    background: rgba(255, 215, 0, 0.05);
+    border-left: 4px solid var(--primary-gold);
+    border-radius: 6px;
+    position: relative;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    line-height: 1.7;
+}
+
+.rules-list li:before {
+    content: counter(item);
+    counter-increment: item;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary-gold);
+    color: var(--dark-purple);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.rules-list {
+    counter-reset: item;
+}
+
+.rules-list li:hover {
+    background: rgba(255, 215, 0, 0.12);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+    border-left-color: var(--accent-cyan);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .section-card {
+        padding: 25px;
+    }
+
+    .section-title {
+        font-size: 28px;
+    }
+
+    .section-intro {
+        font-size: 16px;
+    }
+
+    .skills-list {
+        grid-template-columns: 1fr;
+    }
+
+    .rules-list li {
+        padding: 14px 18px 14px 45px;
+        font-size: 14px;
+    }
+
+    .feature-list li {
         font-size: 14px;
     }
 }

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
+import LampDisplay from '../components/LampDisplay'
 import { getLeaderboard } from '../utils/api'
 
 const API_URL = 'http://localhost:5000'
 
-export default function Results() {
+export default function Results({ lampsRemaining = 1 }) {
   const navigate = useNavigate()
   const [round1Score, setRound1Score] = useState(0)
   const [round2Score, setRound2Score] = useState(0)
@@ -95,21 +96,7 @@ export default function Results() {
           <h1 className="event-title">JOURNEY'S END</h1>
         </header>
 
-        <div className="final-lamp-section">
-          <div className="lamp-wrapper final-lamp-wrapper">
-            <div className="lamp genie-lamp final-lamp" style={{ animationDelay: '0s' }}>
-              <div className="lamp-body"></div>
-              <div className="lamp-spout"></div>
-              <div className="lamp-handle"></div>
-              <div className="genie-smoke"></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="victory-message">
-          <h2 className="relic-found-text">You Have Found The True Relic!</h2>
-          <p className="journey-complete-text">Your mystical journey is complete</p>
-        </div>
+        <LampDisplay lampsRemaining={lampsRemaining} showMessage={true} />
 
         <div className="score-card">
           <div className="score-item" style={{ animation: 'resultAppear 0.6s ease-out 0.2s both' }}>
