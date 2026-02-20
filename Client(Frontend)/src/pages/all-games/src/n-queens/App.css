@@ -1,0 +1,133 @@
+body.game-nqueens {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #141e30, #243b55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+body.game-nqueens .wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+body.game-nqueens .glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  padding: 35px;
+  border-radius: 20px;
+  width: 520px;
+  color: white;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+body.game-nqueens .title {
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+body.game-nqueens .rules {
+  font-size: 14px;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+/* 🔥 STATUS BANNER */
+body.game-nqueens .status-banner {
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  transition: 0.3s ease;
+  animation: fadeIn 0.3s ease;
+}
+
+body.game-nqueens .success {
+  background: #68e89e;
+  box-shadow: 0 0 20px #2ecc71;
+}
+
+body.game-nqueens .error {
+  background: #c5574a;
+  box-shadow: 0 0 20px #e74c3c;
+}
+
+body.game-nqueens .warning {
+  background: #eca83b;
+  box-shadow: 0 0 20px #f39c12;
+}
+
+/* BOARD */
+body.game-nqueens .board {
+  display: grid;
+  grid-template-columns: repeat(6, 65px);
+  justify-content: center;
+  margin: 20px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+body.game-nqueens .cell {
+  width: 65px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+body.game-nqueens .cell:hover {
+  transform: scale(1.1);
+}
+
+body.game-nqueens .white {
+  background: #bbaf9b;
+}
+
+body.game-nqueens .black {
+  background: #b58863;
+}
+
+body.game-nqueens .attack {
+  background: #ff4d4d !important;
+  color: white;
+  animation: shake 0.2s ease-in-out 2;
+}
+
+/* BUTTON */
+body.game-nqueens .reset-btn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: white;
+  color: #243b55;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+body.game-nqueens .reset-btn:hover {
+  background: #ddd;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+

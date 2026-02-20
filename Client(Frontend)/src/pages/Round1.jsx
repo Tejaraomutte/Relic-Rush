@@ -135,17 +135,22 @@ export default function Round1({ reduceLamps }) {
 
     const user = JSON.parse(localStorage.getItem('user'))
     try {
-      await submitRoundScore(user.email, ROUND_NUMBER, score)
+      if (user && user.email) {
+        await submitRoundScore(user.email, ROUND_NUMBER, score)
+      } else {
+        throw new Error('User not found in localStorage; score not submitted')
+      }
     } catch (error) {
       console.error('Error submitting score:', error)
+      showResultMessage(`Error submitting score: ${error.message}`, 'error')
     }
 
-    setResultMessage(`🎉 Round 1 Completed!\nYour Score: ${score} / ${questions.length}\nProceeding to Round 2...`)
+    setResultMessage(`🎉 Round 1 Completed!\nYour Score: ${score} / ${questions.length}\nProceeding to Results...`)
     setResultType('success')
 
     setTimeout(() => {
       if (reduceLamps) reduceLamps()
-      navigate('/round2')
+      navigate('/results', { state: { mode: 'round1' } })
     }, 2000)
   }
 

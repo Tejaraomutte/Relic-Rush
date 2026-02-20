@@ -13,10 +13,20 @@ export async function submitRoundScore(email, roundNumber, score) {
                 score: score
             })
         });
+
+        // Throw on non-2xx responses so callers can handle it explicitly
+        if (!response.ok) {
+            const text = await response.text().catch(() => response.statusText || 'Unknown error');
+            const err = new Error(`Server responded with ${response.status}: ${text}`);
+            err.status = response.status;
+            throw err;
+        }
+
         return await response.json();
     } catch (error) {
+        // Normalize network errors to include more context
         console.error('Error submitting score:', error);
-        throw error;
+        throw new Error(error.message || 'Network error while submitting score');
     }
 }
 

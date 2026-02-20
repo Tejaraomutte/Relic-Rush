@@ -4,7 +4,6 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Round1 from './pages/Round1'
 import Round2 from './pages/Round2'
-import Round3 from './pages/Round3'
 import Results from './pages/Results'
 
 export default function App() {
@@ -41,8 +40,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/round1" element={<Round1 reduceLamps={reduceLamps} />} />
-        <Route path="/round2" element={<Round2 reduceLamps={reduceLamps} />} />
-        <Route path="/round3" element={<Round3 reduceLamps={reduceLamps} />} />
+        <Route path="/round2" element={<Round2 />} />
         <Route path="/results" element={<Results lampsRemaining={lampsRemaining} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

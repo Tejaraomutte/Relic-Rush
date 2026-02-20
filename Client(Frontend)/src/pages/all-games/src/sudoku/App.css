@@ -1,0 +1,136 @@
+body.game-sudoku {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body.game-sudoku .App {
+  text-align: center;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+body.game-sudoku h1 {
+  margin-bottom: 20px;
+  color: #0f172a;
+}
+
+body.game-sudoku .grid {
+  display: grid;
+  grid-template-columns: repeat(9, 50px);
+  grid-template-rows: repeat(9, 50px);
+  gap: 0;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+body.game-sudoku .cell {
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  font-size: 18px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* ✨ DARKER 3x3 BOX BORDERS */
+
+/* Left border of each 3x3 box */
+body.game-sudoku .cell:nth-child(3n + 1) {
+  border-left: 3px solid #0f172a;
+}
+
+/* Right border of each 3x3 box */
+body.game-sudoku .cell:nth-child(3n) {
+  border-right: 3px solid #0f172a;
+}
+
+/* Top border */
+body.game-sudoku .cell:nth-child(n + 1):nth-child(-n + 9),
+body.game-sudoku .cell:nth-child(n + 28):nth-child(-n + 36),
+body.game-sudoku .cell:nth-child(n + 55):nth-child(-n + 63) {
+  border-top: 3px solid #0f172a;
+}
+
+/* Bottom border */
+body.game-sudoku .cell:nth-child(n + 19):nth-child(-n + 27),
+body.game-sudoku .cell:nth-child(n + 46):nth-child(-n + 54),
+body.game-sudoku .cell:nth-child(n + 73):nth-child(-n + 81) {
+  border-bottom: 3px solid #0f172a;
+}
+
+body.game-sudoku .cell:focus {
+  background-color: #e0f2fe;
+  border: 2px solid #0284c7;
+}
+
+body.game-sudoku .fixed {
+  background-color: #f1f5f9;
+  font-weight: bold;
+  color: #0f172a;
+}
+
+body.game-sudoku .wrong {
+  background-color: #fee2e2;
+  color: #dc2626;
+  font-weight: bold;
+}
+
+body.game-sudoku .buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+body.game-sudoku button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  background: #0284c7;
+  color: white;
+  transition: 0.2s ease;
+}
+
+body.game-sudoku button:hover {
+  background: #0369a1;
+}
+
+body.game-sudoku .reset-btn {
+  background: #ef4444;
+}
+
+body.game-sudoku .reset-btn:hover {
+  background: #dc2626;
+}
+body.game-sudoku .rules {
+  background: #f8fafc;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 14px;
+  color: #334155;
+  border-left: 5px solid #0284c7;
+}
+
+body.game-sudoku .rules h3 {
+  margin-bottom: 8px;
+  color: #0f172a;
+}
+
+body.game-sudoku .rules ul {
+  padding-left: 18px;
+  margin: 0;
+}
+
+body.game-sudoku .rules li {
+  margin-bottom: 5px;
+}

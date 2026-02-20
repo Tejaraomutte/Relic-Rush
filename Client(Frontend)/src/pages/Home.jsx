@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import lamp from '../assets/images/lamp.jpeg'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -82,19 +81,7 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="lamps-container">
-          {[1, 2, 3, 4].map((lampNum) => (
-            <div key={lampNum} className="lamp-wrapper">
-              <img 
-                src={lamp} 
-                alt={`Lamp ${lampNum}`}
-                className="lamp-image-home"
-                style={{ animationDelay: `${(lampNum - 1) * 0.15}s` }}
-              />
-              <p className="lamp-label">Lamp {lampNum}</p>
-            </div>
-          ))}
-        </div>
+        {/* Lamps removed from home page */}
 
         <div className="enter-section">
           <button className="btn btn-golden" onClick={handleEnter} style={{ fontSize: '18px', padding: '16px 40px' }}>
