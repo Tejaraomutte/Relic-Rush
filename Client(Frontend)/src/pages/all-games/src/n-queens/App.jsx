@@ -4,6 +4,11 @@ import "./App.css";
 const SIZE = 6;
 
 function App({ onComplete }) {
+  useEffect(() => {
+    document.body.classList.add("game-nqueens");
+    return () => document.body.classList.remove("game-nqueens");
+  }, []);
+
   const [board, setBoard] = useState(
     Array(SIZE)
       .fill()

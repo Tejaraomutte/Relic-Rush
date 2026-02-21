@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
+import ActionButtons from '../components/ActionButtons'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -10,8 +11,10 @@ export default function Home() {
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       setUser(JSON.parse(storedUser))
+    } else {
+      navigate('/login')
     }
-  }, [])
+  }, [navigate])
 
   const handleEnter = () => {
     if (user) {
@@ -31,7 +34,6 @@ export default function Home() {
           <p className="event-description">A mystical journey through Arabian Nights</p>
         </header>
 
-        {/* About Section */}
         <section className="info-section about-section">
           <div className="section-card">
             <h2 className="section-title">About Relic Rush</h2>
@@ -64,7 +66,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Rules Section */}
         <section className="info-section rules-section">
           <div className="section-card">
             <h2 className="section-title">Event Rules</h2>
@@ -81,13 +82,13 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Lamps removed from home page */}
-
-        <div className="enter-section">
-          <button className="btn btn-golden" onClick={handleEnter} style={{ fontSize: '18px', padding: '16px 40px' }}>
-            ✨ Enter The Journey ✨
-          </button>
-        </div>
+        <ActionButtons
+          buttons={[{
+            label: 'Start Round 1',
+            variant: 'btn-golden btn-large',
+            onClick: handleEnter
+          }]}
+        />
       </main>
     </>
   )

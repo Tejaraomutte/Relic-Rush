@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 
 const solution = [
@@ -20,6 +20,11 @@ const solution = [
 ];
 
 function App({ onComplete }) {
+  useEffect(() => {
+    document.body.classList.add("game-kriss");
+    return () => document.body.classList.remove("game-kriss");
+  }, []);
+
   const [grid, setGrid] = useState(
     solution.map(row => row.map(cell => (cell === "#" ? "#" : "")))
   );

@@ -8,6 +8,11 @@ const initialState = {
 };
 
 function App({ onComplete }) {
+  useEffect(() => {
+    document.body.classList.add("game-hanoi");
+    return () => document.body.classList.remove("game-hanoi");
+  }, []);
+
   const [towers, setTowers] = useState(initialState);
   const [selected, setSelected] = useState(null);
   const [moves, setMoves] = useState(0);

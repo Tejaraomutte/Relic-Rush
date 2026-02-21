@@ -9,7 +9,10 @@ const API_URL = 'http://localhost:5000'
 export default function Results({ lampsRemaining = 1 }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const isRound1Mode = location.state?.mode === 'round1'
+  const mode = location.state?.mode || 'final'
+  const isRound1Mode = mode === 'round1'
+  const isRound2Mode = mode === 'round2'
+  const isFinalMode = mode === 'final'
   const [round1Score, setRound1Score] = useState(0)
   const [round2Score, setRound2Score] = useState(0)
   const [round3Score, setRound3Score] = useState(0)
@@ -33,21 +36,11 @@ export default function Results({ lampsRemaining = 1 }) {
     setRound3Score(r3)
     setTotalScore(total)
 
-    if (!isRound1Mode) {
+    if (isFinalMode) {
       loadLeaderboard()
       submitFinalScore(r1, r2, r3, total)
     }
-  }, [navigate, isRound1Mode])
-
-  useEffect(() => {
-    if (!isRound1Mode) return
-
-    const timer = setTimeout(() => {
-      navigate('/round2')
-    }, 3000)
-
-    return () => clearTimeout(timer)
-  }, [isRound1Mode, navigate])
+  }, [navigate, isFinalMode])
 
   const loadLeaderboard = async () => {
     try {
@@ -107,39 +100,48 @@ export default function Results({ lampsRemaining = 1 }) {
       <Background />
       <main className="event-container result-container">
         <header className="result-header">
-          <h1 className="event-title">{isRound1Mode ? 'ROUND 1 RESULT' : "JOURNEY'S END"}</h1>
+          <h1 className="event-title">
+            {isRound1Mode ? 'ROUND 1 RESULT' : isRound2Mode ? 'ROUND 2 RESULT' : "JOURNEY'S END"}
+          </h1>
         </header>
 
         {isRound1Mode && (
-          <p className="loading-text">Starting Round 2 in 3 seconds...</p>
+          <p className="loading-text">Review your Round 1 score, then click Next Round to continue.</p>
+        )}
+        {isRound2Mode && (
+          <p className="loading-text">Round 2 completed. Click Next Round to continue to Round 3.</p>
         )}
 
         <LampDisplay lampsRemaining={lampsRemaining} showMessage={true} />
 
         <div className="score-card">
-          <div className="score-item" style={{ animation: 'resultAppear 0.6s ease-out 0.2s both' }}>
+          <div className="score-item">
             <span className="score-label">Round 1 Score</span>
             <span className="score-value">{round1Score}</span>
           </div>
           {!isRound1Mode && (
             <>
-              <div className="score-item" style={{ animation: 'resultAppear 0.6s ease-out 0.4s both' }}>
+              <div className="score-item">
                 <span className="score-label">Round 2 Score</span>
                 <span className="score-value">{round2Score}</span>
               </div>
-              <div className="score-item" style={{ animation: 'resultAppear 0.6s ease-out 0.6s both' }}>
-                <span className="score-label">Round 3 Score</span>
-                <span className="score-value">{round3Score}</span>
-              </div>
-              <div className="score-item total" style={{ animation: 'resultAppear 0.6s ease-out 0.8s both' }}>
-                <span className="score-label">Total Score</span>
-                <span className="score-value">{totalScore}</span>
-              </div>
+              {isFinalMode && (
+                <>
+                  <div className="score-item">
+                    <span className="score-label">Round 3 Score</span>
+                    <span className="score-value">{round3Score}</span>
+                  </div>
+                  <div className="score-item total">
+                    <span className="score-label">Total Score</span>
+                    <span className="score-value">{totalScore}</span>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
 
-        {!isRound1Mode && (
+        {isFinalMode && (
           <div className="leaderboard-section">
             <h3>Top 10 Winners</h3>
             <div className="leaderboard-table">
@@ -147,7 +149,7 @@ export default function Results({ lampsRemaining = 1 }) {
                 <p className="loading-text">No scores yet. Be the first to complete!</p>
               ) : (
                 leaderboard.map((entry, index) => (
-                  <div key={index} className="leaderboard-row" style={{ animation: `resultAppear 0.6s ease-out ${index * 0.1}s both` }}>
+                  <div key={index} className="leaderboard-row">
                     <div className="leaderboard-rank">{index + 1}</div>
                     <div className="leaderboard-name">{entry.name || entry.email}</div>
                     <div className="leaderboard-score">{entry.totalScore || 0}</div>
@@ -160,8 +162,9 @@ export default function Results({ lampsRemaining = 1 }) {
 
         <div className="result-actions">
           <button className="btn btn-golden" onClick={handleHome}>Return Home</button>
-          {isRound1Mode && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Start Round 2 Now</button>}
-          {!isRound1Mode && <button className="btn btn-secondary" onClick={handleShare}>Share Score</button>}
+          {isRound1Mode && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Next Round</button>}
+          {isRound2Mode && <button className="btn btn-secondary" onClick={() => navigate('/round3')}>Next Round</button>}
+          {isFinalMode && <button className="btn btn-secondary" onClick={handleShare}>Share Score</button>}
         </div>
       </main>
     </>

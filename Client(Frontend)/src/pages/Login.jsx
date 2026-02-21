@@ -1,9 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import { isValidEmail } from '../utils/api'
-
-const API_URL = 'http://localhost:5000'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -48,7 +45,7 @@ export default function Login() {
       localStorage.setItem('lampsRemaining', '4')
 
       setTimeout(() => {
-        navigate('/round1')
+        navigate('/home')
       }, 1500)
     } catch (error) {
       console.error('Login error:', error)
@@ -69,7 +66,7 @@ export default function Login() {
 
         <div className="login-card">
           {message && (
-            <div className={`form-message ${messageType}`} style={{ display: 'block', marginBottom: '15px' }}>
+            <div className={`form-message ${messageType} visible`}>
               {message}
             </div>
           )}

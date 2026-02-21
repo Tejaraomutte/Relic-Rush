@@ -1,105 +1,128 @@
-body.game-kriss {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #1e1e2f;
-  color: white;
-}
-
-body.game-kriss .container {
+.container {
   padding: 30px;
   text-align: center;
+  color: var(--soft-gold, #f4e4c1);
+  font-family: 'Poppins', sans-serif;
 }
 
-body.game-kriss .rules {
-  margin-bottom: 20px;
-  padding: 15px;
-  background: #2f2f4f;
-  border-radius: 8px;
-  font-size: 14px;
+.container h1 {
+  font-family: 'Cinzel', serif;
+  color: var(--primary-gold, #FFD700);
+  margin-bottom: 30px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
-body.game-kriss .layout {
+.layout {
   display: flex;
   justify-content: center;
   gap: 60px;
   flex-wrap: wrap;
 }
 
-body.game-kriss .grid-container {
-  background: #2f2f4f;
-  padding: 15px;
-  border-radius: 10px;
+.grid-container {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
 }
 
-body.game-kriss .grid-row {
+.grid-row {
   display: flex;
 }
 
-body.game-kriss .cell-box {
+.cell-box {
   width: 38px;
   height: 38px;
 }
 
-body.game-kriss .blank {
+.blank {
   width: 100%;
   height: 100%;
-  background: black;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
-body.game-kriss .input-field {
+.input-field {
   width: 100%;
   height: 100%;
   text-align: center;
   font-size: 18px;
   font-weight: bold;
-  border: 1px solid #555;
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  background: rgba(26, 0, 51, 0.6);
+  color: var(--primary-gold, #FFD700);
+  text-transform: uppercase;
 }
 
-body.game-kriss .input-field:focus {
+.input-field:focus {
   outline: none;
-  border: 2px solid #4da6ff;
+  border: 2px solid var(--primary-gold, #FFD700);
+  background: rgba(26, 0, 51, 0.8);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
-body.game-kriss .correct {
-  background: #b9f6ca;
+.correct {
+  background: rgba(76, 175, 80, 0.3) !important;
+  border-color: #4caf50 !important;
 }
 
-body.game-kriss .wrong {
-  background: #ffcdd2;
+.wrong {
+  background: rgba(244, 67, 54, 0.3) !important;
+  border-color: #f44336 !important;
 }
 
-body.game-kriss .buttons {
-  margin-top: 15px;
+.buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
-body.game-kriss button {
-  padding: 8px 15px;
-  margin: 5px;
-  border: none;
-  border-radius: 5px;
+.container button {
+  padding: 12px 30px;
+  border: 2px solid var(--primary-gold, #FFD700);
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 16px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 193, 7, 0.1));
+  color: var(--primary-gold, #FFD700);
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
 }
 
-body.game-kriss button:hover {
-  opacity: 0.8;
+.container button:hover {
+  background: linear-gradient(135deg, var(--primary-gold, #FFD700), var(--desert-gold, #FFA500));
+  color: var(--dark-purple, #1a0033);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
 }
 
-body.game-kriss .message {
-  margin-top: 10px;
+.message {
+  margin-top: 15px;
   font-weight: bold;
+  font-size: 18px;
+  color: var(--primary-gold, #FFD700);
 }
 
 /* Word List */
-body.game-kriss .word-list {
+.word-list {
   text-align: left;
   max-width: 300px;
+  background: rgba(0, 217, 255, 0.05);
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid var(--accent-cyan, #00D9FF);
 }
 
-body.game-kriss .word-list h2 {
+.word-list h2 {
   margin-bottom: 15px;
+  color: var(--primary-gold, #FFD700);
+  font-family: 'Cinzel', serif;
 }
 
-body.game-kriss .word-list p {
+.word-list p {
   margin: 8px 0;
+  color: var(--soft-gold, #f4e4c1);
+  line-height: 1.6;
 }

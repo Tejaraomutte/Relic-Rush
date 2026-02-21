@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import { formatTime, submitRoundScore } from '../utils/api'
+import RoundHeader from '../components/RoundHeader'
+import QuestionCard from '../components/QuestionCard'
+import ActionButtons from '../components/ActionButtons'
+import ResultMessage from '../components/ResultMessage'
+import ScoreDisplay from '../components/ScoreDisplay'
+import LampDisplay from '../components/LampDisplay'
+import { submitRoundScore } from '../utils/api'
 
 const questions = [
   {
@@ -25,7 +31,7 @@ const questions = [
       { text: "6", image: null },
       { text: "5", image: null }
     ],
-    correct: 2
+    correct: 1
   },
   {
     question: "Solve this number visual riddle",
@@ -64,15 +70,19 @@ const questions = [
 
 const ROUND_NUMBER = 1
 const ROUND_DURATION = 300
+const POINTS_PER_QUESTION = 5
 
-export default function Round1({ reduceLamps }) {
+export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState(new Array(questions.length).fill(null))
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
-  const [timerId, setTimerId] = useState(null)
   const [resultMessage, setResultMessage] = useState('')
   const [resultType, setResultType] = useState('')
+  const [isComplete, setIsComplete] = useState(false)
+  const [finalScore, setFinalScore] = useState(0)
+  const [lampsAfter, setLampsAfter] = useState(lampsRemaining)
+  const [hasReduced, setHasReduced] = useState(false)
 
   useEffect(() => {
     const user = localStorage.getItem('user')
@@ -80,6 +90,8 @@ export default function Round1({ reduceLamps }) {
       navigate('/login')
       return
     }
+
+    if (isComplete) return
 
     const id = setInterval(() => {
       setTimeLeft(prev => {
@@ -92,14 +104,13 @@ export default function Round1({ reduceLamps }) {
       })
     }, 1000)
 
-    setTimerId(id)
     return () => clearInterval(id)
-  }, [navigate])
+  }, [navigate, isComplete])
 
   const onTimeUp = async () => {
-    showResultMessage('⏱️ Time is up! Submitting your answers...', 'info')
-    await new Promise(r => setTimeout(r, 1000))
-    await calculateAndSubmitRound(selectedAnswers)
+    showResultMessage('Time is up! Submitting your answers...', 'info')
+    await new Promise(r => setTimeout(r, 600))
+    await completeRound(selectedAnswers)
   }
 
   const handleSelectOption = (optionIndex) => {
@@ -115,43 +126,39 @@ export default function Round1({ reduceLamps }) {
     }
 
     if (currentQuestionIndex === questions.length - 1) {
-      await calculateAndSubmitRound(selectedAnswers)
+      await completeRound(selectedAnswers)
     } else {
       setCurrentQuestionIndex(prev => prev + 1)
     }
   }
 
-  const calculateAndSubmitRound = async (answers) => {
-    if (timerId) clearInterval(timerId)
+  const completeRound = async (answers) => {
+    const correctCount = answers.reduce((total, answer, index) => {
+      if (answer === questions[index].correct) return total + 1
+      return total
+    }, 0)
 
-    let score = 0
-    answers.forEach((answer, index) => {
-      if (answer === questions[index].correct) {
-        score++
-      }
-    })
-
+    const score = correctCount * POINTS_PER_QUESTION
+    setFinalScore(score)
     localStorage.setItem('round1Score', score.toString())
 
-    const user = JSON.parse(localStorage.getItem('user'))
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
     try {
       if (user && user.email) {
         await submitRoundScore(user.email, ROUND_NUMBER, score)
-      } else {
-        throw new Error('User not found in localStorage; score not submitted')
       }
     } catch (error) {
       console.error('Error submitting score:', error)
-      showResultMessage(`Error submitting score: ${error.message}`, 'error')
+      showResultMessage('Score saved locally. Online submission failed.', 'error')
     }
 
-    setResultMessage(`🎉 Round 1 Completed!\nYour Score: ${score} / ${questions.length}\nProceeding to Results...`)
-    setResultType('success')
+    if (!hasReduced && reduceLamps) {
+      setHasReduced(true)
+      setLampsAfter(Math.max(lampsRemaining - 1, 1))
+      reduceLamps()
+    }
 
-    setTimeout(() => {
-      if (reduceLamps) reduceLamps()
-      navigate('/results', { state: { mode: 'round1' } })
-    }, 2000)
+    setIsComplete(true)
   }
 
   const showResultMessage = (message, type) => {
@@ -164,65 +171,74 @@ export default function Round1({ reduceLamps }) {
 
   const handleGoBack = () => {
     if (window.confirm('Are you sure you want to go back? Your progress will be lost.')) {
-      navigate('/')
+      navigate('/home')
     }
   }
 
   const question = questions[currentQuestionIndex]
-  const timerClass = timeLeft <= 10 ? 'danger' : timeLeft <= 30 ? 'warning' : ''
-  const lampsRemaining = localStorage.getItem('lampsRemaining') || '4'
 
   return (
     <>
       <Background />
       <main className="event-container">
-        <header className="round-header">
-          <div className="header-top">
-            <h1 className="round-title">ROUND 1</h1>
-            <div className="lamps-indicator">{lampsRemaining} Lamps Remaining</div>
-          </div>
-          <div className="timer-section">
-            <span className="timer-label">Time Remaining:</span>
-            <span className={`timer-display ${timerClass}`}>{formatTime(timeLeft)}</span>
-          </div>
-        </header>
+        <RoundHeader
+          roundTitle="ROUND 1"
+          subtitle="Solve the riddles - 5 points each"
+          lampsRemaining={lampsRemaining}
+          timeLeft={timeLeft}
+          showTimer={!isComplete}
+        />
 
-        <div className="quiz-container">
-          <div className="question-display">
-            <h2 className="question-text">Q{currentQuestionIndex + 1}. {question.question}</h2>
-
-            {question.questionImage && (
-              <div className="question-image-wrapper">
-                <img src={question.questionImage} alt="Question" className="question-image" />
+        {!isComplete ? (
+          <div className="quiz-container">
+            <QuestionCard
+              questionNumber={currentQuestionIndex + 1}
+              questionText={question.question}
+              questionImage={question.questionImage}
+            >
+              <div className="options-grid">
+                {question.options.map((option, index) => (
+                  <div
+                    key={index}
+                    className={`option-card ${selectedAnswers[currentQuestionIndex] === index ? 'selected' : ''}`}
+                    onClick={() => handleSelectOption(index)}
+                  >
+                    {option.text && <p>{option.text}</p>}
+                    {option.image && <img src={option.image} alt={`Option ${index + 1}`} />}
+                  </div>
+                ))}
               </div>
-            )}
+            </QuestionCard>
 
-            <div className="options-grid">
-              {question.options.map((option, index) => (
-                <div
-                  key={index}
-                  className={`option-card ${selectedAnswers[currentQuestionIndex] === index ? 'selected' : ''}`}
-                  onClick={() => handleSelectOption(index)}
-                >
-                  {option.text && <p>{option.text}</p>}
-                  {option.image && <img src={option.image} alt={`Option ${index + 1}`} />}
-                </div>
-              ))}
-            </div>
+            <ActionButtons
+              buttons={[
+                { label: 'Go Home', variant: 'btn-secondary', onClick: handleGoBack },
+                {
+                  label: currentQuestionIndex === questions.length - 1 ? 'Submit Answers' : 'Next Question',
+                  variant: 'btn-golden',
+                  onClick: handleSubmitQuestion
+                }
+              ]}
+            />
+
+            <ResultMessage message={resultMessage} type={resultType} visible={!!resultMessage} />
           </div>
-        </div>
-
-        <div className="round-actions">
-          <button className="btn btn-secondary" onClick={handleGoBack}>← Go Home</button>
-          <button className="btn btn-golden" onClick={handleSubmitQuestion}>
-            {currentQuestionIndex === questions.length - 1 ? 'Submit All Answers →' : 'Next Question →'}
-          </button>
-        </div>
-
-        {resultMessage && (
-          <div className={`result-message ${resultType}`} style={{ display: 'block' }}>
-            {resultMessage}
-          </div>
+        ) : (
+          <section className="round-complete">
+            <LampDisplay lampsRemaining={lampsAfter} showMessage={false} />
+            <ScoreDisplay
+              scores={[
+                { label: 'Round 1 Score', value: finalScore },
+                { label: 'Max Possible', value: questions.length * POINTS_PER_QUESTION }
+              ]}
+              showTotal={false}
+            />
+            <ActionButtons
+              buttons={[
+                { label: 'Proceed to Round 2', variant: 'btn-golden', onClick: () => navigate('/round2') }
+              ]}
+            />
+          </section>
         )}
       </main>
     </>

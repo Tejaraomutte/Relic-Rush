@@ -1,7 +1,7 @@
 body.game-nqueens {
   margin: 0;
   font-family: "Poppins", sans-serif;
-  background: linear-gradient(135deg, #141e30, #243b55);
+  background: linear-gradient(135deg, #1a0033, #0f1419);
   display: flex;
   justify-content: center;
   align-items: center;

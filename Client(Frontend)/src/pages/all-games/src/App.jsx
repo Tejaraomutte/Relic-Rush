@@ -3,35 +3,31 @@ import Kriss from './kriss-kross/App';
 import Magic from './magic-square/App';
 import MathPuzzle from './mathpuzzle/App';
 import NQueens from './n-queens/App';
-import Sudoku from './sudoku/App';
 import Hanoi from './towers-of-hanoi/App';
-import './App.css';
 
-const GAME_ORDER = ['kriss', 'math', 'magic', 'nqueens', 'sudoku', 'hanoi'];
+const GAME_ORDER = ['kriss', 'math', 'nqueens', 'magic', 'hanoi'];
 
-function App({ sequentialMode = false, onRoundComplete }) {
+const GAME_TITLES = {
+  kriss: 'Kriss-Kross Puzzle',
+  math: 'Math Puzzle',
+  nqueens: 'N-Queens Challenge',
+  magic: 'Magic Square',
+  hanoi: 'Towers of Hanoi'
+};
+
+function App({ sequentialMode = false, onRoundComplete, onProgress }) {
   const [game, setGame] = useState(sequentialMode ? GAME_ORDER[0] : null);
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [completedGames, setCompletedGames] = useState(0);
-
-  // add a class to <body> so individual game CSS can target backgrounds
-  React.useEffect(() => {
-    const classPrefix = 'game-';
-    // remove any previous game-* classes
-    document.body.className = document.body.className
-      .split(' ')
-      .filter(c => !c.startsWith(classPrefix))
-      .join(' ');
-    if (game) {
-      document.body.classList.add(`${classPrefix}${game}`);
-    }
-  }, [game]);
 
   const handleGameComplete = () => {
     if (!sequentialMode) return;
 
     const nextCompleted = completedGames + 1;
     setCompletedGames(nextCompleted);
+    if (onProgress) {
+      onProgress(nextCompleted);
+    }
 
     if (nextCompleted >= GAME_ORDER.length) {
       if (onRoundComplete) {
@@ -49,41 +45,66 @@ function App({ sequentialMode = false, onRoundComplete }) {
   };
 
   const renderGame = () => {
+    const gameProps = { 
+      onComplete: handleGameComplete,
+      gameTitle: GAME_TITLES[game] 
+    };
+
     switch (game) {
-      case 'kriss': return <Kriss onComplete={handleGameComplete} />;
-      case 'magic': return <Magic onComplete={handleGameComplete} />;
-      case 'math': return <MathPuzzle onComplete={handleGameComplete} />;
-      case 'nqueens': return <NQueens onComplete={handleGameComplete} />;
-      case 'sudoku': return <Sudoku onComplete={handleGameComplete} />;
-      case 'hanoi': return <Hanoi onComplete={handleGameComplete} />;
+      case 'kriss': return <Kriss {...gameProps} />;
+      case 'magic': return <Magic {...gameProps} />;
+      case 'math': return <MathPuzzle {...gameProps} />;
+      case 'nqueens': return <NQueens {...gameProps} />;
+      case 'hanoi': return <Hanoi {...gameProps} />;
       default: return null;
     }
   };
 
   return (
-    <div className="root-container">
-      <header>
-        <h1>Round 2 Games</h1>
-        {sequentialMode && <p>Complete each game to unlock the next one.</p>}
-        {sequentialMode && <p>{`Progress: ${completedGames}/${GAME_ORDER.length}`}</p>}
-      </header>
-      {!game && !sequentialMode && (
-        <nav className="menu">
-          <button onClick={() => setGame('kriss')}>Kriss-Kross</button>
-          <button onClick={() => setGame('magic')}>Magic Square</button>
-          <button onClick={() => setGame('math')}>Math Puzzle</button>
-          <button onClick={() => setGame('nqueens')}>N-Queens</button>
-          <button onClick={() => setGame('sudoku')}>Sudoku</button>
-          <button onClick={() => setGame('hanoi')}>Towers of Hanoi</button>
-        </nav>
-      )}
-      {game && (
-        <div className="game-area">
-          {!sequentialMode && <button className="back-btn" onClick={() => setGame(null)}>&larr; Back to menu</button>}
-          {renderGame()}
+    <>
+      {/* Progress indicator for sequential mode */}
+      {sequentialMode && (
+        <div className="game-progress">
+          <p className="game-progress-text">
+            Game Progress: {completedGames + 1} of {GAME_ORDER.length}
+          </p>
         </div>
       )}
-    </div>
+
+      {/* Menu for non-sequential mode */}
+      {!game && !sequentialMode && (
+        <div className="quiz-container">
+          <div className="question-display">
+            <h2 className="question-text">Choose a Game</h2>
+            <div className="options-grid">
+              {GAME_ORDER.map(gameKey => (
+                <button 
+                  key={gameKey}
+                  className="btn btn-golden game-option-btn" 
+                  onClick={() => setGame(gameKey)}
+                >
+                  {GAME_TITLES[gameKey]}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game area */}
+      {game && (
+        <>
+          {!sequentialMode && (
+            <div className="round-actions left-align">
+              <button className="btn btn-secondary" onClick={() => setGame(null)}>
+                ← Back to Menu
+              </button>
+            </div>
+          )}
+          {renderGame()}
+        </>
+      )}
+    </>
   );
 }
 

@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 function App({ onComplete }) {
+  useEffect(() => {
+    document.body.classList.add("game-magic");
+    return () => document.body.classList.remove("game-magic");
+  }, []);
+
   const magicSum = 65;
 
   const initialGrid = [
