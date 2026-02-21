@@ -15,10 +15,24 @@ const GAME_TITLES = {
   hanoi: 'Towers of Hanoi'
 };
 
-function App({ sequentialMode = false, onRoundComplete, onProgress }) {
+const GAME_HINTS = {
+  kriss: 'Start filling the longest words (9 & 8 letters) first — they unlock most intersections quickly.',
+  math: 'Find the missing numbers so that all horizontal and vertical equations satisfy BODMAS (order of operations).',
+  nqueens: 'Start by placing a queen in a corner or edge square where it attacks the fewest boxes.',
+  magic: `In a 5×5 magic square using numbers 1–25, every pair of numbers placed symmetrically opposite to the center (13) adds up to 26.
+  17 ↔ 9
+  15 ↔ 11
+  4 ↔ 22
+  5 ↔ 21
+  1 ↔ 25`,
+  hanoi: 'First move the smallest disk to Tower C, then focus on moving the remaining stack to Tower B before placing the largest disk.'
+};
+
+function App({ sequentialMode = false, onRoundComplete, onProgress, onHintUsed }) {
   const [game, setGame] = useState(sequentialMode ? GAME_ORDER[0] : null);
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [completedGames, setCompletedGames] = useState(0);
+  const [usedHintGames, setUsedHintGames] = useState([]);
 
   const handleGameComplete = () => {
     if (!sequentialMode) return;
@@ -47,7 +61,7 @@ function App({ sequentialMode = false, onRoundComplete, onProgress }) {
   const renderGame = () => {
     const gameProps = { 
       onComplete: handleGameComplete,
-      gameTitle: GAME_TITLES[game] 
+      gameTitle: GAME_TITLES[game]
     };
 
     switch (game) {
@@ -57,6 +71,17 @@ function App({ sequentialMode = false, onRoundComplete, onProgress }) {
       case 'nqueens': return <NQueens {...gameProps} />;
       case 'hanoi': return <Hanoi {...gameProps} />;
       default: return null;
+    }
+  };
+
+  const handleHintClick = () => {
+    if (!game) return;
+
+    if (!usedHintGames.includes(game)) {
+      setUsedHintGames(prev => [...prev, game]);
+      if (onHintUsed) {
+        onHintUsed();
+      }
     }
   };
 
@@ -99,6 +124,18 @@ function App({ sequentialMode = false, onRoundComplete, onProgress }) {
               <button className="btn btn-secondary" onClick={() => setGame(null)}>
                 ← Back to Menu
               </button>
+            </div>
+          )}
+          {sequentialMode && (
+            <div className="allgames-hint-panel">
+              <button className="btn btn-secondary allgames-hint-btn" onClick={handleHintClick}>
+                {usedHintGames.includes(game) ? '💡 Hint Used' : '💡 Hint (-5 pts)'}
+              </button>
+              {usedHintGames.includes(game) && (
+                <p className="allgames-hint-text">
+                  {GAME_HINTS[game] || 'Think step-by-step and validate each move before final submission.'}
+                </p>
+              )}
             </div>
           )}
           {renderGame()}

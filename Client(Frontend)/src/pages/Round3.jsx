@@ -26,8 +26,8 @@ export default function Round3({ lampsRemaining = 2 }) {
       <main className="event-container">
         <RoundHeader 
           roundTitle="ROUND 3"
-          subtitle="The Ultimate Challenge Awaits"
-          lampsRemaining={lampsRemaining}
+          subtitle=""
+          lampsRemaining={null}
           timeLeft={timeLeft}
           showTimer={true}
         />

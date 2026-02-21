@@ -41,7 +41,27 @@ const SOLUTIONS = {
   "10-8": "39"
 };
 
-const MathPuzzle = ({ onComplete }) => {
+/**
+ * CLUES FOR EACH PUZZLE POSITION
+ */
+const CLUES = {
+  "0-2": "12 + ? = 36",
+  "0-8": "? = 14 + 8",
+  "2-0": "? - 2 + 4 = 10",
+  "2-2": "? = 8 - 4",
+  "2-6": "? = 23 + 32",
+  "4-0": "? × 6 ÷ 5 = 8.4",
+  "4-4": "? × 5 = 45",
+  "4-8": "? = 9 × 5",
+  "6-4": "? = 20 - 11",
+  "8-2": "84 ÷ ? = 7",
+  "8-4": "56 + 20 - 56 = ?",
+  "10-2": "63 - ? = 31",
+  "10-6": "? = 11 + 13",
+  "10-8": "? = 48 - 9"
+};
+
+const MathPuzzle = ({ onComplete, onHintUsed }) => {
   useEffect(() => {
     document.body.classList.add("game-math");
     return () => document.body.classList.remove("game-math");
@@ -50,15 +70,32 @@ const MathPuzzle = ({ onComplete }) => {
   const [grid, setGrid] = useState(INITIAL_GRID);
   const [showErrors, setShowErrors] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [shownClues, setShownClues] = useState(new Set());
+  const [selectedCell, setSelectedCell] = useState(null);
 
   const handleChange = (row, col, value) => {
     if (value !== '' && !/^\d+$/.test(value)) return;
     setShowErrors(false);
+    setSelectedCell(`${row}-${col}`);
 
     const newGrid = grid.map((r, rIdx) =>
       r.map((cell, cIdx) => (rIdx === row && cIdx === col ? value : cell))
     );
     setGrid(newGrid);
+  };
+
+  const handleShowClue = () => {
+    if (!selectedCell || !CLUES[selectedCell]) {
+      alert("Please select a puzzle cell to get a clue for.");
+      return;
+    }
+
+    if (!shownClues.has(selectedCell)) {
+      setShownClues(new Set([...shownClues, selectedCell]));
+      if (onHintUsed) {
+        onHintUsed();
+      }
+    }
   };
 
   const verifySolution = () => {
@@ -110,7 +147,8 @@ const MathPuzzle = ({ onComplete }) => {
                 return (
                   <div
                     key={solKey}
-                    className={`mathpuzzle-cell ${isWall ? 'wall' : ''} ${isInput ? 'input' : 'static'} ${isIncorrect ? 'incorrect' : ''}`}
+                    className={`mathpuzzle-cell ${isWall ? 'wall' : ''} ${isInput ? 'input' : 'static'} ${isIncorrect ? 'incorrect' : ''} ${selectedCell === solKey && isInput ? 'selected' : ''}`}
+                    onClick={() => isInput && setSelectedCell(solKey)}
                   >
                     {isInput ? (
                       <input
@@ -143,7 +181,20 @@ const MathPuzzle = ({ onComplete }) => {
           >
             Reset
           </button>
+          <button 
+            className="mathpuzzle-btn hint" 
+            onClick={handleShowClue}
+            title="Get a clue (costs 5 points)"
+          >
+            💡 Hint (-5 pts)
+          </button>
         </div>
+
+        {selectedCell && CLUES[selectedCell] && shownClues.has(selectedCell) && (
+          <div className="mathpuzzle-clue">
+            <strong>Clue for selected cell:</strong> {CLUES[selectedCell]}
+          </div>
+        )}
         {completed && (
           <div className="mathpuzzle-success">You have completed the puzzle!</div>
         )}

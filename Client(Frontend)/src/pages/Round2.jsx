@@ -10,6 +10,7 @@ import AllGames from './all-games/src/App'
 
 const ROUND_DURATION = 1200
 const POINTS_PER_GAME = 5
+const HINT_PENALTY = 5
 
 export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
@@ -18,8 +19,9 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const [round2Score, setRound2Score] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const [resultMessage, setResultMessage] = useState('')
-  const [lampsAfter, setLampsAfter] = useState(lampsRemaining)
+  const [lampsAfter, setLampsAfter] = useState(() => Number(localStorage.getItem('lampsRemaining') || lampsRemaining))
   const [hasReduced, setHasReduced] = useState(false)
+  const [hintsPenalty, setHintsPenalty] = useState(0)
 
   const round1Score = Number(localStorage.getItem('round1Score') || 0)
 
@@ -42,7 +44,8 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
 
   const handleProgress = (count) => {
     setCompletedGames(count)
-    setRound2Score(count * POINTS_PER_GAME)
+    const score = Math.max((count * POINTS_PER_GAME) - hintsPenalty, 0)
+    setRound2Score(score)
   }
 
   const handleTimeUp = () => {
@@ -51,13 +54,15 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   }
 
   const completeRound = (completedCount) => {
-    const score = completedCount * POINTS_PER_GAME
+    const score = Math.max((completedCount * POINTS_PER_GAME) - hintsPenalty, 0)
     setRound2Score(score)
     localStorage.setItem('round2Score', String(score))
 
     if (!hasReduced && reduceLamps) {
+      const currentLamps = Number(localStorage.getItem('lampsRemaining') || lampsRemaining)
+      const newLamps = Math.max(currentLamps - 1, 1)
       setHasReduced(true)
-      setLampsAfter(Math.max(lampsRemaining - 1, 1))
+      setLampsAfter(newLamps)
       reduceLamps()
     }
 
@@ -76,8 +81,8 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
       <main className="event-container">
         <RoundHeader
           roundTitle="ROUND 2"
-          subtitle="Conquer the puzzles - 5 points each"
-          lampsRemaining={lampsRemaining}
+          subtitle=""
+          lampsRemaining={null}
           timeLeft={timeLeft}
           showTimer={!isComplete}
         />
@@ -88,6 +93,14 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
               sequentialMode={true}
               onRoundComplete={handleRound2Complete}
               onProgress={handleProgress}
+              onHintUsed={() => {
+                setHintsPenalty(prevPenalty => {
+                  const newPenalty = prevPenalty + HINT_PENALTY
+                  const newScore = Math.max((completedGames * POINTS_PER_GAME) - newPenalty, 0)
+                  setRound2Score(newScore)
+                  return newPenalty
+                })
+              }}
             />
 
             <ResultMessage message={resultMessage} type="info" visible={!!resultMessage} />

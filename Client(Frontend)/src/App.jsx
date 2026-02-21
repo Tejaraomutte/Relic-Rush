@@ -31,6 +31,7 @@ export default function App() {
   const reduceLamps = () => {
     setLampsRemaining(prev => {
       const newCount = Math.max(prev - 1, 1)
+      localStorage.setItem('lampsRemaining', newCount.toString())
       return newCount
     })
   }

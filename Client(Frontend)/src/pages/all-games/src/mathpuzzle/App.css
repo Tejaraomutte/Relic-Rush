@@ -140,3 +140,29 @@ body.game-math .mathpuzzle-success {
   color: #51cf66;
   font-weight: 600;
 }
+
+body.game-math .mathpuzzle-cell.selected {
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+  background: rgba(255, 215, 0, 0.15);
+}
+
+body.game-math .mathpuzzle-btn.hint {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border-color: #8b5cf6;
+}
+
+body.game-math .mathpuzzle-btn.hint:hover {
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+body.game-math .mathpuzzle-clue {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  background: rgba(99, 102, 241, 0.1);
+  color: #c4b5fd;
+  font-size: 16px;
+  line-height: 1.6;
+}
