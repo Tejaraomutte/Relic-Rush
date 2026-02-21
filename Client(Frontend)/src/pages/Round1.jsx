@@ -11,41 +11,90 @@ import { submitRoundScore } from '../utils/api'
 
 const questions = [
   {
-    question: "Find the intruder",
-    questionImage: "src/assets/images/q1.webp",
+    question: `In the Kingdom of Zafaran, the Sultan must send a royal message from City A (Golden Palace) to City F (Emerald Harbor).
+  The desert roads have travel costs (in gold coins):
+  Golden Palace (A) --4-- Spice Bazaar (B)
+  Golden Palace (A) --2-- Mirage Oasis (C)
+  Spice Bazaar (B) --5-- Mirage Oasis (C)
+  Spice Bazaar (B) --10-- Ruby Fortress (D)
+  Mirage Oasis (C) --3-- Pearl Garden (E)
+  Pearl Garden (E) --4-- Ruby Fortress (D)
+  Ruby Fortress (D) --11-- Emerald Harbor (F)
+  Pearl Garden (E) --5-- Emerald Harbor (F)
+  💰 Think Like a Royal Advisor
+  •	Do not count number of cities.
+  •	Count total gold cost.
+  •	Choose the smallest total.
+
+  What is the least costly route for the royal messenger to reach Emerald Harbor (F) from the Golden Palace (A)?`,
+    questionImage: "src/assets/images/q1.jpeg",
     options: [
-      { text: "1", image: null },
-      { text: "2", image: null },
-      { text: "3", image: null },
-      { text: "4", image: null },
-      { text: "5", image: null }
+      { text: "A → B → D → F", image: null },
+      { text: " A → C → E → F", image: null },
+      { text: "A → C → E → D → F", image: null },
+      { text: "A → B → C → E → F", image: null },
     ],
     correct: 1
   },
   {
-    question: "A directed graph has four nodes: A, B, C, and D. The edges and their weights are: A -> B (weight 2), A -> C (weight 5), B -> C (weight 1), B -> D (weight 4), C -> D (weight 1). What is the weight of the shortest path from A to D?",
-    questionImage: "src/assets/images/q2.jpg",
+    question: `In the Sultan’s golden courtyard, six enchanted treasure chests are arranged in a row:
+  3, 1, 4, 1, 5, 9.
+  The Royal Vizier performs one magical sweep from left to right.
+  During this sweep:
+  •	He compares each pair of neighboring chests.
+  •	If the left chest is heavier than the right one, he swaps them.
+  •	He continues this process only once across the row.
+  After completing this single royal sweep, what is the new arrangement of the treasure chests?`,
+    questionImage: "src/assets/images/q3.jpeg",
     options: [
-      { text: "7", image: null },
-      { text: "4", image: null },
-      { text: "6", image: null },
-      { text: "5", image: null }
+      { text: "1, 3, 1, 4, 5, 9", image: null },
+      { text: "3, 1, 4, 1, 5, 9", image: null },
+      { text: "9, 5, 4, 1, 3, 1", image: null },
+      { text: "1, 1, 3, 4, 5, 9", image: null }
+    ],
+    correct: 0
+  },
+  {
+    question: `S4. In the ancient desert kingdom, a royal scroll contains the following encrypted character array:
+char a[] = {
+'N','O','d','m','a','e','d','t','s',
+'r','i','e','b','e','r','s','O','t',
+'a','s','n','i','s','i','w','a','g',
+'t','e','h','r','s','t'
+};
+The royal programmer casts this spell:
+char clue[50];
+int j = 0;
+
+for(int i = 0; i < 33; i++) {
+    if((i + 1) % 3 == 0) {   // Position counting starts from 1
+        clue[j] = a[i];
+        j++;
+    }
+}
+clue[j] = '\0';
+printf("%s", clue);
+What is the output of the above code?`,
+    questionImage: "src/assets/images/q2.jpeg",
+    options: [
+      { text: " Nomadtribes", image: null },
+      { text: "desertnight", image: null },
+      { text: "Oasiswaters", image: null },
+      { text: "desertlight", image: null }
     ],
     correct: 1
   },
   {
-    question: "Solve this number visual riddle",
-    questionImage: "src/assets/images/q3.webp",
-    options: [
-      { text: "4", image: null },
-      { text: "6", image: null },
-      { text: "8", image: null },
-      { text: "10", image: null }
-    ],
-    correct: 2
-  },
-  {
-    question: "Solve this question",
+    question: `In the Sultan’s ancient palace lies a mystical floor made of enchanted tiles.
+Each tile hides sacred energy, and only the wisest explorers can reveal its true power.
+The Royal Architect presents a strange formation of tiles.
+He whispers:
+“Every complete square hidden within the pattern holds magical strength.
+Count wisely… for even smaller squares within larger ones possess power.”
+A sample sacred tile formation below contains 5 total squares.
+Now, the Grand Vizier reveals a larger enchanted pattern.
+Your task is to uncover all possible squares hidden inside the formation —
+including small, medium, and large ones.`,
     questionImage: "src/assets/images/q4.webp",
     options: [
       { text: "12", image: null },
@@ -56,7 +105,12 @@ const questions = [
     correct: 1
   },
   {
-    question: "Find the figure from the option, that will replace the question mark (?) from the problem figure.",
+    question:`Deep within the Sultan’s secret chamber lies a mystical wall carved with ancient symbols.
+These symbols were designed by royal scholars to protect the Original Genie Lamp.
+However, time has damaged one portion of the sacred pattern…
+A section of the magical carving has vanished, leaving behind a missing symbol marked with a question mark (?).
+Question:
+Find the correct figure from the given options that perfectly replaces the missing part (?) in the problem figure and restores the royal pattern.`,
     questionImage: "src/assets/images/q5.png",
     options: [
       { text: null, image: "src/assets/images/q5-1.png" },
@@ -69,7 +123,7 @@ const questions = [
 ]
 
 const ROUND_NUMBER = 1
-const ROUND_DURATION = 300
+const ROUND_DURATION = 900
 const POINTS_PER_QUESTION = 5
 
 export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
@@ -120,11 +174,6 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   }
 
   const handleSubmitQuestion = async () => {
-    if (selectedAnswers[currentQuestionIndex] === null) {
-      showResultMessage('Please select an answer before submitting', 'error')
-      return
-    }
-
     if (currentQuestionIndex === questions.length - 1) {
       await completeRound(selectedAnswers)
     } else {
@@ -183,8 +232,8 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
       <main className="event-container">
         <RoundHeader
           roundTitle="ROUND 1"
-          subtitle="Solve the riddles - 5 points each"
-          lampsRemaining={lampsRemaining}
+          subtitle=""
+          lampsRemaining={null}
           timeLeft={timeLeft}
           showTimer={!isComplete}
         />
@@ -212,7 +261,11 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
 
             <ActionButtons
               buttons={[
-                { label: 'Go Home', variant: 'btn-secondary', onClick: handleGoBack },
+                ...(currentQuestionIndex > 0 ? [{
+                  label: 'Previous Question',
+                  variant: 'btn-secondary',
+                  onClick: () => setCurrentQuestionIndex(prev => prev - 1)
+                }] : []),
                 {
                   label: currentQuestionIndex === questions.length - 1 ? 'Submit Answers' : 'Next Question',
                   variant: 'btn-golden',

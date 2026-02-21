@@ -29,7 +29,7 @@ export default function RoundHeader({
     <header className="round-header">
       <div className="header-top">
         <h1 className="round-title">{roundTitle}</h1>
-        <div className="lamps-indicator">{lampsRemaining} Lamps Remaining</div>
+        {lampsRemaining !== null && <div className="lamps-indicator">{lampsRemaining} Lamps Remaining</div>}
       </div>
       {subtitle && <p className="round-subtitle">{subtitle}</p>}
       {showTimer && timeLeft !== null && (
