@@ -44,7 +44,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/round1" element={<Round1 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
         <Route path="/round2" element={<Round2 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
-        <Route path="/round3" element={<Round3 lampsRemaining={lampsRemaining} />} />
+        <Route path="/round3" element={<Round3 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
         <Route path="/results" element={<Results lampsRemaining={lampsRemaining} />} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>

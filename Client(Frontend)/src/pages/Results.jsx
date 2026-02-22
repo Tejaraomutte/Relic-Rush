@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
 import LampDisplay from '../components/LampDisplay'
+import GenieRevealOverlay from '../components/GenieRevealOverlay'
 import { getLeaderboard } from '../utils/api'
+import { triggerGenieReveal } from '../utils/roundFlow'
 
 const API_URL = 'http://localhost:5000'
 
@@ -10,14 +12,21 @@ export default function Results({ lampsRemaining = 1 }) {
   const navigate = useNavigate()
   const location = useLocation()
   const mode = location.state?.mode || 'final'
+  const resultData = location.state?.resultData || null
   const isRound1Mode = mode === 'round1'
   const isRound2Mode = mode === 'round2'
   const isFinalMode = mode === 'final'
+  const isWinnerFromState = Boolean(resultData?.isWinner)
   const [round1Score, setRound1Score] = useState(0)
   const [round2Score, setRound2Score] = useState(0)
   const [round3Score, setRound3Score] = useState(0)
   const [totalScore, setTotalScore] = useState(0)
   const [leaderboard, setLeaderboard] = useState([])
+  const [revealActive, setRevealActive] = useState(false)
+  const [interactionLocked, setInteractionLocked] = useState(false)
+  const [revealPlayed, setRevealPlayed] = useState(() => localStorage.getItem('genieRevealPlayed') === 'true')
+  const finalSubmittedRef = useRef(false)
+  const revealTriggeredRef = useRef(false)
 
   useEffect(() => {
     const user = localStorage.getItem('user')
@@ -36,11 +45,29 @@ export default function Results({ lampsRemaining = 1 }) {
     setRound3Score(r3)
     setTotalScore(total)
 
-    if (isFinalMode) {
+    if (isFinalMode && !finalSubmittedRef.current) {
+      finalSubmittedRef.current = true
       loadLeaderboard()
       submitFinalScore(r1, r2, r3, total)
     }
-  }, [navigate, isFinalMode])
+
+    if (isFinalMode && isWinnerFromState && !revealPlayed && !revealTriggeredRef.current) {
+      revealTriggeredRef.current = true
+      triggerGenieReveal({
+        setRevealActive,
+        setInteractionLocked,
+        setRevealPlayed
+      })
+    }
+  }, [navigate, isFinalMode, isWinnerFromState, revealPlayed])
+
+  useEffect(() => {
+    if (revealPlayed) {
+      localStorage.setItem('genieRevealPlayed', 'true')
+    }
+  }, [revealPlayed])
+
+
 
   const loadLeaderboard = async () => {
     try {
@@ -80,6 +107,7 @@ export default function Results({ lampsRemaining = 1 }) {
     localStorage.removeItem('round2Score')
     localStorage.removeItem('round3Score')
     localStorage.removeItem('lampsRemaining')
+    localStorage.removeItem('genieRevealPlayed')
     navigate('/')
   }
 
@@ -95,10 +123,14 @@ export default function Results({ lampsRemaining = 1 }) {
     }
   }
 
+  const resolvedScore = resultData?.score ?? (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
+  const resolvedTimeTaken = resultData?.timeTakenSeconds
+  const resolvedQualification = resultData?.qualificationStatus || (isFinalMode ? (isWinnerFromState ? 'Qualified' : 'Not Qualified') : 'Qualified')
+
   return (
     <>
       <Background />
-      <main className="event-container result-container">
+      <main className={`event-container result-container ${interactionLocked ? 'interaction-locked' : ''}`}>
         <header className="result-header">
           <h1 className="event-title">
             {isRound1Mode ? 'ROUND 1 RESULT' : isRound2Mode ? 'ROUND 2 RESULT' : "JOURNEY'S END"}
@@ -109,10 +141,25 @@ export default function Results({ lampsRemaining = 1 }) {
           <p className="loading-text">Review your Round 1 score, then click Next Round to continue.</p>
         )}
         {isRound2Mode && (
-          <p className="loading-text">Round 2 completed. Click Next Round to continue to Round 3.</p>
+          <p className="loading-text">Round 2 completed! Ready to face your next challenge?</p>
         )}
 
         <LampDisplay lampsRemaining={lampsRemaining} showMessage={true} />
+
+        <div className="score-card result-panel-card">
+          <div className="score-item">
+            <span className="score-label">Score</span>
+            <span className="score-value">{resolvedScore}</span>
+          </div>
+          <div className="score-item">
+            <span className="score-label">Time Taken</span>
+            <span className="score-value result-meta">{typeof resolvedTimeTaken === 'number' ? `${resolvedTimeTaken}s` : 'N/A'}</span>
+          </div>
+          <div className="score-item">
+            <span className="score-label">Qualification Status</span>
+            <span className="score-value result-meta">{resolvedQualification}</span>
+          </div>
+        </div>
 
         <div className="score-card">
           <div className="score-item">
@@ -160,13 +207,26 @@ export default function Results({ lampsRemaining = 1 }) {
           </div>
         )}
 
+        {isFinalMode && !isWinnerFromState && (
+          <div className="result-message error visible relic-hidden-message">The relic remains hidden...</div>
+        )}
+
         <div className="result-actions">
           <button className="btn btn-golden" onClick={handleHome}>Return Home</button>
           {isRound1Mode && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Next Round</button>}
-          {isRound2Mode && <button className="btn btn-secondary" onClick={() => navigate('/round3')}>Next Round</button>}
+          {isRound2Mode && <button className="btn btn-secondary" onClick={() => navigate('/round3')}>Enter Round 3</button>}
           {isFinalMode && <button className="btn btn-secondary" onClick={handleShare}>Share Score</button>}
         </div>
       </main>
+
+      <GenieRevealOverlay
+        active={isFinalMode && isWinnerFromState && revealActive}
+        onComplete={() => {
+          setRevealActive(false)
+          setInteractionLocked(false)
+          setRevealPlayed(true)
+        }}
+      />
     </>
   )
 }

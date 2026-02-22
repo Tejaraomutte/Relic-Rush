@@ -25,7 +25,7 @@ const GAME_HINTS = {
   4 ↔ 22
   5 ↔ 21
   1 ↔ 25`,
-  hanoi: 'First move the smallest disk to Tower C, then focus on moving the remaining stack to Tower B before placing the largest disk.'
+  hanoi: 'First move the smallest disk to Tower B, then focus on moving the remaining stack to Tower B before placing the largest disk.'
 };
 
 function App({ sequentialMode = false, onRoundComplete, onProgress, onHintUsed }) {

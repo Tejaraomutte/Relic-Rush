@@ -43,6 +43,7 @@ export default function Login() {
       localStorage.setItem('round2Score', '0')
       localStorage.setItem('round3Score', '0')
       localStorage.setItem('lampsRemaining', '4')
+      localStorage.removeItem('genieRevealPlayed')
 
       setTimeout(() => {
         navigate('/home')

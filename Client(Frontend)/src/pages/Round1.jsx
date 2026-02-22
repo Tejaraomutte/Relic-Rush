@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
 import RoundHeader from '../components/RoundHeader'
@@ -8,6 +8,7 @@ import ResultMessage from '../components/ResultMessage'
 import ScoreDisplay from '../components/ScoreDisplay'
 import LampDisplay from '../components/LampDisplay'
 import { submitRoundScore } from '../utils/api'
+import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 
 const questions = [
   {
@@ -125,15 +126,19 @@ Find the correct figure from the given options that perfectly replaces the missi
 const ROUND_NUMBER = 1
 const ROUND_DURATION = 900
 const POINTS_PER_QUESTION = 5
+const QUALIFICATION_SCORE = 10
 
 export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
+  const startedAtRef = useRef(Date.now())
+  const submittedRef = useRef(false)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState(new Array(questions.length).fill(null))
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
   const [resultMessage, setResultMessage] = useState('')
   const [resultType, setResultType] = useState('')
   const [isComplete, setIsComplete] = useState(false)
+  const [isAnswerLocked, setIsAnswerLocked] = useState(false)
   const [finalScore, setFinalScore] = useState(0)
   const [lampsAfter, setLampsAfter] = useState(lampsRemaining)
   const [hasReduced, setHasReduced] = useState(false)
@@ -145,49 +150,67 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
       return
     }
 
-    if (isComplete) return
+    if (isComplete || isAnswerLocked) return
 
-    const id = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(id)
-          onTimeUp()
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
+    const stopTimer = startTimer({
+      duration: ROUND_DURATION,
+      onTick: setTimeLeft,
+      onTimeUp: onTimeUp,
+      isLocked: () => submittedRef.current || isAnswerLocked || isComplete
+    })
 
-    return () => clearInterval(id)
-  }, [navigate, isComplete])
+    return stopTimer
+  }, [navigate, isComplete, isAnswerLocked])
 
   const onTimeUp = async () => {
+    if (submittedRef.current) return
+
     showResultMessage('Time is up! Submitting your answers...', 'info')
     await new Promise(r => setTimeout(r, 600))
-    await completeRound(selectedAnswers)
+    await autoSubmitRound({
+      submittedRef,
+      lockRound: () => setIsAnswerLocked(true),
+      submitRound: () => completeRound(selectedAnswers, true)
+    })
   }
 
   const handleSelectOption = (optionIndex) => {
+    if (isAnswerLocked || submittedRef.current || isComplete) return
+
     const newAnswers = [...selectedAnswers]
     newAnswers[currentQuestionIndex] = optionIndex
     setSelectedAnswers(newAnswers)
   }
 
   const handleSubmitQuestion = async () => {
+    if (isAnswerLocked || submittedRef.current || isComplete) return
+
     if (currentQuestionIndex === questions.length - 1) {
-      await completeRound(selectedAnswers)
+      await autoSubmitRound({
+        submittedRef,
+        lockRound: () => setIsAnswerLocked(true),
+        submitRound: () => completeRound(selectedAnswers, false)
+      })
     } else {
       setCurrentQuestionIndex(prev => prev + 1)
     }
   }
 
-  const completeRound = async (answers) => {
+  const completeRound = async (answers, wasAutoSubmitted) => {
+    setIsAnswerLocked(true)
+
     const correctCount = answers.reduce((total, answer, index) => {
       if (answer === questions[index].correct) return total + 1
       return total
     }, 0)
 
     const score = correctCount * POINTS_PER_QUESTION
+    const elapsedSeconds = Math.min(
+      Math.max(Math.round((Date.now() - startedAtRef.current) / 1000), 0),
+      ROUND_DURATION
+    )
+    const qualificationStatus = score >= QUALIFICATION_SCORE ? 'Qualified' : 'Not Qualified'
+
     setFinalScore(score)
     localStorage.setItem('round1Score', score.toString())
 
@@ -208,6 +231,17 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     }
 
     setIsComplete(true)
+
+    showResults({
+      navigate,
+      mode: 'round1',
+      resultData: {
+        score,
+        timeTakenSeconds: elapsedSeconds,
+        qualificationStatus,
+        wasAutoSubmitted
+      }
+    })
   }
 
   const showResultMessage = (message, type) => {
@@ -264,12 +298,14 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
                 ...(currentQuestionIndex > 0 ? [{
                   label: 'Previous Question',
                   variant: 'btn-secondary',
-                  onClick: () => setCurrentQuestionIndex(prev => prev - 1)
+                  onClick: () => setCurrentQuestionIndex(prev => prev - 1),
+                  disabled: isAnswerLocked || submittedRef.current
                 }] : []),
                 {
                   label: currentQuestionIndex === questions.length - 1 ? 'Submit Answers' : 'Next Question',
                   variant: 'btn-golden',
-                  onClick: handleSubmitQuestion
+                  onClick: handleSubmitQuestion,
+                  disabled: isAnswerLocked || submittedRef.current
                 }
               ]}
             />
