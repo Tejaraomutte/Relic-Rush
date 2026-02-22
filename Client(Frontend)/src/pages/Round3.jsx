@@ -8,7 +8,7 @@ import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 import FlowBuilder from './flowchart/src/pages/FlowBuilder'
 import DebugRound from './flowchart/src/debug/DebugRound'
 
-const ROUND_DURATION = 1200
+const ROUND_DURATION = 900
 const POINTS_PER_SOLVED_PROBLEM = 5
 
 const SECTION_OPTIONS = [
@@ -116,7 +116,7 @@ export default function Round3({ reduceLamps }) {
     })
   }
 
-  const totalSolved = flowchartSolvedCount + debugSolvedCount
+  const { isEligibleWinner } = getProgressState()
 
   return (
     <>
@@ -180,36 +180,24 @@ export default function Round3({ reduceLamps }) {
           </>
         )}
 
-        {activeSection && (
-          <section className="score-card">
-            <div className="score-item">
-              <span className="score-label">Flowchart Solved</span>
-              <span className="score-value">{flowchartSolvedCount} / 4</span>
-            </div>
-            <div className="score-item">
-              <span className="score-label">Debug Solved</span>
-              <span className="score-value">{debugSolvedCount} / 3</span>
-            </div>
-            <div className="score-item total">
-              <span className="score-label">Total Solved</span>
-              <span className="score-value">{totalSolved} / 7</span>
-            </div>
-          </section>
-        )}
-
         <ResultMessage
           message={statusMessage}
           type={statusMessage === 'You have successfully decoded the relic. Victory lies within the code.' ? 'success' : 'info'}
           visible={!!statusMessage}
         />
 
-        <ActionButtons
-          buttons={[
-            { label: 'Flowchart Challenges', variant: 'btn-secondary', onClick: () => setActiveSection('flowchart'), disabled: isRoundLocked },
-            { label: 'Debug Code Challenges', variant: 'btn-secondary', onClick: () => setActiveSection('debug'), disabled: isRoundLocked },
-            { label: 'Submit Round 3', variant: 'btn-golden', onClick: handleSubmitRound, disabled: isRoundLocked || submittedRef.current }
-          ]}
-        />
+        {isEligibleWinner && (
+          <section className="round-actions" style={{ paddingTop: 0 }}>
+            <button
+              className="btn btn-golden"
+              onClick={handleSubmitRound}
+              disabled={isRoundLocked || submittedRef.current}
+            >
+              Submit Round 3
+            </button>
+          </section>
+        )}
+
       </main>
     </>
   )

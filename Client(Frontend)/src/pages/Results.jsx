@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import LampDisplay from '../components/LampDisplay'
 import GenieRevealOverlay from '../components/GenieRevealOverlay'
+import lamp from '../assets/images/lamp.jpeg'
 import { getLeaderboard } from '../utils/api'
 import { triggerGenieReveal } from '../utils/roundFlow'
 
@@ -144,7 +144,12 @@ export default function Results({ lampsRemaining = 1 }) {
           <p className="loading-text">Round 2 completed! Ready to face your next challenge?</p>
         )}
 
-        <LampDisplay lampsRemaining={lampsRemaining} showMessage={true} />
+        <div className="result-lamp-wrap" aria-hidden="true">
+          <div className={`result-lamp ${isFinalMode && isWinnerFromState ? 'genie-ready' : ''}`}>
+            <img src={lamp} alt="Relic lamp" className="result-lamp-image" />
+            <div className="result-lamp-glow" />
+          </div>
+        </div>
 
         <div className="score-card result-panel-card">
           <div className="score-item">

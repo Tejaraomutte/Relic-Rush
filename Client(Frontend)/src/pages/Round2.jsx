@@ -10,7 +10,7 @@ import AllGames from './all-games/src/App'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 
 const ROUND_DURATION = 1200
-const POINTS_PER_GAME = 5
+const POINTS_PER_GAME = 10
 const HINT_PENALTY = 5
 const QUALIFICATION_SCORE = 10
 

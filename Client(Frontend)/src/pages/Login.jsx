@@ -4,8 +4,9 @@ import Background from '../components/Background'
 
 export default function Login() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [teamName, setTeamName] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,11 +19,12 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const trimmedEmail = email.trim()
+    const trimmedTeamName = teamName.trim()
+    const trimmedPassword = password.trim()
 
     setMessage('')
 
-    if (!trimmedEmail || !password) {
+    if (!trimmedTeamName || !trimmedPassword) {
       showMessage('Please fill in all fields', 'error')
       return
     }
@@ -30,13 +32,22 @@ export default function Login() {
     setLoading(true)
 
     try {
-      // Accept any email and password for now
+      const normalizedTeamName = trimmedTeamName.replace(/\s+/g, '')
+      const normalizedPassword = trimmedPassword.replace(/\s+/g, '')
+      const expectedPassword = `${normalizedTeamName}@relic`
+
+      if (normalizedPassword.toLowerCase() !== expectedPassword.toLowerCase()) {
+        showMessage('Invalid Team Credentials', 'error')
+        return
+      }
+
       showMessage('Login successful! Redirecting...', 'success')
 
+      localStorage.setItem('teamName', trimmedTeamName)
       localStorage.setItem('user', JSON.stringify({
-        email: trimmedEmail,
-        name: trimmedEmail.split('@')[0] || 'Player',
-        id: trimmedEmail
+        email: trimmedTeamName,
+        name: trimmedTeamName,
+        id: trimmedTeamName
       }))
 
       localStorage.setItem('round1Score', '0')
@@ -46,7 +57,7 @@ export default function Login() {
       localStorage.removeItem('genieRevealPlayed')
 
       setTimeout(() => {
-        navigate('/home')
+        navigate('/round1')
       }, 1500)
     } catch (error) {
       console.error('Login error:', error)
@@ -74,27 +85,37 @@ export default function Login() {
 
           <form className="login-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Email Address</label>
+              <label className="form-label">Team Name</label>
               <input
-                type="email"
-                placeholder="your@email.com"
+                type="text"
+                placeholder="Enter your team name"
                 required
                 className="form-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
               />
             </div>
 
             <div className="form-group">
               <label className="form-label">Password</label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                required
-                className="form-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  required
+                  className="form-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="btn btn-golden btn-full" disabled={loading}>
