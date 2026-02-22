@@ -88,7 +88,7 @@ export default function Results({ lampsRemaining = 1 }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: user.email,
+          teamName: user.teamName,
           round: 'final',
           score: total,
           round1: r1,
@@ -203,7 +203,7 @@ export default function Results({ lampsRemaining = 1 }) {
                 leaderboard.map((entry, index) => (
                   <div key={index} className="leaderboard-row">
                     <div className="leaderboard-rank">{index + 1}</div>
-                    <div className="leaderboard-name">{entry.name || entry.email}</div>
+                    <div className="leaderboard-name">{entry.teamName || entry.name || entry.email}</div>
                     <div className="leaderboard-score">{entry.totalScore || 0}</div>
                   </div>
                 ))

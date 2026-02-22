@@ -1,6 +1,31 @@
-const API_URL = 'http://localhost:5000';
+const API_URL = '/api';
 
-export async function submitRoundScore(email, roundNumber, score) {
+export async function loginUser(teamName, password) {
+    try {
+        const response = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                teamName,
+                password
+            })
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.message || 'Invalid credentials');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error during login:', error);
+        throw error;
+    }
+}
+
+export async function submitRoundScore(teamName, roundNumber, score) {
     try {
         const response = await fetch(`${API_URL}/submit-score`, {
             method: 'POST',
@@ -8,7 +33,7 @@ export async function submitRoundScore(email, roundNumber, score) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                email: email,
+                teamName: teamName,
                 round: roundNumber,
                 score: score
             })
@@ -38,7 +63,8 @@ export async function getLeaderboard() {
                 'Content-Type': 'application/json',
             }
         });
-        return await response.json();
+        const data = await response.json();
+        return data.leaderboard || [];
     } catch (error) {
         console.error('Error fetching leaderboard:', error);
         return [];

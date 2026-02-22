@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
+import { loginUser } from '../utils/api'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -32,22 +33,15 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const normalizedTeamName = trimmedTeamName.replace(/\s+/g, '')
-      const normalizedPassword = trimmedPassword.replace(/\s+/g, '')
-      const expectedPassword = `${normalizedTeamName}@relic`
-
-      if (normalizedPassword.toLowerCase() !== expectedPassword.toLowerCase()) {
-        showMessage('Invalid Team Credentials', 'error')
-        return
-      }
+      const loginResponse = await loginUser(trimmedTeamName, trimmedPassword)
 
       showMessage('Login successful! Redirecting...', 'success')
 
-      localStorage.setItem('teamName', trimmedTeamName)
+      localStorage.setItem('teamName', loginResponse.teamName)
       localStorage.setItem('user', JSON.stringify({
-        email: trimmedTeamName,
-        name: trimmedTeamName,
-        id: trimmedTeamName
+        teamName: loginResponse.teamName,
+        name: loginResponse.teamName,
+        id: loginResponse._id
       }))
 
       localStorage.setItem('round1Score', '0')
@@ -61,7 +55,7 @@ export default function Login() {
       }, 1500)
     } catch (error) {
       console.error('Login error:', error)
-      showMessage('An error occurred. Please try again.', 'error')
+      showMessage(error.message || 'Invalid Team Credentials', 'error')
     } finally {
       setLoading(false)
     }

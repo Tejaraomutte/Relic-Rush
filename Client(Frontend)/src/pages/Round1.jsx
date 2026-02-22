@@ -216,8 +216,8 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
 
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     try {
-      if (user && user.email) {
-        await submitRoundScore(user.email, ROUND_NUMBER, score)
+      if (user && user.teamName) {
+        await submitRoundScore(user.teamName, ROUND_NUMBER, score)
       }
     } catch (error) {
       console.error('Error submitting score:', error)

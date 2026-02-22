@@ -1,92 +1,151 @@
 const User = require("../models/user");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Generate Token
+/* ================= TOKEN ================= */
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "1d"
   });
 };
 
-// ================= REGISTER =================
+/* ================= REGISTER ================= */
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { teamName, password } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields required" });
+    if (!teamName || !password) {
+      return res.status(400).json({
+        message: "All fields required"
+      });
     }
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ teamName });
+
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({
+        message: "Team already exists"
+      });
     }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
 
     const user = await User.create({
-      name,
-      email,
-      password: hashedPassword
+      teamName,
+      password
     });
 
     res.status(201).json({
       _id: user._id,
-      name: user.name,
-      email: user.email,
+      teamName: user.teamName,
       token: generateToken(user._id)
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
-// ================= LOGIN =================
+/* ================= LOGIN ================= */
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    console.log("LOGIN BODY:", req.body);
+
+    const teamName = req.body.teamName.trim();
+    const password = req.body.password.trim();
+
+    const user = await User.findOne({ teamName });
+
+    console.log("DB USER:", user);
+    console.log("ENTERED PASSWORD:", password);
+
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({
+        message: "Invalid credentials"
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (user.password !== password) {
+      console.log("PASSWORD NOT MATCHING");
+      return res.status(400).json({
+        message: "Invalid credentials"
+      });
     }
 
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      score: user.score,
-      token: generateToken(user._id)
+    res.json({
+      teamName: user.teamName
     });
 
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
-
-// ================= LEADERBOARD =================
+/* ================= LEADERBOARD ================= */
 const getLeaderboard = async (req, res) => {
   try {
     const users = await User.find()
-      .sort({ score: -1 })
+      .sort({ totalScore: -1 })
       .select("-password");
 
-    res.json(users);
+    res.json({
+      success: true,
+      leaderboard: users
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+/* ================= SUBMIT SCORE ================= */
+const submitScore = async (req, res) => {
+  try {
+    const { teamName, round, score, round1, round2, round3 } = req.body;
+
+    const user = await User.findOne({ teamName });
+
+    if (!user) {
+      return res.status(403).json({
+        message: "User not registered"
+      });
+    }
+
+    if (round === 1) user.round1Score = score;
+    if (round === 2) user.round2Score = score;
+    if (round === 3) user.round3Score = score;
+
+    if (round === "final") {
+      if (round1 !== undefined) user.round1Score = round1;
+      if (round2 !== undefined) user.round2Score = round2;
+      if (round3 !== undefined) user.round3Score = round3;
+    }
+
+    user.totalScore =
+      user.round1Score +
+      user.round2Score +
+      user.round3Score;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Score submitted successfully",
+      totalScore: user.totalScore
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
 module.exports = {
   registerUser,
   loginUser,
-  getLeaderboard
+  getLeaderboard,
+  submitScore
 };
