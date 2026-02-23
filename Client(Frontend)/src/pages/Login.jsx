@@ -64,46 +64,46 @@ export default function Login() {
   return (
     <>
       <Background />
-      <main className="event-container login-container">
-        <header className="login-header">
-          <h1 className="event-title">RELIC RUSH</h1>
-          <p className="event-subtitle">Enter Your Details</p>
+      <main className="event-container login-container premium-glass-container premium-fade-in">
+        <header className="login-header premium-glow-text">
+          <h1 className="event-title premium-gold-gradient">RELIC RUSH</h1>
+          <p className="event-subtitle premium-glow-text">Enter Your Details</p>
         </header>
 
-        <div className="login-card">
+        <div className="login-card premium-glass-card">
           {message && (
-            <div className={`form-message ${messageType} visible`}>
+            <div className={`form-message ${messageType} visible premium-glow-text`}>
               {message}
             </div>
           )}
 
-          <form className="login-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Team Name</label>
+          <form className="login-form premium-glass-form" onSubmit={handleSubmit}>
+            <div className="form-group premium-glass-card">
+              <label className="form-label premium-glow-text">Team Name</label>
               <input
                 type="text"
                 placeholder="Enter your team name"
                 required
-                className="form-input"
+                className="form-input premium-glass-input"
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <div className="password-field">
+            <div className="form-group premium-glass-card">
+              <label className="form-label premium-glow-text">Password</label>
+              <div className="password-field premium-glass-input">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   required
-                  className="form-input"
+                  className="form-input premium-glass-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
-                  className="password-toggle"
+                  className="password-toggle premium-glow-btn"
                   onClick={() => setShowPassword((prev) => !prev)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -112,7 +112,7 @@ export default function Login() {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-golden btn-full" disabled={loading}>
+            <button type="submit" className="btn btn-golden btn-full premium-glow-btn" disabled={loading}>
               <span className="btn-text">{loading ? 'Loading...' : 'Begin Your Journey'}</span>
               <span className="btn-glow"></span>
             </button>

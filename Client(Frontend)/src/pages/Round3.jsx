@@ -28,10 +28,8 @@ export default function Round3({ reduceLamps }) {
   const [debugSolvedCount, setDebugSolvedCount] = useState(0)
 
   useEffect(() => {
-    const user = localStorage.getItem('user')
-    if (!user) {
-      navigate('/login')
-    }
+    // DEVELOPMENT MODE: Allow direct access without login
+    // (Remove login check)
   }, [navigate])
 
   useEffect(() => {

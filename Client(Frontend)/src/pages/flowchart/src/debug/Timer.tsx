@@ -1,1 +1,0 @@
-// Placeholder for Timer.tsx. Will copy actual content next.

@@ -144,12 +144,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const [hasReduced, setHasReduced] = useState(false)
 
   useEffect(() => {
-    const user = localStorage.getItem('user')
-    if (!user) {
-      navigate('/login')
-      return
-    }
-
+    // DEVELOPMENT MODE: Allow direct access without login
     if (isComplete || isAnswerLocked) return
 
     const stopTimer = startTimer({

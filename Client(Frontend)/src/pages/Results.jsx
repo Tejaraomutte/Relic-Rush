@@ -29,11 +29,7 @@ export default function Results({ lampsRemaining = 1 }) {
   const revealTriggeredRef = useRef(false)
 
   useEffect(() => {
-    const user = localStorage.getItem('user')
-    if (!user) {
-      navigate('/login')
-      return
-    }
+    // DEVELOPMENT MODE: Allow results page without login
 
     const r1 = parseInt(localStorage.getItem('round1Score')) || 0
     const r2 = parseInt(localStorage.getItem('round2Score')) || 0

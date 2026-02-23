@@ -1,1 +1,0 @@
-// Placeholder for ScoreModal.tsx. Will copy actual content next.

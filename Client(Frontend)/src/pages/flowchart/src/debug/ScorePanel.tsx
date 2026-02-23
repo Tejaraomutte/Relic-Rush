@@ -1,1 +1,0 @@
-// Placeholder for ScorePanel.tsx. Will copy actual content next.

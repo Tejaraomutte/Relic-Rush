@@ -100,6 +100,11 @@ function FlowBuilderContent({
   // Removed unused startTimer and stopTimer functions
 
   const handleSubmit = () => {
+    // Prevent resubmission if already solved
+    if (solvedChallenges[category]) {
+      alert('Already you submitted this. Try another flowchart.');
+      return;
+    }
     // Run validation
     const result = validateByCategory(category, nodes, edges);
     setValidationResult(result);
@@ -167,7 +172,13 @@ function FlowBuilderContent({
   const allEdgeTypes = { ...edgeTypes, ...customEdgeTypes };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: 620 }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      width: '100%',
+      minHeight: 620,
+      background: 'linear-gradient(135deg, #2e026a 0%, #3b0764 60%, #1e293b 100%)',
+    }}>
       <header
         style={{
           display: 'flex',
@@ -187,12 +198,7 @@ function FlowBuilderContent({
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ fontSize: 14, color: '#111827', marginRight: 8 }}>
-            {isTimerRunning && timeLeft > 0
-              ? `Time: ${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, '0')}`
-              : 'Timer stopped'}
-          </div>
-          {/* Timer auto-starts, no manual start/stop buttons */}
+          {/* Timer removed, only show action buttons */}
           <button className="btn" onClick={handleSubmit} disabled={isRoundLocked}>
             Submit Flowchart
           </button>

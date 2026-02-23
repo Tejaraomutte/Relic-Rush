@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 // @ts-expect-error JS module is intentionally used for shared question data
 import debugQuestions from "./debugQuestions";
 import QuestionSelector from "./components/QuestionSelector";
-// import ScorePanel from "./components/ScorePanel";
-// import type { LeaderboardEntry } from "./components/ScorePanel";
+
 import ScoreModal from "./components/ScoreModal";
 
 type DebugQuestion = {
@@ -66,31 +65,35 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 	// Ensure renderLine is defined in scope
 	const renderLine = (line: string) => {
 		const parts = line.split(/(___\d+___)/g).filter(Boolean);
-
 		return parts.map((part, idx) => {
 			const match = part.match(/___(\d+)___/);
 			if (!match) {
 				return (
-					<span key={`text-${selectedIndex}-${idx}`} className="code-text">
-						{part}
-					</span>
+					<span key={`text-${selectedIndex}-${idx}`} className="code-text">{part}</span>
 				);
 			}
-
-			const blankIndex = Number(match[1]) - 1;
-			const status = results[selectedIndex][blankIndex];
-			const statusClass =
-				status === null ? "" : status ? "input-correct" : "input-wrong";
-
+			// Handle blanks
+			const blankIndex = parseInt(match[1], 10) - 1;
 			return (
 				<input
-					key={`blank-${selectedIndex}-${idx}`}
-					type="text"
-					className={`code-input ${statusClass}`}
+					key={`blank-${selectedIndex}-${blankIndex}`}
+					className="code-blank"
 					value={answers[selectedIndex][blankIndex] || ""}
-					onChange={(event) => handleAnswerChange(blankIndex, event.target.value)}
+					onChange={e => handleAnswerChange(blankIndex, e.target.value)}
 					disabled={isRoundLocked}
-					aria-label={`Blank ${blankIndex + 1}`}
+					style={{
+						width: 60,
+						margin: '0 6px',
+						borderRadius: 6,
+						border: '1px solid #a5b4fc',
+						padding: '4px 8px',
+						fontSize: 16,
+						background: '#fff',
+						color: '#6d28d9',
+						fontWeight: 600,
+						boxShadow: '0 2px 8px #6d28d933',
+						outline: 'none',
+					}}
 				/>
 			);
 		});
@@ -107,13 +110,17 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 		questions.findIndex((question) => question.id === selectedId)
 	);
 
-	const stats = useMemo(() => computeStats(results, questions), [results, questions]);
+	// Compute stats for the currently selected question only
+	const currentStats = useMemo(() => {
+		if (!results[selectedIndex] || !questions[selectedIndex]) return { correct: 0, total: 0, score: 0, maxScore: 0, percentage: 0 };
+		return computeStats([results[selectedIndex]], [questions[selectedIndex]]);
+	}, [results, questions, selectedIndex]);
 
 	useEffect(() => {
 		if (typeof onScoreChange === "function") {
-			onScoreChange(stats.score);
+			onScoreChange(currentStats.score);
 		}
-	}, [onScoreChange, stats.score]);
+	}, [onScoreChange, currentStats.score]);
 
 	useEffect(() => {
 		const solvedIds = questions.filter((question) => solvedByQuestion[question.id]).map((question) => question.id);
@@ -174,54 +181,95 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 	return (
 		<section className="debug-page">
 			<header className="debug-header">
-				<div>
-					<h2>Event Round — Debugging</h2>
-					<div className="debug-subtitle">Fix the code challenges for this round</div>
-				</div>
+			
 				<div className="debug-controls">
-					<button
-						className="btn"
-						onClick={handleSubmitDebug}
-							disabled={isRoundLocked || (() => {
-								const selectedAnswers = answers[selectedIndex] || [];
-								const requiredCount = debugQuestions[selectedIndex].answers.length;
-								return selectedAnswers.filter((a) => a && a.trim() !== "").length !== requiredCount;
-							})()}
-					>
-						Submit Debug
-					</button>
+				
 				</div>
 			</header>
 
 			<div className="debug-canvas">
-				<div className="debug-container">
+				<div className="debug-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
 					<div className="debug-selector-row">
-						<QuestionSelector
-							questions={questions.map((question) => ({
-								id: question.id,
-								title: question.title
-							}))}
-							selectedId={selectedId}
-							onChange={setSelectedId}
-							disabled={isRoundLocked}
-						/>
+						{/* Removed extra dropdown. Only show dropdown inside the challenge card below. */}
 					</div>
 
 					<div className="debug-layout">
-						<article className="challenge-card">
-							<div className="challenge-header">
-								<div>
-									<h3>{currentQuestion.title}</h3>
-									<p>{currentQuestion.description}</p>
-								</div>
+						<article className="challenge-card" style={{
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							justifyContent: 'center',
+							background: 'rgba(255,255,255,0.10)',
+							borderRadius: 18,
+							boxShadow: '0 12px 40px #6d28d933',
+							padding: '36px 28px',
+							width: '100%',
+							maxWidth: 700,
+							margin: '0 auto',
+						}}>
+							<div className="challenge-header" style={{ textAlign: 'center', width: '100%' }}>
+								<h3 style={{ fontSize: 24, fontWeight: 800, color: '#fff', marginBottom: 8, letterSpacing: '0.5px', textShadow: '0 1px 6px #6d28d9aa' }}>{currentQuestion.title}</h3>
+								<p style={{ fontSize: 18, color: '#c4b5fd', marginBottom: 18, fontWeight: 500, textShadow: '0 1px 6px #6d28d9aa' }}>{currentQuestion.description}</p>
 							</div>
 
-							<div className="code-block">
+							<div style={{ marginBottom: 22, width: '100%', textAlign: 'center' }}>
+								<label htmlFor="challenge-select" style={{ fontWeight: 700, color: '#c4b5fd', fontSize: 18, marginRight: 8 }}>Debug Challenge:</label>
+								<select
+									id="challenge-select"
+									value={selectedId}
+									onChange={e => setSelectedId(e.target.value)}
+									disabled={isRoundLocked}
+									style={{
+										fontSize: 18,
+										padding: '10px 18px',
+										borderRadius: 10,
+										border: '2px solid #fbbf24',
+										background: 'linear-gradient(90deg,#f3f7fb,#e0e7ff)',
+										color: '#6d28d9',
+										fontWeight: 700,
+										boxShadow: '0 4px 16px #6d28d933',
+										outline: 'none',
+										marginLeft: 8,
+										width: 320,
+										textAlign: 'center',
+										appearance: 'none',
+										WebkitAppearance: 'none',
+										MozAppearance: 'none',
+										transition: 'border .2s, box-shadow .2s',
+									}}
+								>
+									{questions.map((question) => (
+										<option key={question.id} value={question.id} style={{ fontWeight: 700, color: '#6d28d9', background: '#fff' }}>{question.title}</option>
+									))}
+								</select>
+							</div>
+
+							<div className="code-block" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontFamily: 'Fira Mono, Consolas, monospace', background: 'rgba(30,27,46,0.98)', borderRadius: 14, padding: '28px 22px', color: '#f3f4f6', boxShadow: '0 10px 40px #6d28d933', textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: 700, overflowX: 'auto' }}>
 								{currentQuestion.codeTemplate.map((line, lineIdx) => (
-									<div key={`line-${currentQuestion.id}-${lineIdx}`} className="code-line">
+									<div key={`line-${currentQuestion.id}-${lineIdx}`} className="code-line" style={{ textAlign: 'center', marginBottom: 6 }}>
 										{renderLine(line)}
 									</div>
 								))}
+							</div>
+							{/* Score display for current question only */}
+
+							<div style={{ marginTop: 18, display: 'flex', justifyContent: 'center', width: '100%' }}>
+								<button
+									className="btn"
+									onClick={handleSubmitDebug}
+									disabled={
+										isRoundLocked ||
+										currentStats.score === currentStats.maxScore ||
+										(() => {
+											const selectedAnswers = answers[selectedIndex] || [];
+											const requiredCount = currentQuestion.answers.length;
+											return selectedAnswers.filter((a) => a && a.trim() !== "").length !== requiredCount;
+										})()
+									}
+									style={{ fontSize: 20, fontWeight: 700, padding: '14px 36px', background: 'linear-gradient(90deg,#6d28d9,#4f46e5)', color: '#fff', borderRadius: 12, boxShadow: '0 8px 32px #6d28d933', letterSpacing: '0.5px', border: 'none', transition: 'background .2s, box-shadow .2s', margin: '0 auto' }}
+								>
+									Submit
+								</button>
 							</div>
 						</article>
 
@@ -232,9 +280,9 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 
 			<ScoreModal
 				isOpen={showModal}
-				correct={stats.correct}
-				total={stats.total}
-				percentage={stats.percentage}
+				correct={currentStats.correct}
+				total={currentStats.total}
+				percentage={currentStats.percentage}
 				onRetry={handleRetry}
 				onClose={handleCloseModal}
 			/>

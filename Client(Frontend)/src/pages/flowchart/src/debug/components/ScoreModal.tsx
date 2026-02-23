@@ -49,11 +49,7 @@ export default function ScoreModal({
               }}
             />
           </div>
-
-          <div className="result-message">
-            <span className="result-chip result-chip-good">\u2713 {correct} correct</span>
-            <span className="result-chip result-chip-bad">\u2717 {remaining} incorrect</span>
-          </div>
+          {/* Removed correct/incorrect chips */}
         </div>
 
         <div className="result-actions">

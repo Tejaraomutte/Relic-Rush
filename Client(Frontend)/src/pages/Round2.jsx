@@ -31,6 +31,7 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const round1Score = Number(localStorage.getItem('round1Score') || 0)
 
   useEffect(() => {
+    // DEVELOPMENT MODE: Allow direct access without login
     if (isComplete || isRoundLocked) return
 
     const stopTimer = startTimer({
