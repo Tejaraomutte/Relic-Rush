@@ -37,7 +37,10 @@ export default function Login() {
 
       showMessage('Login successful! Redirecting...', 'success')
 
+      // Store authentication data
       localStorage.setItem('teamName', loginResponse.teamName)
+      localStorage.setItem('token', loginResponse.token)
+      localStorage.setItem('role', loginResponse.role || 'participant')
       localStorage.setItem('user', JSON.stringify({
         teamName: loginResponse.teamName,
         name: loginResponse.teamName,
@@ -50,8 +53,11 @@ export default function Login() {
       localStorage.setItem('lampsRemaining', '4')
       localStorage.removeItem('genieRevealPlayed')
 
+      // Redirect based on role
+      const redirectPath = loginResponse.role === 'admin' ? '/leaderboard' : '/round1'
+      
       setTimeout(() => {
-        navigate('/round1')
+        navigate(redirectPath)
       }, 1500)
     } catch (error) {
       console.error('Login error:', error)

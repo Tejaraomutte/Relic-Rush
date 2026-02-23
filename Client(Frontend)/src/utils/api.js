@@ -25,18 +25,32 @@ export async function loginUser(teamName, password) {
     }
 }
 
-export async function submitRoundScore(teamName, roundNumber, score) {
+export async function submitRoundScore(teamName, roundNumber, score, questionsSolved, questionTimes, totalRoundTime) {
     try {
+        const payload = {
+            teamName: teamName,
+            round: roundNumber,
+            score: score
+        };
+
+        if (Number.isFinite(questionsSolved)) {
+            payload.questionsSolved = questionsSolved;
+        }
+
+        if (Array.isArray(questionTimes) && questionTimes.length > 0) {
+            payload.questionTimes = questionTimes;
+        }
+
+        if (Number.isFinite(totalRoundTime)) {
+            payload.totalRoundTime = totalRoundTime;
+        }
+
         const response = await fetch(`${API_URL}/submit-score`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                teamName: teamName,
-                round: roundNumber,
-                score: score
-            })
+            body: JSON.stringify(payload)
         });
 
         // Throw on non-2xx responses so callers can handle it explicitly
@@ -68,6 +82,28 @@ export async function getLeaderboard() {
     } catch (error) {
         console.error('Error fetching leaderboard:', error);
         return [];
+    }
+}
+
+export async function getAdminLeaderboard(token) {
+    try {
+        const response = await fetch(`${API_URL}/admin/leaderboard`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const text = await response.text().catch(() => response.statusText);
+            throw new Error(`${response.status}: ${text}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching admin leaderboard:', error);
+        throw error;
     }
 }
 

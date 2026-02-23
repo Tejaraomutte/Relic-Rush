@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './App.css';
 import Kriss from './kriss-kross/App';
 import Magic from './magic-square/App';
 import MathPuzzle from './mathpuzzle/App';

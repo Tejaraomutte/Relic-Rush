@@ -4,6 +4,7 @@ import Background from '../components/Background'
 import RoundHeader from '../components/RoundHeader'
 import ActionButtons from '../components/ActionButtons'
 import ResultMessage from '../components/ResultMessage'
+import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 import FlowBuilder from './flowchart/src/pages/FlowBuilder'
 import DebugRound from './flowchart/src/debug/DebugRound'
@@ -55,7 +56,7 @@ export default function Round3({ reduceLamps }) {
     }
   }
 
-  const finalizeRound = (wasAutoSubmitted) => {
+  const finalizeRound = async (wasAutoSubmitted) => {
     const round1Score = Number(localStorage.getItem('round1Score') || 0)
     const round2Score = Number(localStorage.getItem('round2Score') || 0)
     const { totalSolved, isEligibleWinner } = getProgressState()
@@ -65,6 +66,16 @@ export default function Round3({ reduceLamps }) {
     const elapsedSeconds = Math.min(Math.max(ROUND_DURATION - timeLeft, 0), ROUND_DURATION)
 
     localStorage.setItem('round3Score', String(round3Score))
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    try {
+      if (user && user.teamName) {
+        await submitRoundScore(user.teamName, 3, round3Score, totalSolved, [], elapsedSeconds)
+      }
+    } catch (error) {
+      console.error('Error submitting score:', error)
+      setStatusMessage('Score saved locally. Online submission failed.')
+    }
 
     if (!hasReducedRef.current && reduceLamps) {
       hasReducedRef.current = true

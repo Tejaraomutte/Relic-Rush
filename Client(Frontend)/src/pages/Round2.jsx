@@ -7,6 +7,7 @@ import ActionButtons from '../components/ActionButtons'
 import ResultMessage from '../components/ResultMessage'
 import LampDisplay from '../components/LampDisplay'
 import AllGames from './all-games/src/App'
+import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 
 const ROUND_DURATION = 1200
@@ -61,10 +62,11 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     })
   }
 
-  const completeRound = (completedCount, wasAutoSubmitted) => {
+  const completeRound = async (completedCount, wasAutoSubmitted) => {
     setIsRoundLocked(true)
 
     const score = Math.max((completedCount * POINTS_PER_GAME) - hintsPenalty, 0)
+    const questionsSolved = completedCount
     const elapsedSeconds = Math.min(
       Math.max(Math.round((Date.now() - startedAtRef.current) / 1000), 0),
       ROUND_DURATION
@@ -83,6 +85,16 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     }
 
     setIsComplete(true)
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    try {
+      if (user && user.teamName) {
+        await submitRoundScore(user.teamName, 2, score, questionsSolved, [], elapsedSeconds)
+      }
+    } catch (error) {
+      console.error('Error submitting score:', error)
+      setResultMessage('Score saved locally. Online submission failed.')
+    }
 
     showResults({
       navigate,

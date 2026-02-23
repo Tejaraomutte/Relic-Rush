@@ -200,6 +200,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     }, 0)
 
     const score = correctCount * POINTS_PER_QUESTION
+    const questionsSolved = correctCount
     const elapsedSeconds = Math.min(
       Math.max(Math.round((Date.now() - startedAtRef.current) / 1000), 0),
       ROUND_DURATION
@@ -212,7 +213,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     try {
       if (user && user.teamName) {
-        await submitRoundScore(user.teamName, ROUND_NUMBER, score)
+        await submitRoundScore(user.teamName, ROUND_NUMBER, score, questionsSolved, [], elapsedSeconds)
       }
     } catch (error) {
       console.error('Error submitting score:', error)

@@ -6,6 +6,18 @@ import Round1 from './pages/Round1'
 import Round2 from './pages/Round2'
 import Round3 from './pages/Round3'
 import Results from './pages/Results'
+import Leaderboard from './pages/Leaderboard'
+
+function ProtectedRoute({ children }) {
+  const teamName = localStorage.getItem('teamName')
+  const user = localStorage.getItem('user')
+
+  if (!teamName || !user) {
+    return <Navigate to="/login" replace />
+  }
+
+  return children
+}
 
 export default function App() {
   const [lampsRemaining, setLampsRemaining] = useState(4)
@@ -40,12 +52,13 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
-        <Route path="/round1" element={<Round1 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
-        <Route path="/round2" element={<Round2 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
-        <Route path="/round3" element={<Round3 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
-        <Route path="/results" element={<Results lampsRemaining={lampsRemaining} />} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+        <Route path="/round1" element={<ProtectedRoute><Round1 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} /></ProtectedRoute>} />
+        <Route path="/round2" element={<ProtectedRoute><Round2 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} /></ProtectedRoute>} />
+        <Route path="/round3" element={<ProtectedRoute><Round3 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} /></ProtectedRoute>} />
+        <Route path="/results" element={<ProtectedRoute><Results lampsRemaining={lampsRemaining} /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
