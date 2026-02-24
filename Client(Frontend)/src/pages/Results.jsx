@@ -217,7 +217,6 @@ export default function Results({ lampsRemaining = 1 }) {
         )}
 
         <div className="result-actions">
-          <button className="btn btn-golden" onClick={handleHome}>Return Home</button>
           {isRound1Mode && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Next Round</button>}
           {isRound2Mode && <button className="btn btn-secondary" onClick={() => navigate('/round3')}>Enter Round 3</button>}
           {isFinalMode && <button className="btn btn-secondary" onClick={handleShare}>Share Score</button>}

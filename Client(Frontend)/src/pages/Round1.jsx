@@ -9,6 +9,7 @@ import ScoreDisplay from '../components/ScoreDisplay'
 import LampDisplay from '../components/LampDisplay'
 import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
+import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
 
 const questions = [
   {
@@ -130,12 +131,28 @@ const QUALIFICATION_SCORE = 10
 
 export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
-  const startedAtRef = useRef(Date.now())
+  
+  // Initialize state with saved values or defaults - load fresh on each mount
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
+    const savedState = loadRoundState(1)
+    console.log('Round1 - Loading saved state:', savedState)
+    return savedState?.currentQuestionIndex ?? 0
+  })
+  
+  const [selectedAnswers, setSelectedAnswers] = useState(() => {
+    const savedState = loadRoundState(1)
+    return savedState?.selectedAnswers ?? new Array(questions.length).fill(null)
+  })
+  
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const savedState = loadRoundState(1)
+    return savedState?.timeLeft ?? ROUND_DURATION
+  })
+  
+  const startedAtRef = useRef(loadRoundState(1)?.startedAt ?? Date.now())
+  
   const submittedRef = useRef(false)
   const selectedAnswersRef = useRef([])
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [selectedAnswers, setSelectedAnswers] = useState(new Array(questions.length).fill(null))
-  const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
   const [resultMessage, setResultMessage] = useState('')
   const [resultType, setResultType] = useState('')
   const [isComplete, setIsComplete] = useState(false)
@@ -145,17 +162,30 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const [hasReduced, setHasReduced] = useState(false)
   const blockCopy = (event) => event.preventDefault()
 
+  // Check if round already completed on mount
   useEffect(() => {
     const existingScore = Number(localStorage.getItem('round1Score') || 0)
-    if (existingScore > 0) {
-      navigate('/results', {
-        state: {
-          mode: 'round1',
-          resultData: { score: existingScore, timeTakenSeconds: null }
-        }
-      })
+    
+    if (isRoundCompleted(1) || existingScore > 0) {
+      navigate('/round2', { replace: true })
     }
   }, [navigate])
+
+  // Save state periodically
+  useEffect(() => {
+    if (isComplete || isAnswerLocked) return
+
+    const saveInterval = setInterval(() => {
+      saveRoundState(1, {
+        currentQuestionIndex,
+        selectedAnswers,
+        timeLeft,
+        startedAt: startedAtRef.current
+      })
+    }, 2000) // Save every 2 seconds
+
+    return () => clearInterval(saveInterval)
+  }, [currentQuestionIndex, selectedAnswers, timeLeft, isComplete, isAnswerLocked])
 
   useEffect(() => {
     selectedAnswersRef.current = selectedAnswers
@@ -164,11 +194,6 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   useEffect(() => {
     if (isComplete || isAnswerLocked) return
 
-    const handleBeforeUnload = (event) => {
-      event.preventDefault()
-      event.returnValue = ''
-    }
-
     const handlePopState = () => {
       if (!isComplete && !isAnswerLocked) {
         window.history.pushState(null, '', window.location.href)
@@ -176,8 +201,8 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     }
 
     window.history.pushState(null, '', window.location.href)
-    window.addEventListener('beforeunload', handleBeforeUnload)
     window.addEventListener('popstate', handlePopState)
+    
     const handleKeyDown = (event) => {
       const key = event.key.toLowerCase()
       const isCtrlOrMeta = event.ctrlKey || event.metaKey
@@ -193,7 +218,6 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     window.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('popstate', handlePopState)
       window.removeEventListener('keydown', handleKeyDown)
     }
@@ -282,6 +306,9 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
       reduceLamps()
     }
 
+    // Mark round as completed in session
+    markRoundCompleted(1)
+    
     setIsComplete(true)
 
     showResults({
@@ -302,12 +329,6 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     setTimeout(() => {
       setResultMessage('')
     }, 3000)
-  }
-
-  const handleGoBack = () => {
-    if (window.confirm('Are you sure you want to go back? Your progress will be lost.')) {
-      navigate('/home')
-    }
   }
 
   const question = questions[currentQuestionIndex]

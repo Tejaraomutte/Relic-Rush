@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-// @ts-expect-error JS module is intentionally used for shared question data
 import debugQuestions from "./debugQuestions";
-import QuestionSelector from "./components/QuestionSelector";
-
 import ScoreModal from "./components/ScoreModal";
 
 type DebugQuestion = {

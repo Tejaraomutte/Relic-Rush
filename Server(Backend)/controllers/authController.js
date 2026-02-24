@@ -138,7 +138,15 @@ const loginUser = async (req, res) => {
 
     const userRole = user.role || "participant";
 
-    if (!user.isLoggedIn) {
+    // One-time login enforcement: only for participants, admins can login multiple times
+    if (userRole === "participant" && user.isLoggedIn) {
+      return res.status(403).json({
+        message: "Login already used. Only one login allowed."
+      });
+    }
+
+    // Set isLoggedIn flag for participants (admins don't need this flag)
+    if (userRole === "participant" && !user.isLoggedIn) {
       user.isLoggedIn = true;
       await user.save();
     }

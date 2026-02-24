@@ -6,6 +6,7 @@ import ReactFlow, {
   addEdge,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   ReactFlowProvider,
   MarkerType,
 } from 'reactflow';
@@ -35,6 +36,7 @@ function FlowBuilderContent({
   isTimerRunning?: boolean;
 }) {
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
+  const reactFlowInstance = useReactFlow(); // Get ReactFlow instance for coordinate conversion
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -79,18 +81,34 @@ function FlowBuilderContent({
       payload.type = raw || 'process';
     }
 
+    // Get the bounds of the ReactFlow wrapper
     const bounds = reactFlowWrapper.current?.getBoundingClientRect();
-    const position = bounds
-      ? { x: event.clientX - bounds.left - 80, y: event.clientY - bounds.top - 28 }
-      : { x: event.clientX - 80, y: event.clientY - 28 };
+    
+    if (!bounds) {
+      console.error('ReactFlow wrapper bounds not found');
+      return;
+    }
+
+    // Calculate the position relative to the ReactFlow wrapper
+    const clientX = event.clientX;
+    const clientY = event.clientY;
+    
+    // Convert screen coordinates to ReactFlow's internal coordinate system
+    // This accounts for zoom, pan, and transformation
+    const position = reactFlowInstance.project({
+      x: clientX - bounds.left,
+      y: clientY - bounds.top,
+    });
+
     const newNode: Node = {
       id: `${Date.now()}`,
       type: payload.type || 'process',
-      position,
+      position, // Use the projected position for accurate placement
       data: { label: payload.label || `${payload.type} node`, category: payload.category || category },
     };
+    
     setNodes((nds) => nds.concat(newNode));
-  }, [setNodes, category, isLocked, isRoundLocked]);
+  }, [setNodes, category, isLocked, isRoundLocked, reactFlowInstance]);
 
   const onDragOver = useCallback((event: any) => {
     event.preventDefault();
