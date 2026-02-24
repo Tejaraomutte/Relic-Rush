@@ -19,6 +19,8 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
   const startedAtRef = useRef(Date.now())
   const submittedRef = useRef(false)
+  const completedGamesRef = useRef(0)
+  const hintsPenaltyRef = useRef(0)
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
   const [completedGames, setCompletedGames] = useState(0)
   const [round2Score, setRound2Score] = useState(0)
@@ -46,8 +48,9 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   }, [isComplete, isRoundLocked])
 
   const handleProgress = (count) => {
+    completedGamesRef.current = count
     setCompletedGames(count)
-    const score = Math.max((count * POINTS_PER_GAME) - hintsPenalty, 0)
+    const score = Math.max((count * POINTS_PER_GAME) - hintsPenaltyRef.current, 0)
     setRound2Score(score)
   }
 
@@ -58,7 +61,7 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     autoSubmitRound({
       submittedRef,
       lockRound: () => setIsRoundLocked(true),
-      submitRound: () => completeRound(completedGames, true)
+      submitRound: () => completeRound(completedGamesRef.current, true)
     })
   }
 
@@ -144,7 +147,8 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
 
                   setHintsPenalty(prevPenalty => {
                     const newPenalty = prevPenalty + HINT_PENALTY
-                    const newScore = Math.max((completedGames * POINTS_PER_GAME) - newPenalty, 0)
+                    hintsPenaltyRef.current = newPenalty
+                    const newScore = Math.max((completedGamesRef.current * POINTS_PER_GAME) - newPenalty, 0)
                     setRound2Score(newScore)
                     return newPenalty
                   })

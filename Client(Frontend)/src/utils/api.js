@@ -14,13 +14,48 @@ export async function loginUser(teamName, password) {
         });
 
         if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            throw new Error(data.message || 'Invalid credentials');
+            const contentType = response.headers.get('content-type') || '';
+            let message = '';
+
+            if (contentType.includes('application/json')) {
+                const data = await response.json().catch(() => ({}));
+                message = data?.message || '';
+            } else {
+                message = await response.text().catch(() => '');
+            }
+
+            if ([502, 503, 504].includes(response.status)) {
+                throw new Error('Server unavailable. Please start backend server and try again.');
+            }
+
+            if (response.status === 500) {
+                const lowerMessage = String(message || '').toLowerCase();
+                if (
+                    lowerMessage.includes('econnrefused') ||
+                    lowerMessage.includes('proxy error') ||
+                    lowerMessage.includes('failed to connect') ||
+                    lowerMessage.includes('target machine actively refused') ||
+                    !message
+                ) {
+                    throw new Error('Cannot connect to backend server. Start Server(Backend) and try again.');
+                }
+                throw new Error('Server error during login. Please check backend logs.');
+            }
+
+            if (response.status === 400) {
+                throw new Error(message || 'Invalid credentials');
+            }
+
+            throw new Error(message || `Login failed (${response.status})`);
         }
 
         return await response.json();
     } catch (error) {
         console.error('Error during login:', error);
+        if (error?.name === 'TypeError' || /Failed to fetch|NetworkError|network/i.test(error?.message || '')) {
+            throw new Error('Cannot connect to server. Please ensure frontend and backend are both running.');
+        }
+
         throw error;
     }
 }

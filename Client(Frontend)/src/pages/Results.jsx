@@ -119,9 +119,15 @@ export default function Results({ lampsRemaining = 1 }) {
     }
   }
 
+  const formatDuration = (seconds) => {
+    if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return 'N/A'
+    const minutes = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${minutes}m ${secs}s`
+  }
+
   const resolvedScore = resultData?.score ?? (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
   const resolvedTimeTaken = resultData?.timeTakenSeconds
-  const resolvedQualification = resultData?.qualificationStatus || (isFinalMode ? (isWinnerFromState ? 'Qualified' : 'Not Qualified') : 'Qualified')
 
   return (
     <>
@@ -154,11 +160,7 @@ export default function Results({ lampsRemaining = 1 }) {
           </div>
           <div className="score-item">
             <span className="score-label">Time Taken</span>
-            <span className="score-value result-meta">{typeof resolvedTimeTaken === 'number' ? `${resolvedTimeTaken}s` : 'N/A'}</span>
-          </div>
-          <div className="score-item">
-            <span className="score-label">Qualification Status</span>
-            <span className="score-value result-meta">{resolvedQualification}</span>
+            <span className="score-value result-meta">{formatDuration(resolvedTimeTaken)}</span>
           </div>
         </div>
 

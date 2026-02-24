@@ -21,6 +21,9 @@ export default function Round3({ reduceLamps }) {
   const navigate = useNavigate()
   const hasReducedRef = useRef(false)
   const submittedRef = useRef(false)
+  const timeLeftRef = useRef(ROUND_DURATION)
+  const flowchartSolvedRef = useRef(0)
+  const debugSolvedRef = useRef(0)
   const [activeSection, setActiveSection] = useState(null)
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
   const [isRoundLocked, setIsRoundLocked] = useState(false)
@@ -32,6 +35,10 @@ export default function Round3({ reduceLamps }) {
     // DEVELOPMENT MODE: Allow direct access without login
     // (Remove login check)
   }, [navigate])
+
+  useEffect(() => {
+    timeLeftRef.current = timeLeft
+  }, [timeLeft])
 
   useEffect(() => {
     if (isRoundLocked) return
@@ -46,9 +53,9 @@ export default function Round3({ reduceLamps }) {
     return stopTimer
   }, [isRoundLocked])
 
-  const getProgressState = () => {
-    const totalSolved = flowchartSolvedCount + debugSolvedCount
-    const isEligibleWinner = flowchartSolvedCount >= 2 && debugSolvedCount >= 2 && totalSolved >= 4
+  const getProgressState = (flowSolved = flowchartSolvedRef.current, debugSolved = debugSolvedRef.current) => {
+    const totalSolved = flowSolved + debugSolved
+    const isEligibleWinner = flowSolved >= 2 && debugSolved >= 2 && totalSolved >= 4
 
     return {
       totalSolved,
@@ -59,11 +66,11 @@ export default function Round3({ reduceLamps }) {
   const finalizeRound = async (wasAutoSubmitted) => {
     const round1Score = Number(localStorage.getItem('round1Score') || 0)
     const round2Score = Number(localStorage.getItem('round2Score') || 0)
-    const { totalSolved, isEligibleWinner } = getProgressState()
+    const { totalSolved, isEligibleWinner } = getProgressState(flowchartSolvedRef.current, debugSolvedRef.current)
 
     const round3Score = totalSolved * POINTS_PER_SOLVED_PROBLEM
     const totalScore = round1Score + round2Score + round3Score
-    const elapsedSeconds = Math.min(Math.max(ROUND_DURATION - timeLeft, 0), ROUND_DURATION)
+    const elapsedSeconds = Math.min(Math.max(ROUND_DURATION - timeLeftRef.current, 0), ROUND_DURATION)
 
     localStorage.setItem('round3Score', String(round3Score))
 
@@ -178,12 +185,18 @@ export default function Round3({ reduceLamps }) {
                 isRoundLocked={isRoundLocked}
                 timeLeft={timeLeft}
                 isTimerRunning={!isRoundLocked}
-                onProgressChange={(payload) => setFlowchartSolvedCount(payload.solvedCount)}
+                onProgressChange={(payload) => {
+                  flowchartSolvedRef.current = payload.solvedCount
+                  setFlowchartSolvedCount(payload.solvedCount)
+                }}
               />
             ) : (
               <DebugRound
                 isRoundLocked={isRoundLocked}
-                onProgressChange={(payload) => setDebugSolvedCount(payload.solvedCount)}
+                onProgressChange={(payload) => {
+                  debugSolvedRef.current = payload.solvedCount
+                  setDebugSolvedCount(payload.solvedCount)
+                }}
               />
             )}
           </>

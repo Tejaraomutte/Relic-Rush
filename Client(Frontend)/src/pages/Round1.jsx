@@ -132,6 +132,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
   const startedAtRef = useRef(Date.now())
   const submittedRef = useRef(false)
+  const selectedAnswersRef = useRef([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState(new Array(questions.length).fill(null))
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
@@ -142,6 +143,10 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const [finalScore, setFinalScore] = useState(0)
   const [lampsAfter, setLampsAfter] = useState(lampsRemaining)
   const [hasReduced, setHasReduced] = useState(false)
+
+  useEffect(() => {
+    selectedAnswersRef.current = selectedAnswers
+  }, [selectedAnswers])
 
   useEffect(() => {
     // DEVELOPMENT MODE: Allow direct access without login
@@ -165,7 +170,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     await autoSubmitRound({
       submittedRef,
       lockRound: () => setIsAnswerLocked(true),
-      submitRound: () => completeRound(selectedAnswers, true)
+      submitRound: () => completeRound(selectedAnswersRef.current, true)
     })
   }
 
