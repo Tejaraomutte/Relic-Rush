@@ -143,10 +143,61 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const [finalScore, setFinalScore] = useState(0)
   const [lampsAfter, setLampsAfter] = useState(lampsRemaining)
   const [hasReduced, setHasReduced] = useState(false)
+  const blockCopy = (event) => event.preventDefault()
+
+  useEffect(() => {
+    const existingScore = Number(localStorage.getItem('round1Score') || 0)
+    if (existingScore > 0) {
+      navigate('/results', {
+        state: {
+          mode: 'round1',
+          resultData: { score: existingScore, timeTakenSeconds: null }
+        }
+      })
+    }
+  }, [navigate])
 
   useEffect(() => {
     selectedAnswersRef.current = selectedAnswers
   }, [selectedAnswers])
+
+  useEffect(() => {
+    if (isComplete || isAnswerLocked) return
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    const handlePopState = () => {
+      if (!isComplete && !isAnswerLocked) {
+        window.history.pushState(null, '', window.location.href)
+      }
+    }
+
+    window.history.pushState(null, '', window.location.href)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('popstate', handlePopState)
+    const handleKeyDown = (event) => {
+      const key = event.key.toLowerCase()
+      const isCtrlOrMeta = event.ctrlKey || event.metaKey
+      const blockedCombo = isCtrlOrMeta && ['c', 'x', 'v', 'u', 's', 'p'].includes(key)
+      const blockedDevtools = (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(key)) || key === 'f12'
+      const blockedPrint = key === 'printscreen'
+
+      if (blockedCombo || blockedDevtools || blockedPrint) {
+        event.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isComplete, isAnswerLocked])
 
   useEffect(() => {
     // DEVELOPMENT MODE: Allow direct access without login
@@ -264,7 +315,13 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   return (
     <>
       <Background />
-      <main className="event-container">
+      <main
+        className="event-container"
+        onCopy={blockCopy}
+        onCut={blockCopy}
+        onContextMenu={blockCopy}
+        style={{ userSelect: 'none' }}
+      >
         <RoundHeader
           roundTitle="ROUND 1"
           subtitle=""

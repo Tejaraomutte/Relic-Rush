@@ -141,6 +141,11 @@ const MathPuzzle = ({ onComplete }) => {
                         className="mathpuzzle-input"
                         value={grid[rIdx][cIdx]}
                         onChange={(e) => handleChange(rIdx, cIdx, e.target.value)}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        inputMode="numeric"
                       />
                     ) : (
                       <span className={`mathpuzzle-text ${isOperator ? 'operator' : ''}`}>

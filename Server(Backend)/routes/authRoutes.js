@@ -6,10 +6,11 @@ const {
   loginUser,
   submitScore
 } = require("../controllers/authController");
+const { protect } = require("../middleware/authMiddleware");
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.post("/submit-score", submitScore);
+router.post("/submit-score", protect, submitScore);
 
 
 module.exports = router;

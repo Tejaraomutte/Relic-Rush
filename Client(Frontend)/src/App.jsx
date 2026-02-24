@@ -11,8 +11,9 @@ import Leaderboard from './pages/Leaderboard'
 function ProtectedRoute({ children }) {
   const teamName = localStorage.getItem('teamName')
   const user = localStorage.getItem('user')
+  const isLoggedIn = () => Boolean(teamName && user)
 
-  if (!teamName || !user) {
+  if (!isLoggedIn()) {
     return <Navigate to="/login" replace />
   }
 

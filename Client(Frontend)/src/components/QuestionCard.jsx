@@ -10,8 +10,18 @@ export default function QuestionCard({
   questionImage = null,
   children // For custom content inside the card
 }) {
+  const blockCopy = (event) => {
+    event.preventDefault()
+  }
+
   return (
-    <div className="question-display">
+    <div
+      className="question-display"
+      onCopy={blockCopy}
+      onCut={blockCopy}
+      onContextMenu={blockCopy}
+      style={{ userSelect: 'none' }}
+    >
       {questionText && (
         <h2 className="question-text">
           {questionNumber !== null && `Q${questionNumber}. `}

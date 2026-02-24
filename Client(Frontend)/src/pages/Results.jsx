@@ -76,12 +76,14 @@ export default function Results({ lampsRemaining = 1 }) {
 
   const submitFinalScore = async (r1, r2, r3, total) => {
     const user = JSON.parse(localStorage.getItem('user'))
+    const token = localStorage.getItem('token')
 
     try {
-      await fetch(`${API_URL}/submit-score`, {
+      await fetch(`${API_URL}/api/submit-score`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           teamName: user.teamName,

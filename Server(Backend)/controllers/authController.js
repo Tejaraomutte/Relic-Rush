@@ -14,6 +14,7 @@ const toNumber = (value, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
+const isLoggedIn = (req) => Boolean(req && req.user && req.user.teamName);
 
 const buildRoundPayload = ({ roundNumber, score, questionsSolved, questionTimes, totalRoundTime }) => {
   const safeQuestionTimes = Array.isArray(questionTimes)
@@ -198,7 +199,18 @@ const submitScore = async (req, res) => {
       totalRoundTime
     } = req.body;
 
-    const safeTeamName = normalizeTeamName(teamName);
+    if (!isLoggedIn(req)) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const authenticatedTeamName = normalizeTeamName(req.user.teamName || "");
+    const requestedTeamName = normalizeTeamName(teamName);
+
+    if (requestedTeamName && requestedTeamName.toLowerCase() !== authenticatedTeamName.toLowerCase()) {
+      return res.status(403).json({ message: "Team mismatch" });
+    }
+
+    const safeTeamName = authenticatedTeamName || requestedTeamName;
 
     const user = await User.findOne({ teamName: safeTeamName });
 
@@ -237,6 +249,14 @@ const submitScore = async (req, res) => {
       const numericRound = Number(round);
       if (![1, 2, 3].includes(numericRound)) {
         return res.status(400).json({ message: "Invalid round number" });
+      }
+
+      const alreadySubmitted = (user.rounds || []).some(
+        (item) => item.roundNumber === numericRound
+      );
+
+      if (alreadySubmitted) {
+        return res.status(409).json({ message: "Round already submitted" });
       }
 
       upsertRound(buildRoundPayload({

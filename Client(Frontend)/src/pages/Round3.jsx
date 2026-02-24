@@ -30,6 +30,14 @@ export default function Round3({ reduceLamps }) {
   const [statusMessage, setStatusMessage] = useState('')
   const [flowchartSolvedCount, setFlowchartSolvedCount] = useState(0)
   const [debugSolvedCount, setDebugSolvedCount] = useState(0)
+  const blockCopy = (event) => event.preventDefault()
+
+  useEffect(() => {
+    const existingScore = Number(localStorage.getItem('round3Score') || 0)
+    if (existingScore > 0) {
+      navigate('/results', { state: { mode: 'final' } })
+    }
+  }, [navigate])
 
   useEffect(() => {
     // DEVELOPMENT MODE: Allow direct access without login
@@ -51,6 +59,44 @@ export default function Round3({ reduceLamps }) {
     })
 
     return stopTimer
+  }, [isRoundLocked])
+
+  useEffect(() => {
+    if (isRoundLocked || submittedRef.current) return
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    const handlePopState = () => {
+      if (!isRoundLocked && !submittedRef.current) {
+        window.history.pushState(null, '', window.location.href)
+      }
+    }
+
+    window.history.pushState(null, '', window.location.href)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('popstate', handlePopState)
+    const handleKeyDown = (event) => {
+      const key = event.key.toLowerCase()
+      const isCtrlOrMeta = event.ctrlKey || event.metaKey
+      const blockedCombo = isCtrlOrMeta && ['c', 'x', 'v', 'u', 's', 'p'].includes(key)
+      const blockedDevtools = (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(key)) || key === 'f12'
+      const blockedPrint = key === 'printscreen'
+
+      if (blockedCombo || blockedDevtools || blockedPrint) {
+        event.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
   }, [isRoundLocked])
 
   const getProgressState = (flowSolved = flowchartSolvedRef.current, debugSolved = debugSolvedRef.current) => {
@@ -137,7 +183,13 @@ export default function Round3({ reduceLamps }) {
   return (
     <>
       <Background />
-      <main className="event-container">
+      <main
+        className="event-container"
+        onCopy={blockCopy}
+        onCut={blockCopy}
+        onContextMenu={blockCopy}
+        style={{ userSelect: 'none' }}
+      >
         <RoundHeader
           roundTitle="ROUND 3"
           subtitle="Complete any 4 challenges with at least 2 from each section."

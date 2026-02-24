@@ -81,6 +81,10 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 					value={answers[selectedIndex][blankIndex] || ""}
 					onChange={e => handleAnswerChange(blankIndex, e.target.value)}
 					disabled={isRoundLocked}
+					autoComplete="off"
+					autoCorrect="off"
+					autoCapitalize="off"
+					spellCheck={false}
 					style={{
 						width: 60,
 						margin: '0 6px',
@@ -244,7 +248,12 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 								</select>
 							</div>
 
-							<div className="code-block" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontFamily: 'Fira Mono, Consolas, monospace', background: 'rgba(30,27,46,0.98)', borderRadius: 14, padding: '28px 22px', color: '#f3f4f6', boxShadow: '0 10px 40px #6d28d933', textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: 700, overflowX: 'auto' }}>
+							<div
+								className="code-block"
+								onCopy={(event) => event.preventDefault()}
+								onCut={(event) => event.preventDefault()}
+								onContextMenu={(event) => event.preventDefault()}
+								style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontFamily: 'Fira Mono, Consolas, monospace', background: 'rgba(30,27,46,0.98)', borderRadius: 14, padding: '28px 22px', color: '#f3f4f6', boxShadow: '0 10px 40px #6d28d933', textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: 700, overflowX: 'auto', userSelect: 'none' }}>
 								{currentQuestion.codeTemplate.map((line, lineIdx) => (
 									<div key={`line-${currentQuestion.id}-${lineIdx}`} className="code-line" style={{ textAlign: 'center', marginBottom: 6 }}>
 										{renderLine(line)}

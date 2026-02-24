@@ -30,6 +30,19 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const [lampsAfter, setLampsAfter] = useState(() => Number(localStorage.getItem('lampsRemaining') || lampsRemaining))
   const [hasReduced, setHasReduced] = useState(false)
   const [hintsPenalty, setHintsPenalty] = useState(0)
+  const blockCopy = (event) => event.preventDefault()
+
+  useEffect(() => {
+    const existingScore = Number(localStorage.getItem('round2Score') || 0)
+    if (existingScore > 0) {
+      navigate('/results', {
+        state: {
+          mode: 'round2',
+          resultData: { score: existingScore, timeTakenSeconds: null }
+        }
+      })
+    }
+  }, [navigate])
 
   const round1Score = Number(localStorage.getItem('round1Score') || 0)
 
@@ -45,6 +58,44 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     })
 
     return stopTimer
+  }, [isComplete, isRoundLocked])
+
+  useEffect(() => {
+    if (isComplete || isRoundLocked) return
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    const handlePopState = () => {
+      if (!isComplete && !isRoundLocked) {
+        window.history.pushState(null, '', window.location.href)
+      }
+    }
+
+    window.history.pushState(null, '', window.location.href)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('popstate', handlePopState)
+    const handleKeyDown = (event) => {
+      const key = event.key.toLowerCase()
+      const isCtrlOrMeta = event.ctrlKey || event.metaKey
+      const blockedCombo = isCtrlOrMeta && ['c', 'x', 'v', 'u', 's', 'p'].includes(key)
+      const blockedDevtools = (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(key)) || key === 'f12'
+      const blockedPrint = key === 'printscreen'
+
+      if (blockedCombo || blockedDevtools || blockedPrint) {
+        event.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
   }, [isComplete, isRoundLocked])
 
   const handleProgress = (count) => {
@@ -126,7 +177,13 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   return (
     <>
       <Background />
-      <main className="event-container">
+      <main
+        className="event-container"
+        onCopy={blockCopy}
+        onCut={blockCopy}
+        onContextMenu={blockCopy}
+        style={{ userSelect: 'none' }}
+      >
         <RoundHeader
           roundTitle="ROUND 2"
           subtitle=""

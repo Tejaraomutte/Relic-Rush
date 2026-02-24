@@ -34,6 +34,7 @@ function App({ sequentialMode = false, onRoundComplete, onProgress, onHintUsed }
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [completedGames, setCompletedGames] = useState(0);
   const [usedHintGames, setUsedHintGames] = useState([]);
+  const blockCopy = (event) => event.preventDefault();
 
   const handleGameComplete = () => {
     if (!sequentialMode) return;
@@ -87,7 +88,12 @@ function App({ sequentialMode = false, onRoundComplete, onProgress, onHintUsed }
   };
 
   return (
-    <>
+    <div
+      onCopy={blockCopy}
+      onCut={blockCopy}
+      onContextMenu={blockCopy}
+      style={{ userSelect: 'none' }}
+    >
       {/* Progress indicator for sequential mode */}
       {sequentialMode && (
         <div className="game-progress">
@@ -142,7 +148,7 @@ function App({ sequentialMode = false, onRoundComplete, onProgress, onHintUsed }
           {renderGame()}
         </>
       )}
-    </>
+    </div>
   );
 }
 

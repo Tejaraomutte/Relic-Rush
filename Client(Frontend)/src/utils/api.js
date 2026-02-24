@@ -62,6 +62,7 @@ export async function loginUser(teamName, password) {
 
 export async function submitRoundScore(teamName, roundNumber, score, questionsSolved, questionTimes, totalRoundTime) {
     try {
+        const token = localStorage.getItem('token');
         const payload = {
             teamName: teamName,
             round: roundNumber,
@@ -84,6 +85,7 @@ export async function submitRoundScore(teamName, roundNumber, score, questionsSo
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
             body: JSON.stringify(payload)
         });
