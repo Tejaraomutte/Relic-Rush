@@ -14,6 +14,34 @@ const toNumber = (value, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
+
+const buildLoginSummary = (user) => {
+  const rounds = Array.isArray(user.rounds) ? user.rounds : [];
+  const getRoundScore = (roundNumber) => {
+    const round = rounds.find((entry) => entry.roundNumber === roundNumber);
+    return toNumber(round?.roundScore, 0);
+  };
+
+  const round1Score = getRoundScore(1);
+  const round2Score = getRoundScore(2);
+  const round3Score = getRoundScore(3);
+
+  return {
+    teamName: user.teamName,
+    isLoggedIn: true,
+    rounds: {
+      round1Played: round1Score > 0,
+      round2Played: round2Score > 0,
+      round3Played: round3Score > 0
+    },
+    scores: {
+      round1: round1Score,
+      round2: round2Score,
+      round3: round3Score
+    },
+    totalScore: toNumber(user.totalScore, round1Score + round2Score + round3Score)
+  };
+};
 const isLoggedIn = (req) => Boolean(req && req.user && req.user.teamName);
 
 const buildRoundPayload = ({ roundNumber, score, questionsSolved, questionTimes, totalRoundTime }) => {
@@ -110,8 +138,13 @@ const loginUser = async (req, res) => {
 
     const userRole = user.role || "participant";
 
+    if (!user.isLoggedIn) {
+      user.isLoggedIn = true;
+      await user.save();
+    }
+
     res.json({
-      teamName: user.teamName,
+      ...buildLoginSummary(user),
       token: generateToken(user._id, userRole),
       role: userRole
     });
