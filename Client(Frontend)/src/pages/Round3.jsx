@@ -4,9 +4,11 @@ import Background from '../components/Background'
 import RoundHeader from '../components/RoundHeader'
 import ActionButtons from '../components/ActionButtons'
 import ResultMessage from '../components/ResultMessage'
+import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 import FlowBuilder from './flowchart/src/pages/FlowBuilder'
 import DebugRound from './flowchart/src/debug/DebugRound'
+import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted, clearGameSession } from '../utils/sessionManager'
 
 const ROUND_DURATION = 900
 const POINTS_PER_SOLVED_PROBLEM = 5
@@ -20,17 +22,67 @@ export default function Round3({ reduceLamps }) {
   const navigate = useNavigate()
   const hasReducedRef = useRef(false)
   const submittedRef = useRef(false)
-  const [activeSection, setActiveSection] = useState(null)
-  const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
+  
+  // Initialize state with saved values or defaults - load fresh on each mount
+  const [activeSection, setActiveSection] = useState(() => {
+    const savedState = loadRoundState(3)
+    console.log('Round3 - Loading saved state:', savedState)
+    return savedState?.activeSection ?? null
+  })
+  
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const savedState = loadRoundState(3)
+    return savedState?.timeLeft ?? ROUND_DURATION
+  })
+  
+  const timeLeftRef = useRef(loadRoundState(3)?.timeLeft ?? ROUND_DURATION)
+  
+  const [flowchartSolvedCount, setFlowchartSolvedCount] = useState(() => {
+    const savedState = loadRoundState(3)
+    return savedState?.flowchartSolvedCount ?? 0
+  })
+  
+  const flowchartSolvedRef = useRef(loadRoundState(3)?.flowchartSolvedCount ?? 0)
+  
+  const [debugSolvedCount, setDebugSolvedCount] = useState(() => {
+    const savedState = loadRoundState(3)
+    return savedState?.debugSolvedCount ?? 0
+  })
+  
+  const debugSolvedRef = useRef(loadRoundState(3)?.debugSolvedCount ?? 0)
+  
   const [isRoundLocked, setIsRoundLocked] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
-  const [flowchartSolvedCount, setFlowchartSolvedCount] = useState(0)
-  const [debugSolvedCount, setDebugSolvedCount] = useState(0)
+  const blockCopy = (event) => event.preventDefault()
+
+  // Check if round already completed on mount
+  useEffect(() => {
+    const existingScore = Number(localStorage.getItem('round3Score') || 0)
+    
+    if (isRoundCompleted(3) || existingScore > 0) {
+      navigate('/results', { state: { mode: 'final' }, replace: true })
+    }
+  }, [navigate])
+
+  // Save state periodically
+  useEffect(() => {
+    if (isRoundLocked || submittedRef.current) return
+
+    const saveInterval = setInterval(() => {
+      saveRoundState(3, {
+        flowchartSolvedCount,
+        debugSolvedCount,
+        activeSection,
+        timeLeft
+      })
+    }, 2000) // Save every 2 seconds
+
+    return () => clearInterval(saveInterval)
+  }, [flowchartSolvedCount, debugSolvedCount, activeSection, timeLeft, isRoundLocked])
 
   useEffect(() => {
-    // DEVELOPMENT MODE: Allow direct access without login
-    // (Remove login check)
-  }, [navigate])
+    timeLeftRef.current = timeLeft
+  }, [timeLeft])
 
   useEffect(() => {
     if (isRoundLocked) return
@@ -45,9 +97,41 @@ export default function Round3({ reduceLamps }) {
     return stopTimer
   }, [isRoundLocked])
 
-  const getProgressState = () => {
-    const totalSolved = flowchartSolvedCount + debugSolvedCount
-    const isEligibleWinner = flowchartSolvedCount >= 2 && debugSolvedCount >= 2 && totalSolved >= 4
+  useEffect(() => {
+    if (isRoundLocked || submittedRef.current) return
+
+    const handlePopState = () => {
+      if (!isRoundLocked && !submittedRef.current) {
+        window.history.pushState(null, '', window.location.href)
+      }
+    }
+
+    window.history.pushState(null, '', window.location.href)
+    window.addEventListener('popstate', handlePopState)
+    
+    const handleKeyDown = (event) => {
+      const key = event.key.toLowerCase()
+      const isCtrlOrMeta = event.ctrlKey || event.metaKey
+      const blockedCombo = isCtrlOrMeta && ['c', 'x', 'v', 'u', 's', 'p'].includes(key)
+      const blockedDevtools = (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(key)) || key === 'f12'
+      const blockedPrint = key === 'printscreen'
+
+      if (blockedCombo || blockedDevtools || blockedPrint) {
+        event.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isRoundLocked])
+
+  const getProgressState = (flowSolved = flowchartSolvedRef.current, debugSolved = debugSolvedRef.current) => {
+    const totalSolved = flowSolved + debugSolved
+    const isEligibleWinner = flowSolved >= 2 && debugSolved >= 2 && totalSolved >= 4
 
     return {
       totalSolved,
@@ -55,21 +139,35 @@ export default function Round3({ reduceLamps }) {
     }
   }
 
-  const finalizeRound = (wasAutoSubmitted) => {
+  const finalizeRound = async (wasAutoSubmitted) => {
     const round1Score = Number(localStorage.getItem('round1Score') || 0)
     const round2Score = Number(localStorage.getItem('round2Score') || 0)
-    const { totalSolved, isEligibleWinner } = getProgressState()
+    const { totalSolved, isEligibleWinner } = getProgressState(flowchartSolvedRef.current, debugSolvedRef.current)
 
     const round3Score = totalSolved * POINTS_PER_SOLVED_PROBLEM
     const totalScore = round1Score + round2Score + round3Score
-    const elapsedSeconds = Math.min(Math.max(ROUND_DURATION - timeLeft, 0), ROUND_DURATION)
+    const elapsedSeconds = Math.min(Math.max(ROUND_DURATION - timeLeftRef.current, 0), ROUND_DURATION)
 
     localStorage.setItem('round3Score', String(round3Score))
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    try {
+      if (user && user.teamName) {
+        await submitRoundScore(user.teamName, 3, round3Score, totalSolved, [], elapsedSeconds)
+      }
+    } catch (error) {
+      console.error('Error submitting score:', error)
+      setStatusMessage('Score saved locally. Online submission failed.')
+    }
 
     if (!hasReducedRef.current && reduceLamps) {
       hasReducedRef.current = true
       reduceLamps()
     }
+
+    // Mark round as completed and clear the game session (all rounds done)
+    markRoundCompleted(3)
+    clearGameSession()
 
     showResults({
       navigate,
@@ -119,7 +217,13 @@ export default function Round3({ reduceLamps }) {
   return (
     <>
       <Background />
-      <main className="event-container">
+      <main
+        className="event-container"
+        onCopy={blockCopy}
+        onCut={blockCopy}
+        onContextMenu={blockCopy}
+        style={{ userSelect: 'none' }}
+      >
         <RoundHeader
           roundTitle="ROUND 3"
           subtitle="Complete any 4 challenges with at least 2 from each section."
@@ -167,12 +271,18 @@ export default function Round3({ reduceLamps }) {
                 isRoundLocked={isRoundLocked}
                 timeLeft={timeLeft}
                 isTimerRunning={!isRoundLocked}
-                onProgressChange={(payload) => setFlowchartSolvedCount(payload.solvedCount)}
+                onProgressChange={(payload) => {
+                  flowchartSolvedRef.current = payload.solvedCount
+                  setFlowchartSolvedCount(payload.solvedCount)
+                }}
               />
             ) : (
               <DebugRound
                 isRoundLocked={isRoundLocked}
-                onProgressChange={(payload) => setDebugSolvedCount(payload.solvedCount)}
+                onProgressChange={(payload) => {
+                  debugSolvedRef.current = payload.solvedCount
+                  setDebugSolvedCount(payload.solvedCount)
+                }}
               />
             )}
           </>

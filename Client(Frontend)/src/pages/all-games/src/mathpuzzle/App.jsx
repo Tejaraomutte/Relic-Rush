@@ -61,7 +61,7 @@ const CLUES = {
   "10-8": "? = 48 - 9"
 };
 
-const MathPuzzle = ({ onComplete, onHintUsed }) => {
+const MathPuzzle = ({ onComplete }) => {
   useEffect(() => {
     document.body.classList.add("game-math");
     return () => document.body.classList.remove("game-math");
@@ -70,7 +70,6 @@ const MathPuzzle = ({ onComplete, onHintUsed }) => {
   const [grid, setGrid] = useState(INITIAL_GRID);
   const [showErrors, setShowErrors] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [shownClues, setShownClues] = useState(new Set());
   const [selectedCell, setSelectedCell] = useState(null);
 
   const handleChange = (row, col, value) => {
@@ -82,20 +81,6 @@ const MathPuzzle = ({ onComplete, onHintUsed }) => {
       r.map((cell, cIdx) => (rIdx === row && cIdx === col ? value : cell))
     );
     setGrid(newGrid);
-  };
-
-  const handleShowClue = () => {
-    if (!selectedCell || !CLUES[selectedCell]) {
-      alert("Please select a puzzle cell to get a clue for.");
-      return;
-    }
-
-    if (!shownClues.has(selectedCell)) {
-      setShownClues(new Set([...shownClues, selectedCell]));
-      if (onHintUsed) {
-        onHintUsed();
-      }
-    }
   };
 
   const verifySolution = () => {
@@ -156,6 +141,11 @@ const MathPuzzle = ({ onComplete, onHintUsed }) => {
                         className="mathpuzzle-input"
                         value={grid[rIdx][cIdx]}
                         onChange={(e) => handleChange(rIdx, cIdx, e.target.value)}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        inputMode="numeric"
                       />
                     ) : (
                       <span className={`mathpuzzle-text ${isOperator ? 'operator' : ''}`}>
@@ -181,20 +171,8 @@ const MathPuzzle = ({ onComplete, onHintUsed }) => {
           >
             Reset
           </button>
-          <button 
-            className="mathpuzzle-btn hint" 
-            onClick={handleShowClue}
-            title="Get a clue (costs 5 points)"
-          >
-            💡 Hint (-5 pts)
-          </button>
         </div>
 
-        {selectedCell && CLUES[selectedCell] && shownClues.has(selectedCell) && (
-          <div className="mathpuzzle-clue">
-            <strong>Clue for selected cell:</strong> {CLUES[selectedCell]}
-          </div>
-        )}
         {completed && (
           <div className="mathpuzzle-success">You have completed the puzzle!</div>
         )}

@@ -91,7 +91,12 @@ function App({ onComplete }) {
   };
 
   return (
-    <div className="wrapper">
+    <div
+      className="wrapper"
+      onCopy={(event) => event.preventDefault()}
+      onCut={(event) => event.preventDefault()}
+      onContextMenu={(event) => event.preventDefault()}
+    >
       <div className="glass-card">
 
         <h1 className="title">6×6 N-Queens Challenge</h1>

@@ -4,14 +4,13 @@ const router = express.Router();
 const {
   registerUser,
   loginUser,
-  getLeaderboard,
   submitScore
 } = require("../controllers/authController");
+const { protect } = require("../middleware/authMiddleware");
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.post("/submit-score", submitScore);
-router.get("/leaderboard", getLeaderboard);
+router.post("/submit-score", protect, submitScore);
 
 
 module.exports = router;

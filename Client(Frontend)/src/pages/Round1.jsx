@@ -9,6 +9,7 @@ import ScoreDisplay from '../components/ScoreDisplay'
 import LampDisplay from '../components/LampDisplay'
 import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
+import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
 
 const questions = [
   {
@@ -130,11 +131,28 @@ const QUALIFICATION_SCORE = 10
 
 export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
-  const startedAtRef = useRef(Date.now())
+  
+  // Initialize state with saved values or defaults - load fresh on each mount
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
+    const savedState = loadRoundState(1)
+    console.log('Round1 - Loading saved state:', savedState)
+    return savedState?.currentQuestionIndex ?? 0
+  })
+  
+  const [selectedAnswers, setSelectedAnswers] = useState(() => {
+    const savedState = loadRoundState(1)
+    return savedState?.selectedAnswers ?? new Array(questions.length).fill(null)
+  })
+  
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const savedState = loadRoundState(1)
+    return savedState?.timeLeft ?? ROUND_DURATION
+  })
+  
+  const startedAtRef = useRef(loadRoundState(1)?.startedAt ?? Date.now())
+  
   const submittedRef = useRef(false)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [selectedAnswers, setSelectedAnswers] = useState(new Array(questions.length).fill(null))
-  const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
+  const selectedAnswersRef = useRef([])
   const [resultMessage, setResultMessage] = useState('')
   const [resultType, setResultType] = useState('')
   const [isComplete, setIsComplete] = useState(false)
@@ -142,6 +160,68 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const [finalScore, setFinalScore] = useState(0)
   const [lampsAfter, setLampsAfter] = useState(lampsRemaining)
   const [hasReduced, setHasReduced] = useState(false)
+  const blockCopy = (event) => event.preventDefault()
+
+  // Check if round already completed on mount
+  useEffect(() => {
+    const existingScore = Number(localStorage.getItem('round1Score') || 0)
+    
+    if (isRoundCompleted(1) || existingScore > 0) {
+      navigate('/round2', { replace: true })
+    }
+  }, [navigate])
+
+  // Save state periodically
+  useEffect(() => {
+    if (isComplete || isAnswerLocked) return
+
+    const saveInterval = setInterval(() => {
+      saveRoundState(1, {
+        currentQuestionIndex,
+        selectedAnswers,
+        timeLeft,
+        startedAt: startedAtRef.current
+      })
+    }, 2000) // Save every 2 seconds
+
+    return () => clearInterval(saveInterval)
+  }, [currentQuestionIndex, selectedAnswers, timeLeft, isComplete, isAnswerLocked])
+
+  useEffect(() => {
+    selectedAnswersRef.current = selectedAnswers
+  }, [selectedAnswers])
+
+  useEffect(() => {
+    if (isComplete || isAnswerLocked) return
+
+    const handlePopState = () => {
+      if (!isComplete && !isAnswerLocked) {
+        window.history.pushState(null, '', window.location.href)
+      }
+    }
+
+    window.history.pushState(null, '', window.location.href)
+    window.addEventListener('popstate', handlePopState)
+    
+    const handleKeyDown = (event) => {
+      const key = event.key.toLowerCase()
+      const isCtrlOrMeta = event.ctrlKey || event.metaKey
+      const blockedCombo = isCtrlOrMeta && ['c', 'x', 'v', 'u', 's', 'p'].includes(key)
+      const blockedDevtools = (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(key)) || key === 'f12'
+      const blockedPrint = key === 'printscreen'
+
+      if (blockedCombo || blockedDevtools || blockedPrint) {
+        event.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isComplete, isAnswerLocked])
 
   useEffect(() => {
     // DEVELOPMENT MODE: Allow direct access without login
@@ -165,7 +245,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     await autoSubmitRound({
       submittedRef,
       lockRound: () => setIsAnswerLocked(true),
-      submitRound: () => completeRound(selectedAnswers, true)
+      submitRound: () => completeRound(selectedAnswersRef.current, true)
     })
   }
 
@@ -200,6 +280,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     }, 0)
 
     const score = correctCount * POINTS_PER_QUESTION
+    const questionsSolved = correctCount
     const elapsedSeconds = Math.min(
       Math.max(Math.round((Date.now() - startedAtRef.current) / 1000), 0),
       ROUND_DURATION
@@ -212,7 +293,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     try {
       if (user && user.teamName) {
-        await submitRoundScore(user.teamName, ROUND_NUMBER, score)
+        await submitRoundScore(user.teamName, ROUND_NUMBER, score, questionsSolved, [], elapsedSeconds)
       }
     } catch (error) {
       console.error('Error submitting score:', error)
@@ -225,6 +306,9 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
       reduceLamps()
     }
 
+    // Mark round as completed in session
+    markRoundCompleted(1)
+    
     setIsComplete(true)
 
     showResults({
@@ -247,18 +331,18 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     }, 3000)
   }
 
-  const handleGoBack = () => {
-    if (window.confirm('Are you sure you want to go back? Your progress will be lost.')) {
-      navigate('/home')
-    }
-  }
-
   const question = questions[currentQuestionIndex]
 
   return (
     <>
       <Background />
-      <main className="event-container">
+      <main
+        className="event-container"
+        onCopy={blockCopy}
+        onCut={blockCopy}
+        onContextMenu={blockCopy}
+        style={{ userSelect: 'none' }}
+      >
         <RoundHeader
           roundTitle="ROUND 1"
           subtitle=""

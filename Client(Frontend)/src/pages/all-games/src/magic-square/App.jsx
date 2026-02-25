@@ -167,6 +167,10 @@ function App({ onComplete }) {
                 onKeyDown={(e) =>
                   handleKeyDown(e, rowIndex, colIndex)
                 }
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 ref={(el) => {
                   if (!inputRefs.current[rowIndex])
                     inputRefs.current[rowIndex] = [];

@@ -7,7 +7,9 @@ import ActionButtons from '../components/ActionButtons'
 import ResultMessage from '../components/ResultMessage'
 import LampDisplay from '../components/LampDisplay'
 import AllGames from './all-games/src/App'
+import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
+import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
 
 const ROUND_DURATION = 1200
 const POINTS_PER_GAME = 10
@@ -16,17 +18,62 @@ const QUALIFICATION_SCORE = 10
 
 export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
-  const startedAtRef = useRef(Date.now())
+  
+  // Initialize state with saved values or defaults - load fresh on each mount
+  const [completedGames, setCompletedGames] = useState(() => {
+    const savedState = loadRoundState(2)
+    console.log('Round2 - Loading saved state:', savedState)
+    return savedState?.completedGames ?? 0
+  })
+  
+  const [hintsPenalty, setHintsPenalty] = useState(() => {
+    const savedState = loadRoundState(2)
+    return savedState?.hintsPenalty ?? 0
+  })
+  
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const savedState = loadRoundState(2)
+    return savedState?.timeLeft ?? ROUND_DURATION
+  })
+  
+  const startedAtRef = useRef(loadRoundState(2)?.startedAt ?? Date.now())
+  
   const submittedRef = useRef(false)
-  const [timeLeft, setTimeLeft] = useState(ROUND_DURATION)
-  const [completedGames, setCompletedGames] = useState(0)
+  const completedGamesRef = useRef(loadRoundState(2)?.completedGames ?? 0)
+  const hintsPenaltyRef = useRef(loadRoundState(2)?.hintsPenalty ?? 0)
+  
   const [round2Score, setRound2Score] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const [isRoundLocked, setIsRoundLocked] = useState(false)
   const [resultMessage, setResultMessage] = useState('')
   const [lampsAfter, setLampsAfter] = useState(() => Number(localStorage.getItem('lampsRemaining') || lampsRemaining))
   const [hasReduced, setHasReduced] = useState(false)
-  const [hintsPenalty, setHintsPenalty] = useState(0)
+  const blockCopy = (event) => event.preventDefault()
+
+  // Check if round already completed on mount
+  useEffect(() => {
+    const existingScore = Number(localStorage.getItem('round2Score') || 0)
+    
+    if (isRoundCompleted(2) || existingScore > 0) {
+      navigate('/round3', { replace: true })
+    }
+  }, [navigate])
+
+  // Save state periodically
+  useEffect(() => {
+    if (isComplete || isRoundLocked) return
+
+    const saveInterval = setInterval(() => {
+      saveRoundState(2, {
+        completedGames,
+        hintsPenalty,
+        timeLeft,
+        startedAt: startedAtRef.current
+      })
+    }, 2000) // Save every 2 seconds
+
+    return () => clearInterval(saveInterval)
+  }, [completedGames, hintsPenalty, timeLeft, isComplete, isRoundLocked])
 
   const round1Score = Number(localStorage.getItem('round1Score') || 0)
 
@@ -44,9 +91,42 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     return stopTimer
   }, [isComplete, isRoundLocked])
 
+  useEffect(() => {
+    if (isComplete || isRoundLocked) return
+
+    const handlePopState = () => {
+      if (!isComplete && !isRoundLocked) {
+        window.history.pushState(null, '', window.location.href)
+      }
+    }
+
+    window.history.pushState(null, '', window.location.href)
+    window.addEventListener('popstate', handlePopState)
+    
+    const handleKeyDown = (event) => {
+      const key = event.key.toLowerCase()
+      const isCtrlOrMeta = event.ctrlKey || event.metaKey
+      const blockedCombo = isCtrlOrMeta && ['c', 'x', 'v', 'u', 's', 'p'].includes(key)
+      const blockedDevtools = (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(key)) || key === 'f12'
+      const blockedPrint = key === 'printscreen'
+
+      if (blockedCombo || blockedDevtools || blockedPrint) {
+        event.preventDefault()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isComplete, isRoundLocked])
+
   const handleProgress = (count) => {
+    completedGamesRef.current = count
     setCompletedGames(count)
-    const score = Math.max((count * POINTS_PER_GAME) - hintsPenalty, 0)
+    const score = Math.max((count * POINTS_PER_GAME) - hintsPenaltyRef.current, 0)
     setRound2Score(score)
   }
 
@@ -57,14 +137,15 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     autoSubmitRound({
       submittedRef,
       lockRound: () => setIsRoundLocked(true),
-      submitRound: () => completeRound(completedGames, true)
+      submitRound: () => completeRound(completedGamesRef.current, true)
     })
   }
 
-  const completeRound = (completedCount, wasAutoSubmitted) => {
+  const completeRound = async (completedCount, wasAutoSubmitted) => {
     setIsRoundLocked(true)
 
     const score = Math.max((completedCount * POINTS_PER_GAME) - hintsPenalty, 0)
+    const questionsSolved = completedCount
     const elapsedSeconds = Math.min(
       Math.max(Math.round((Date.now() - startedAtRef.current) / 1000), 0),
       ROUND_DURATION
@@ -82,7 +163,20 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
       reduceLamps()
     }
 
+    // Mark round as completed in session
+    markRoundCompleted(2)
+    
     setIsComplete(true)
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    try {
+      if (user && user.teamName) {
+        await submitRoundScore(user.teamName, 2, score, questionsSolved, [], elapsedSeconds)
+      }
+    } catch (error) {
+      console.error('Error submitting score:', error)
+      setResultMessage('Score saved locally. Online submission failed.')
+    }
 
     showResults({
       navigate,
@@ -111,7 +205,13 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   return (
     <>
       <Background />
-      <main className="event-container">
+      <main
+        className="event-container"
+        onCopy={blockCopy}
+        onCut={blockCopy}
+        onContextMenu={blockCopy}
+        style={{ userSelect: 'none' }}
+      >
         <RoundHeader
           roundTitle="ROUND 2"
           subtitle=""
@@ -132,7 +232,8 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
 
                   setHintsPenalty(prevPenalty => {
                     const newPenalty = prevPenalty + HINT_PENALTY
-                    const newScore = Math.max((completedGames * POINTS_PER_GAME) - newPenalty, 0)
+                    hintsPenaltyRef.current = newPenalty
+                    const newScore = Math.max((completedGamesRef.current * POINTS_PER_GAME) - newPenalty, 0)
                     setRound2Score(newScore)
                     return newPenalty
                   })

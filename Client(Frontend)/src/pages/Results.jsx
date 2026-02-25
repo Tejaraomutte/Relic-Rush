@@ -248,11 +248,21 @@ export default function Results({ lampsRemaining = 1 }) {
 
   const submitFinalScore = async (r1, r2, r3, total) => {
     const user = JSON.parse(localStorage.getItem('user'))
+
     try {
-      await fetch(`${API_URL}/submit-score`, {
+      await fetch(`${API_URL}/api/submit-score`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamName: user.teamName, round: 'final', score: total, round1: r1, round2: r2, round3: r3 })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          teamName: user.teamName,
+          round: 'final',
+          score: total,
+          round1: r1,
+          round2: r2,
+          round3: r3
+        })
       })
     } catch (e) { console.error('Error submitting final score:', e) }
   }
@@ -268,94 +278,60 @@ export default function Results({ lampsRemaining = 1 }) {
     navigator.share ? navigator.share({ title: 'Relic Rush', text }) : alert(text)
   }
 
+  const formatDuration = (seconds) => {
+    if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return 'N/A'
+    const minutes = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${minutes}m ${secs}s`
+  }
+
   const resolvedScore = resultData?.score ?? (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
   const resolvedTimeTaken = resultData?.timeTakenSeconds
   const resolvedQualification = resultData?.qualificationStatus || (isFinalMode ? (isWinnerFromState ? 'Qualified' : 'Not Qualified') : 'Qualified')
-  const maxPossible = isFinalMode ? 300 : 100
-
-  // Chart data
-  const barData = [
-    { label: 'R1', value: round1Score, color: 'linear-gradient(180deg, #FFD700, #B8860B)' },
-    ...(!isRound1Mode ? [{ label: 'R2', value: round2Score, color: 'linear-gradient(180deg, #00D9FF, #0099CC)' }] : []),
-    ...(isFinalMode ? [{ label: 'R3', value: round3Score, color: 'linear-gradient(180deg, #c084fc, #7c3aed)' }] : []),
-  ]
-
-  const radarData = [
-    { label: 'Speed', value: resolvedTimeTaken ? Math.max(100 - resolvedTimeTaken, 10) : 60 },
-    { label: 'R1', value: Math.min(round1Score * 2, 100) },
-    { label: 'Accuracy', value: Math.min(resolvedScore / (maxPossible / 100), 100) },
-    { label: 'R2', value: Math.min(round2Score * 2, 100) },
-    { label: 'R3', value: isFinalMode ? Math.min(round3Score * 2, 100) : 0 },
-  ]
-
-  // Achievements
-  const achievements = [
-    { icon: '⚡', title: 'Speed Demon', desc: 'Finished under 60 seconds', unlocked: resolvedTimeTaken != null && resolvedTimeTaken < 60 },
-    { icon: '🎯', title: 'Precision', desc: 'Scored above 80%', unlocked: resolvedScore >= maxPossible * 0.8 },
-    { icon: '🏺', title: 'Relic Finder', desc: 'Completed all rounds', unlocked: isFinalMode },
-    { icon: '🧞', title: 'Genie Master', desc: 'Won the final challenge', unlocked: isFinalMode && isWinnerFromState },
-    { icon: '🔥', title: 'Hat Trick', desc: 'Scored in all 3 rounds', unlocked: isFinalMode && round1Score > 0 && round2Score > 0 && round3Score > 0 },
-    { icon: '💎', title: 'Diamond', desc: 'Perfect total score', unlocked: isFinalMode && totalScore >= maxPossible },
-  ]
-
-  const modeLabel = isRound1Mode ? 'Round 1' : isRound2Mode ? 'Round 2' : 'Final'
-  const modeTitle = isRound1Mode ? 'Round 1 Complete' : isRound2Mode ? 'Round 2 Complete' : "Journey's End"
-  const modeSub = isRound1Mode
-    ? 'Review your score, then proceed to the next challenge.'
-    : isRound2Mode
-      ? 'Round 2 completed! Ready for the final challenge?'
-      : 'Your quest through the sands of time has concluded.'
 
   return (
     <>
       <Background />
-      <Particles />
+      <main className={`event-container result-container ${interactionLocked ? 'interaction-locked' : ''}`}>
+        <header className="result-header">
+          <h1 className="event-title">
+            {isRound1Mode ? 'ROUND 1 RESULT' : isRound2Mode ? 'ROUND 2 RESULT' : "JOURNEY'S END"}
+          </h1>
+        </header>
 
-      <main className={`res-page ${interactionLocked ? 'interaction-locked' : ''}`}>
+        {isRound1Mode && (
+          <p className="loading-text">Review your Round 1 score, then click Next Round to continue.</p>
+        )}
+        {isRound2Mode && (
+          <p className="loading-text">Round 2 completed! Ready to face your next challenge?</p>
+        )}
 
-        {/* ═══ HEADER ═══ */}
-        <Reveal>
-          <header className="res-header">
-            <span className="res-tag">📜 {modeLabel} Results</span>
-            <h1 className="res-title">
-              {modeTitle.split(' ').map((w, i, arr) =>
-                i === arr.length - 1
-                  ? <span key={i} className="res-gradient-text">{w}</span>
-                  : <span key={i}>{w} </span>
-              )}
-            </h1>
-            <p className="res-subtitle">{modeSub}</p>
-          </header>
-        </Reveal>
+        <div className="result-lamp-wrap" aria-hidden="true">
+          <div className={`result-lamp ${isFinalMode && isWinnerFromState ? 'genie-ready' : ''}`}>
+            <img src={lamp} alt="Relic lamp" className="result-lamp-image" />
+            <div className="result-lamp-glow" />
+          </div>
+        </div>
 
-        {/* ═══ HERO: RING + LAMP + QUICK STATS ═══ */}
-        <Reveal delay={150}>
-          <div className="res-hero-row">
-            <div className="res-hero-ring">
-              <ScoreRing score={resolvedScore} maxScore={maxPossible} size={180} strokeWidth={12} label="Total Score" />
-            </div>
-            <div className="res-hero-lamp">
-              <div className={`res-lamp-wrap ${isFinalMode && isWinnerFromState ? 'genie-ready' : ''}`}>
-                <img src={lamp} alt="Relic lamp" className="res-lamp-img" />
-                <div className="res-lamp-glow" />
-              </div>
-            </div>
-            <div className="res-hero-quick">
-              <div className="res-quick-item">
-                <span className="res-quick-label">Time</span>
-                <span className="res-quick-value">{typeof resolvedTimeTaken === 'number' ? `${resolvedTimeTaken}s` : '—'}</span>
-              </div>
-              <div className="res-quick-item">
-                <span className="res-quick-label">Status</span>
-                <span className={`res-quick-value res-status ${resolvedQualification === 'Qualified' ? 'qualified' : 'not-qualified'}`}>
-                  {resolvedQualification}
-                </span>
-              </div>
-              <div className="res-quick-item">
-                <span className="res-quick-label">Lamps Left</span>
-                <span className="res-quick-value">{lampsRemaining} 🏺</span>
-              </div>
-            </div>
+        <div className="score-card result-panel-card">
+          <div className="score-item">
+            <span className="score-label">Score</span>
+            <span className="score-value">{resolvedScore}</span>
+          </div>
+          <div className="score-item">
+            <span className="score-label">Time Taken</span>
+            <span className="score-value result-meta">{typeof resolvedTimeTaken === 'number' ? `${resolvedTimeTaken}s` : 'N/A'}</span>
+          </div>
+          <div className="score-item">
+            <span className="score-label">Qualification Status</span>
+            <span className="score-value result-meta">{resolvedQualification}</span>
+          </div>
+        </div>
+
+        <div className="score-card">
+          <div className="score-item">
+            <span className="score-label">Round 1 Score</span>
+            <span className="score-value">{round1Score}</span>
           </div>
         </Reveal>
 
@@ -451,22 +427,12 @@ export default function Results({ lampsRemaining = 1 }) {
           </Reveal>
         )}
 
-        {/* ═══ ACTIONS ═══ */}
-          <Reveal delay={600}>
-            <div className="res-actions">
-              <button
-                className="res-btn res-btn-gold"
-                onClick={() => navigate('/relic-story')}
-                style={{ minWidth: 180 }}
-              >
-                View Lamp
-              </button>
-              {isRound1Mode && <button className="res-btn res-btn-accent" onClick={() => navigate('/round2')}>Next Round →</button>}
-              {isRound2Mode && <button className="res-btn res-btn-accent" onClick={() => navigate('/round3')}>Enter Round 3 →</button>}
-              {/* {isFinalMode && <button className="res-btn res-btn-ghost" onClick={handleShare}>Share Score</button>} */}
-            </div>
-          </Reveal>
-
+        <div className="result-actions">
+          <button className="btn btn-golden" onClick={handleHome}>Return Home</button>
+          {isRound1Mode && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Next Round</button>}
+          {isRound2Mode && <button className="btn btn-secondary" onClick={() => navigate('/round3')}>Enter Round 3</button>}
+          {isFinalMode && <button className="btn btn-secondary" onClick={handleShare}>Share Score</button>}
+        </div>
       </main>
 
       <GenieRevealOverlay
