@@ -47,6 +47,7 @@ function FlowBuilderContent({
   const [isLocked, setIsLocked] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [validationResult, setValidationResult] = useState<any>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
 
   useEffect(() => {
     const solvedIds = FLOWCHART_CHALLENGES.filter((challenge) => solvedChallenges[challenge]);
@@ -102,7 +103,7 @@ function FlowBuilderContent({
   const handleSubmit = () => {
     // Prevent resubmission if already solved
     if (solvedChallenges[category]) {
-      alert('Already you submitted this. Try another flowchart.');
+      setShowDuplicateModal(true);
       return;
     }
     // Run validation
@@ -191,9 +192,9 @@ function FlowBuilderContent({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: 16 }}>Flowchart Challenge — {category}</h2>
+            {/* <h2 style={{ margin: 0, fontSize: 16 }}>Flowchart Challenge — {category}</h2> */}
             <div style={{ color: '#6b7280', fontSize: 12 }}>
-              {isRoundLocked ? '🔒 Round locked' : 'Build the flowchart for this challenge'}
+              {/* {isRoundLocked ? '🔒 Round locked' : 'Build the flowchart for this challenge'} */}
             </div>
           </div>
         </div>
@@ -220,6 +221,20 @@ function FlowBuilderContent({
           onRetry={handleRetry}
           isPerfect={validationResult.isPerfect}
         />
+      )}
+
+      {/* Duplicate Submission Modal */}
+      {showDuplicateModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <span className="modal-icon">⚠️</span>
+            <h2>Already Submitted</h2>
+            <p>You have already submitted this flowchart.<br/>Try another challenge.</p>
+            <button className="modal-btn" onClick={() => setShowDuplicateModal(false)}>
+              OK
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="app-shell" style={{ height: 'calc(100% - 72px)', minHeight: 520 }}>

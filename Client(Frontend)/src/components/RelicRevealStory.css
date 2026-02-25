@@ -1,0 +1,170 @@
+/* Cinematic congrats overlay for last frame */
+.relic-reveal-congrats {
+  position: absolute;
+  top: 12vh;
+  left: 0;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 20;
+  pointer-events: none;
+  animation: fadeInFrame 1.2s;
+}
+.relic-reveal-congrats-main {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #FFD700;
+  text-shadow: 0 2px 24px #000a, 0 1px 0 #fffbe9, 0 0 18px #FFD70099;
+  margin-bottom: 0.5em;
+  letter-spacing: 0.03em;
+}
+.relic-reveal-congrats-sub {
+  font-family: 'Cinzel', serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: #fffbe9;
+  text-shadow: 0 2px 18px #FFD70099, 0 1px 0 #FFD700;
+  background: rgba(20, 20, 30, 0.7);
+  border-radius: 14px;
+  padding: 10px 32px 8px 32px;
+  margin-top: 0.2em;
+}
+.relic-reveal-overlay {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 13, 20, 0.92);
+  animation: fadeInBg 0.7s;
+}
+.relic-reveal-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(0,0,0,0.85) 60%, rgba(32,24,0,0.7) 100%);
+  pointer-events: none;
+}
+.relic-reveal-frame {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  animation: fadeInFrame 0.7s;
+  overflow: hidden;
+}
+.relic-reveal-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 1;
+  box-shadow: 0 0 80px 10px #000a, 0 0 0 8px #FFD70044;
+  border-radius: 0;
+  margin: 0;
+  transition: opacity 0.5s;
+}
+.relic-reveal-convo {
+  position: absolute;
+  top: 7vh;
+  left: 0;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+  background: none;
+}
+.relic-reveal-line {
+  background: rgba(20, 20, 30, 0.7);
+  border-radius: 14px;
+  padding: 14px 32px 12px 32px;
+  color: #fff;
+  font-size: 1.35rem;
+  box-shadow: 0 2px 24px 0 #0008;
+  text-shadow: 0 2px 8px #fff2, 0 0 2px #FFD70099;
+  backdrop-filter: blur(2px);
+  min-width: 320px;
+  max-width: 90vw;
+  font-family: 'Cinzel', serif;
+  margin-bottom: 10px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.relic-reveal-line {
+  margin-bottom: 6px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.relic-reveal-speaker {
+  color: #FFD700;
+  font-weight: 700;
+  margin-right: 0.5em;
+  text-shadow: 0 0 6px #FFD70088;
+}
+.relic-reveal-actions {
+  position: absolute;
+  right: 4vw;
+  bottom: 4vh;
+  z-index: 2;
+}
+.relic-reveal-btn-gold {
+  background: linear-gradient(90deg, #FFD700 0%, #ffec8b 100%);
+  color: #2d2300;
+  font-weight: bold;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 12px;
+  padding: 0.7em 2.2em;
+  box-shadow: 0 0 24px 4px #FFD70088, 0 2px 8px #0008;
+  cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+  text-shadow: 0 2px 8px #fff2, 0 0 2px #FFD70099;
+  outline: none;
+  animation: goldBtnPulse 2.2s infinite alternate;
+}
+.relic-reveal-btn-gold:hover {
+  background: linear-gradient(90deg, #ffe066 0%, #FFD700 100%);
+  transform: scale(1.06) rotate(-1deg);
+  box-shadow: 0 0 48px 8px #FFD700cc, 0 2px 12px #000a;
+}
+.relic-reveal-btn-next {
+  background: linear-gradient(90deg, #222 0%, #444 100%);
+  color: #FFD700;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border: 2px solid #FFD70099;
+  border-radius: 12px;
+  padding: 0.6em 1.8em;
+  box-shadow: 0 0 12px 2px #FFD70044, 0 2px 8px #0008;
+  cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+  text-shadow: 0 2px 8px #fff2, 0 0 2px #FFD70099;
+  outline: none;
+}
+.relic-reveal-btn-next:hover {
+  background: linear-gradient(90deg, #FFD700 0%, #ffec8b 100%);
+  color: #2d2300;
+  transform: scale(1.05) rotate(1deg);
+  box-shadow: 0 0 32px 6px #FFD70099, 0 2px 12px #000a;
+}
+@keyframes fadeInBg {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeInFrame {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes goldBtnPulse {
+  from { box-shadow: 0 0 24px 4px #FFD70088, 0 2px 8px #0008; }
+  to { box-shadow: 0 0 48px 12px #FFD700cc, 0 2px 16px #000a; }
+}

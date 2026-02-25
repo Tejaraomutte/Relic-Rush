@@ -17,6 +17,7 @@ function App({ onComplete }) {
   const [selected, setSelected] = useState(null);
   const [moves, setMoves] = useState(0);
   const [hasCompleted, setHasCompleted] = useState(false);
+  const [showInvalidMove, setShowInvalidMove] = useState(false);
 
   const handleSelect = (tower) => {
     if (selected === null) {
@@ -50,7 +51,7 @@ function App({ onComplete }) {
 
       setMoves(moves + 1);
     } else {
-      alert("❌ Invalid Move! Smaller disks must stay on top.");
+      setShowInvalidMove(true);
     }
   };
 
@@ -76,6 +77,20 @@ function App({ onComplete }) {
   return (
     <div className="App">
       <h1 className="title">🧩 Towers of Hanoi</h1>
+
+      {/* Invalid Move Modal */}
+      {showInvalidMove && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <span className="modal-icon">❌</span>
+            <h2>Invalid Move!</h2>
+            <p>Smaller disks must stay on top.<br/>Try a different move.</p>
+            <button className="modal-btn" onClick={() => setShowInvalidMove(false)}>
+              OK
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="rules">
         <h3>📜 Rules</h3>

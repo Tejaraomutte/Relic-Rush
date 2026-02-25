@@ -106,7 +106,7 @@ including small, medium, and large ones.`,
     correct: 1
   },
   {
-    question:`Deep within the Sultan’s secret chamber lies a mystical wall carved with ancient symbols.
+    question: `Deep within the Sultan’s secret chamber lies a mystical wall carved with ancient symbols.
 These symbols were designed by royal scholars to protect the Original Genie Lamp.
 However, time has damaged one portion of the sacred pattern…
 A section of the magical carving has vanished, leaving behind a missing symbol marked with a question mark (?).

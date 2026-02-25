@@ -1,0 +1,911 @@
+/* ═══════════════════════════════════════════
+   RELIC RUSH — SaaS HOMEPAGE STYLES
+   ═══════════════════════════════════════════ */
+
+/* ── Google Fonts import (Cinzel + Inter) ── */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Design Tokens ── */
+:root {
+    --saas-gold: #FFD700;
+    --saas-gold-light: #ffe66d;
+    --saas-gold-deep: #B8860B;
+    --saas-purple: #1a0033;
+    --saas-navy: #0a0d14;
+    --saas-cyan: #00D9FF;
+    --saas-surface: rgba(255, 255, 255, 0.04);
+    --saas-border: rgba(255, 215, 0, 0.12);
+    --saas-text: #EAEAEA;
+    --saas-text-dim: #a3a3a3;
+    --saas-radius: 16px;
+    --saas-max-w: 1140px;
+}
+
+/* ─────────────── NAVBAR ─────────────── */
+.saas-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 16px 0;
+    transition: all 0.35s ease;
+    background: transparent;
+}
+
+.saas-nav.scrolled {
+    background: rgba(10, 13, 20, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--saas-border);
+    padding: 10px 0;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+.saas-nav-inner {
+    max-width: var(--saas-max-w);
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.saas-nav-brand {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--saas-gold);
+    letter-spacing: 1px;
+    text-shadow: 0 0 18px rgba(255, 215, 0, 0.3);
+}
+
+.saas-nav-links {
+    display: flex;
+    gap: 32px;
+}
+
+.saas-nav-links a {
+    color: var(--saas-text-dim);
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: color 0.25s;
+    position: relative;
+}
+
+.saas-nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--saas-gold);
+    transition: width 0.3s ease;
+}
+
+.saas-nav-links a:hover {
+    color: var(--saas-gold);
+}
+
+.saas-nav-links a:hover::after {
+    width: 100%;
+}
+
+.saas-nav-cta {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 22px;
+    border-radius: 999px;
+    border: 1.5px solid var(--saas-gold);
+    background: transparent;
+    color: var(--saas-gold);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.saas-nav-cta:hover {
+    background: var(--saas-gold);
+    color: var(--saas-navy);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.35);
+}
+
+/* ─────────────── PARTICLES ─────────────── */
+.saas-particles {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.saas-particle {
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    width: var(--size);
+    height: var(--size);
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.6), transparent 70%);
+    border-radius: 50%;
+    animation: saasFloat var(--dur) ease-in-out var(--delay) infinite alternate;
+}
+
+@keyframes saasFloat {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.25;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: translate(30px, -60px) scale(1.3);
+        opacity: 0.15;
+    }
+}
+
+/* ─────────────── REVEAL ON SCROLL ─────────────── */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.7s cubic-bezier(.16, 1, .3, 1), transform 0.7s cubic-bezier(.16, 1, .3, 1);
+}
+
+.reveal-on-scroll.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ─────────────── HERO ─────────────── */
+.saas-hero {
+    position: relative;
+    z-index: 2;
+    max-width: var(--saas-max-w);
+    margin: 0 auto;
+    padding: 160px 24px 100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 48px;
+    min-height: 100vh;
+}
+
+.saas-hero-content {
+    flex: 1.1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.saas-badge {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 6px 18px;
+    border-radius: 999px;
+    background: rgba(255, 215, 0, 0.08);
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    color: var(--saas-gold-light);
+    width: fit-content;
+}
+
+.saas-hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(40px, 5.5vw, 64px);
+    font-weight: 800;
+    line-height: 1.12;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+.saas-gradient-text {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 40%, #00D9FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.saas-hero-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--saas-text-dim);
+    max-width: 520px;
+}
+
+/* ── Hero buttons ── */
+.saas-hero-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.saas-btn-primary {
+    position: relative;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 16px 36px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    background: linear-gradient(135deg, #FFD700 0%, #E8A800 100%);
+    color: var(--saas-navy);
+    letter-spacing: 0.8px;
+    box-shadow: 0 4px 24px rgba(255, 215, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.saas-btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.saas-btn-shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+    transform: translateX(-100%);
+    animation: saasShine 3.5s ease-in-out infinite;
+}
+
+@keyframes saasShine {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.saas-btn-ghost {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 16px 28px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    color: var(--saas-text);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.saas-btn-ghost:hover {
+    border-color: var(--saas-gold);
+    color: var(--saas-gold);
+    background: rgba(255, 215, 0, 0.06);
+}
+
+.saas-btn-lg {
+    font-size: 18px;
+    padding: 18px 44px;
+}
+
+/* ── Stats strip ── */
+.saas-stats-strip {
+    display: flex;
+    gap: 32px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.saas-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.saas-stat-val {
+    font-family: 'Cinzel', serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--saas-gold);
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+}
+
+.saas-stat-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--saas-text-dim);
+}
+
+/* ── Hero visual / lamp ── */
+.saas-hero-visual {
+    flex: 0.8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.saas-lamp-wrapper {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.saas-lamp-img {
+    width: 200px;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.5));
+    animation: saasLampFloat 5s ease-in-out infinite;
+    position: relative;
+    z-index: 2;
+    border-radius: 16px;
+}
+
+@keyframes saasLampFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-18px);
+    }
+}
+
+.saas-lamp-glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.15) 0%, rgba(0, 217, 255, 0.06) 50%, transparent 70%);
+    animation: saasGlowPulse 4s ease-in-out infinite;
+    z-index: 1;
+}
+
+@keyframes saasGlowPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+/* ─────────────── SECTIONS ─────────────── */
+.saas-section {
+    position: relative;
+    z-index: 2;
+    max-width: var(--saas-max-w);
+    margin: 0 auto;
+    padding: 100px 24px;
+}
+
+.saas-section-tag {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--saas-cyan);
+    margin-bottom: 12px;
+}
+
+.saas-section-heading {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.saas-section-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--saas-text-dim);
+    max-width: 680px;
+}
+
+/* ─────────────── ABOUT CARDS ─────────────── */
+.saas-about-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+}
+
+.saas-about-card {
+    background: var(--saas-surface);
+    border: 1px solid var(--saas-border);
+    border-radius: var(--saas-radius);
+    padding: 36px 28px;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.saas-about-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--saas-radius);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.06), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.35s;
+}
+
+.saas-about-card:hover {
+    border-color: rgba(255, 215, 0, 0.3);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(255, 215, 0, 0.1), 0 0 80px rgba(255, 215, 0, 0.05);
+}
+
+.saas-about-card:hover::before {
+    opacity: 1;
+}
+
+.saas-about-icon {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 16px;
+}
+
+.saas-about-card h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.saas-about-card p {
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    color: var(--saas-text-dim);
+    line-height: 1.7;
+    position: relative;
+    z-index: 1;
+}
+
+/* ─────────────── ROUNDS TIMELINE ─────────────── */
+.saas-rounds-timeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 56px;
+}
+
+.saas-round-card {
+    background: var(--saas-surface);
+    border: 1px solid var(--saas-border);
+    border-radius: var(--saas-radius);
+    padding: 40px 28px 36px;
+    text-align: center;
+    position: relative;
+    transition: all 0.35s ease;
+}
+
+.saas-round-card:hover {
+    border-color: rgba(255, 215, 0, 0.35);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(255, 215, 0, 0.1);
+}
+
+.saas-round-num {
+    font-family: 'Cinzel', serif;
+    font-size: 48px;
+    font-weight: 900;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(0, 217, 255, 0.08));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.saas-round-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.saas-round-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--saas-gold);
+    margin-bottom: 12px;
+}
+
+.saas-round-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--saas-text-dim);
+}
+
+.saas-round-connector {
+    display: none;
+    /* visible on desktop via pseudo-elements */
+}
+
+/* ─────────────── RULES (Premium) ─────────────── */
+.saas-rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 48px;
+    max-width: 800px;
+}
+
+.saas-rule-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 22px 28px 22px 32px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 215, 0, 0.02));
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: default;
+    transition: all 0.4s cubic-bezier(.25, .8, .25, 1);
+}
+
+/* Glowing left accent bar */
+.saas-rule-accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--saas-gold), var(--saas-cyan));
+    border-radius: 4px 0 0 4px;
+    opacity: 0.4;
+    transition: opacity 0.4s, box-shadow 0.4s;
+}
+
+.saas-rule-item:hover .saas-rule-accent {
+    opacity: 1;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.5), 0 0 24px rgba(0, 217, 255, 0.2);
+}
+
+/* Number badge */
+.saas-rule-num-badge {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.12), rgba(0, 217, 255, 0.06));
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.4s ease;
+}
+
+.saas-rule-num {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--saas-gold);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    transition: all 0.4s ease;
+}
+
+.saas-rule-item:hover .saas-rule-num-badge {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(0, 217, 255, 0.12));
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.2);
+    transform: scale(1.08);
+}
+
+.saas-rule-item:hover .saas-rule-num {
+    text-shadow: 0 0 14px rgba(255, 215, 0, 0.6);
+}
+
+/* Rule body: icon + text */
+.saas-rule-body {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+
+.saas-rule-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.3));
+    transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.saas-rule-item:hover .saas-rule-icon {
+    transform: scale(1.2) rotate(-5deg);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+}
+
+.saas-rule-item p {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--saas-text-dim);
+    transition: color 0.3s;
+}
+
+.saas-rule-item:hover p {
+    color: var(--saas-text);
+}
+
+/* Hover effects on the card */
+.saas-rule-item:hover {
+    border-color: rgba(255, 215, 0, 0.3);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(0, 217, 255, 0.02));
+    transform: translateX(8px);
+    box-shadow:
+        0 8px 32px rgba(255, 215, 0, 0.08),
+        0 0 0 1px rgba(255, 215, 0, 0.1),
+        inset 0 0 40px rgba(255, 215, 0, 0.02);
+}
+
+/* Shimmer sweep on hover */
+.saas-rule-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+            transparent 40%,
+            rgba(255, 215, 0, 0.06) 48%,
+            rgba(255, 255, 255, 0.08) 50%,
+            rgba(255, 215, 0, 0.06) 52%,
+            transparent 60%);
+    transform: translateX(-150%);
+    transition: none;
+    pointer-events: none;
+}
+
+.saas-rule-item:hover .saas-rule-shimmer {
+    animation: ruleShimmer 0.8s ease forwards;
+}
+
+@keyframes ruleShimmer {
+    0% {
+        transform: translateX(-150%);
+    }
+
+    100% {
+        transform: translateX(150%);
+    }
+}
+
+/* ─────────────── TEAM ─────────────── */
+.saas-team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 56px;
+}
+
+.saas-team-card {
+    background: var(--saas-surface);
+    border: 1px solid var(--saas-border);
+    border-radius: var(--saas-radius);
+    padding: 40px 24px;
+    text-align: center;
+    transition: all 0.35s ease;
+}
+
+.saas-team-card:hover {
+    border-color: rgba(255, 215, 0, 0.35);
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(255, 215, 0, 0.12);
+}
+
+.saas-team-img-wrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 20px;
+}
+
+.saas-team-img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 215, 0, 0.3);
+    position: relative;
+    z-index: 2;
+    transition: border-color 0.3s;
+}
+
+.saas-team-card:hover .saas-team-img {
+    border-color: var(--saas-gold);
+}
+
+.saas-team-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 215, 0, 0.15);
+    z-index: 1;
+    transition: all 0.35s ease;
+}
+
+.saas-team-card:hover .saas-team-ring {
+    border-color: rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    transform: scale(1.08);
+}
+
+.saas-team-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.saas-team-role {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--saas-cyan);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+/* ─────────────── FINAL CTA ─────────────── */
+.saas-cta-section {
+    position: relative;
+    z-index: 2;
+    max-width: var(--saas-max-w);
+    margin: 0 auto;
+    padding: 100px 24px;
+    text-align: center;
+}
+
+.saas-cta-heading {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(28px, 4vw, 42px);
+    color: #fff;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.saas-cta-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 17px;
+    color: var(--saas-text-dim);
+    margin-bottom: 36px;
+    line-height: 1.6;
+}
+
+/* ─────────────── FOOTER ─────────────── */
+.saas-footer {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 32px 24px;
+    border-top: 1px solid var(--saas-border);
+}
+
+.saas-footer p {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--saas-text-dim);
+    letter-spacing: 0.3px;
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+    .saas-hero {
+        flex-direction: column;
+        text-align: center;
+        padding-top: 130px;
+        padding-bottom: 80px;
+        min-height: auto;
+    }
+
+    .saas-hero-content {
+        align-items: center;
+    }
+
+    .saas-hero-sub {
+        max-width: 100%;
+    }
+
+    .saas-hero-actions {
+        justify-content: center;
+    }
+
+    .saas-stats-strip {
+        justify-content: center;
+    }
+
+    .saas-hero-visual {
+        order: -1;
+    }
+
+    .saas-lamp-wrapper {
+        width: 220px;
+        height: 220px;
+    }
+
+    .saas-lamp-img {
+        width: 140px;
+    }
+
+    .saas-lamp-glow {
+        width: 200px;
+        height: 200px;
+    }
+
+    .saas-about-grid,
+    .saas-rounds-timeline,
+    .saas-team-grid {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .saas-nav-links {
+        display: none;
+    }
+
+    .saas-section {
+        padding: 64px 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .saas-hero-title {
+        font-size: 32px;
+    }
+
+    .saas-hero-sub {
+        font-size: 16px;
+    }
+
+    .saas-btn-primary {
+        padding: 14px 28px;
+        font-size: 15px;
+    }
+
+    .saas-section-heading {
+        font-size: 26px;
+    }
+
+    .saas-stats-strip {
+        gap: 20px;
+    }
+
+    .saas-stat-val {
+        font-size: 26px;
+    }
+}

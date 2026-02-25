@@ -1,0 +1,131 @@
+/* Landing.css - Cinematic Royal Hero Page */
+
+.landing-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url('../assets/images/title.png') center center / cover no-repeat;
+  z-index: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(20, 12, 2, 0.54) 0%, rgba(30, 20, 10, 0.62) 100%);
+  z-index: 1;
+}
+
+.landing-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100vw;
+  text-align: center;
+  padding-top: 8vh;
+  animation: landing-fadein 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+.landing-title {
+  font-family: 'Cinzel', 'Trajan Pro', serif;
+  font-size: clamp(3rem, 8vw, 7rem);
+  background: linear-gradient(92deg, #bfa14a 10%, #8c6d1f 60%, #e2c275 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 0.13em;
+  text-shadow: 0 2px 10px #7a5a1a99, 0 1px 0 #6d5520, 0 0 4px #e2c27588;
+  opacity: 0;
+  transform: translateY(-18px);
+  margin-top: 5vh;
+  margin-bottom: 1.1rem;
+  animation: title-fade-slide 1.7s cubic-bezier(0.4,0,0.2,1) 0.1s forwards;
+}
+
+.landing-subtitle {
+  margin-top: 0.7rem;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.1rem, 3vw, 2.2rem);
+  color: #cbb98a;
+  text-shadow: 0 1px 4px #7a5a1a33;
+  opacity: 0;
+  animation: subtitle-fadein 1.2s cubic-bezier(0.4,0,0.2,1) 1.1s forwards;
+}
+
+.landing-btn {
+  margin-top: 2.1rem;
+  padding: 0.65em 2em;
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  background: linear-gradient(90deg, #bfa14a 0%, #8c6d1f 60%, #e2c275 100%);
+  color: #2d210a;
+  border: none;
+  border-radius: 2em;
+  box-shadow: 0 2px 12px #bfa14a33, 0 1px 0 #6d5520;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.4,0,0.2,1), box-shadow 0.18s cubic-bezier(0.4,0,0.2,1), filter 0.18s;
+  filter: drop-shadow(0 0 6px #e2c27588);
+  opacity: 0;
+  animation: btn-fadein 1.2s cubic-bezier(0.4,0,0.2,1) 1.7s forwards;
+}
+
+.landing-btn:hover, .landing-btn:focus {
+  transform: scale(1.03);
+  box-shadow: 0 4px 18px #bfa14a77, 0 2px 0 #6d5520;
+  filter: drop-shadow(0 0 12px #e2c275cc);
+}
+
+@keyframes landing-fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes title-fade-slide {
+  0% {
+    opacity: 0;
+    transform: translateY(-32px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subtitle-fadein {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes btn-fadein {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .landing-title {
+    font-size: clamp(2.2rem, 10vw, 4.5rem);
+    margin-top: 7vh;
+  }
+  .landing-subtitle {
+    font-size: clamp(1rem, 4vw, 1.3rem);
+  }
+  .landing-btn {
+    padding: 0.6em 1.2em;
+    font-size: 1rem;
+  }
+}
