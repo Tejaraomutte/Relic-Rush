@@ -267,17 +267,6 @@ export default function Results({ lampsRemaining = 1 }) {
     } catch (e) { console.error('Error submitting final score:', e) }
   }
 
-  const handleHome = () => {
-    ;['user', 'round1Score', 'round2Score', 'round3Score', 'lampsRemaining', 'genieRevealPlayed']
-      .forEach(k => localStorage.removeItem(k))
-    navigate('/')
-  }
-
-  const handleShare = () => {
-    const text = `🎉 I found the True Relic in Relic Rush!\n\nMy Final Score: ${totalScore}\n- Round 1: ${round1Score}\n- Round 2: ${round2Score}\n- Round 3: ${round3Score}\n\nCan you beat my score? 🧞‍♂️`
-    navigator.share ? navigator.share({ title: 'Relic Rush', text }) : alert(text)
-  }
-
   const formatDuration = (seconds) => {
     if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return 'N/A'
     const minutes = Math.floor(seconds / 60)
@@ -288,6 +277,45 @@ export default function Results({ lampsRemaining = 1 }) {
   const resolvedScore = resultData?.score ?? (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
   const resolvedTimeTaken = resultData?.timeTakenSeconds
   const resolvedQualification = resultData?.qualificationStatus || (isFinalMode ? (isWinnerFromState ? 'Qualified' : 'Not Qualified') : 'Qualified')
+
+  const maxPossible = 300
+  const barData = [
+    { label: 'R1', value: round1Score, color: 'linear-gradient(180deg, #FFD700, #E8A800)' },
+    { label: 'R2', value: round2Score, color: 'linear-gradient(180deg, #00D9FF, #0099CC)' },
+    { label: 'R3', value: round3Score, color: 'linear-gradient(180deg, #8B5CF6, #6D28D9)' },
+  ]
+  const radarData = [
+    { label: 'Round 1', value: Math.min(Math.max(round1Score, 0), 100) },
+    { label: 'Round 2', value: Math.min(Math.max(round2Score, 0), 100) },
+    { label: 'Round 3', value: Math.min(Math.max(round3Score, 0), 100) },
+    { label: 'Total', value: Math.min(Math.round((totalScore / maxPossible) * 100), 100) },
+  ]
+  const achievements = [
+    {
+      icon: '🏺',
+      title: 'Round 1 Cleared',
+      desc: 'Completed the first relic challenge.',
+      unlocked: round1Score > 0,
+    },
+    {
+      icon: '🔍',
+      title: 'Round 2 Cleared',
+      desc: 'Solved the clue hunt round.',
+      unlocked: round2Score > 0,
+    },
+    {
+      icon: '✨',
+      title: 'Final Round Cleared',
+      desc: 'Finished the final challenge.',
+      unlocked: round3Score > 0,
+    },
+    {
+      icon: '🏆',
+      title: 'Relic Winner',
+      desc: 'Qualified as a final winner.',
+      unlocked: isFinalMode && isWinnerFromState,
+    },
+  ]
 
   return (
     <>
@@ -333,7 +361,7 @@ export default function Results({ lampsRemaining = 1 }) {
             <span className="score-label">Round 1 Score</span>
             <span className="score-value">{round1Score}</span>
           </div>
-        </Reveal>
+        </div>
 
         {/* ═══ CHARTS ROW ═══ */}
         <Reveal delay={300}>
@@ -428,10 +456,9 @@ export default function Results({ lampsRemaining = 1 }) {
         )}
 
         <div className="result-actions">
-          <button className="btn btn-golden" onClick={handleHome}>Return Home</button>
           {isRound1Mode && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Next Round</button>}
           {isRound2Mode && <button className="btn btn-secondary" onClick={() => navigate('/round3')}>Enter Round 3</button>}
-          {isFinalMode && <button className="btn btn-secondary" onClick={handleShare}>Share Score</button>}
+          {isFinalMode && <button className="btn btn-golden" onClick={() => navigate('/relic-story')}>View Lamp</button>}
         </div>
       </main>
 

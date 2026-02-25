@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
 import kalyanImg from '../assets/images/coordinator.webp'
 import tejaImg from '../assets/images/coordinator.webp'
@@ -93,6 +94,11 @@ const TEAM = [
 ]
 
 export default function Home() {
+  const handleStartJourney = () => {
+    localStorage.setItem('storyUnlocked', 'true')
+    navigate('/story')
+  }
+  const navigate = useNavigate()
 
   /* ─── Navbar scroll shadow ─── */
   const [scrolled, setScrolled] = useState(false)
@@ -298,7 +304,7 @@ export default function Home() {
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2.5rem' }}>
             <button
               className="btn btn-golden btn-large premium-glow-btn"
-              onClick={() => window.location.href = '/story'}
+              onClick={handleStartJourney}
             >
               Start Journey
             </button>

@@ -57,6 +57,7 @@ export default function Login() {
       localStorage.setItem('round2Score', '0')
       localStorage.setItem('round3Score', '0')
       localStorage.setItem('lampsRemaining', '4')
+      localStorage.removeItem('storyUnlocked')
       localStorage.removeItem('genieRevealPlayed')
 
       // Initialize game session for participants
@@ -66,7 +67,7 @@ export default function Login() {
       }
 
       // Redirect based on role
-      const redirectPath = loginResponse.role === 'admin' ? '/leaderboard' : '/round1'
+      const redirectPath = loginResponse.role === 'admin' ? '/leaderboard' : '/home'
       
       setTimeout(() => {
         navigate(redirectPath)

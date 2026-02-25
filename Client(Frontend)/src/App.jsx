@@ -6,14 +6,12 @@ import Round1 from './pages/Round1'
 import Round2 from './pages/Round2'
 import Round3 from './pages/Round3'
 import Results from './pages/Results'
-<<<<<<< HEAD
 import RelicRevealStoryPage from './pages/RelicRevealStoryPage'
 import Landing from './pages/Landing'
 import StorySlides from './pages/StorySlides'
 import CursorTrail from './components/CursorTrail'
-=======
 import Leaderboard from './pages/Leaderboard'
-import { getActiveRound, loadGameSession, isRoundCompleted } from './utils/sessionManager'
+import { getActiveRound, loadGameSession } from './utils/sessionManager'
 
 function ProtectedRoute({ children }) {
   const teamName = localStorage.getItem('teamName')
@@ -38,10 +36,25 @@ function HomeGuard({ children }) {
   }
   
   // If there's an active round, redirect to it
-  if (activeRound) {
+  if (activeRound && activeRound > 1) {
     return <Navigate to={`/round${activeRound}`} replace />
   }
   
+  return children
+}
+
+function StoryGuard({ children }) {
+  const role = localStorage.getItem('role')
+  const storyUnlocked = localStorage.getItem('storyUnlocked') === 'true'
+
+  if (role === 'admin') {
+    return <Navigate to="/leaderboard" replace />
+  }
+
+  if (!storyUnlocked) {
+    return <Navigate to="/home" replace />
+  }
+
   return children
 }
 
@@ -68,8 +81,17 @@ function SessionRestorer() {
     const activeRound = session.currentRound
     
     // If user is on login page but has active session, redirect to active round
-    if (location.pathname === '/login' || location.pathname === '/home' || location.pathname === '/') {
-      if (activeRound && activeRound >= 1 && activeRound <= 3) {
+    if (location.pathname === '/home') {
+      if (activeRound && activeRound > 1 && activeRound <= 3) {
+        navigate(`/round${activeRound}`, { replace: true })
+      }
+    }
+
+    if (location.pathname === '/story') {
+      const storyUnlocked = localStorage.getItem('storyUnlocked') === 'true'
+      if (!storyUnlocked) {
+        navigate('/home', { replace: true })
+      } else if (activeRound && activeRound > 1 && activeRound <= 3) {
         navigate(`/round${activeRound}`, { replace: true })
       }
     }
@@ -77,7 +99,6 @@ function SessionRestorer() {
 
   return null
 }
->>>>>>> b4a059d608ac67c01500fd94bab75f59d1eb5654
 
 export default function App() {
   const [lampsRemaining, setLampsRemaining] = useState(4)
@@ -110,24 +131,10 @@ export default function App() {
 
   return (
     <Router>
-<<<<<<< HEAD
       <CursorTrail />
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/story" element={<StorySlides />} />
-        <Route path="/round1" element={<Round1 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
-        <Route path="/round2" element={<Round2 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
-        <Route path="/round3" element={<Round3 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} />} />
-        <Route path="/results" element={<Results lampsRemaining={lampsRemaining} />} />
-        <Route path="/relic-story" element={<RelicRevealStoryPage />} />
-        {/* Optionally, add a 404 page here instead of redirecting everything to landing/login */}
-        {/* <Route path="*" element={<NotFound />} /> */}
-=======
       <SessionRestorer />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/home" element={
           <ProtectedRoute>
             <HomeGuard>
@@ -136,13 +143,14 @@ export default function App() {
           </ProtectedRoute>
         } />
         <Route path="/login" element={<Login />} />
+        <Route path="/story" element={<ProtectedRoute><StoryGuard><StorySlides /></StoryGuard></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
         <Route path="/round1" element={<ProtectedRoute><Round1 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} /></ProtectedRoute>} />
         <Route path="/round2" element={<ProtectedRoute><Round2 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} /></ProtectedRoute>} />
         <Route path="/round3" element={<ProtectedRoute><Round3 reduceLamps={reduceLamps} lampsRemaining={lampsRemaining} /></ProtectedRoute>} />
         <Route path="/results" element={<ProtectedRoute><Results lampsRemaining={lampsRemaining} /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/login" />} />
->>>>>>> b4a059d608ac67c01500fd94bab75f59d1eb5654
+        <Route path="/relic-story" element={<RelicRevealStoryPage />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   )
