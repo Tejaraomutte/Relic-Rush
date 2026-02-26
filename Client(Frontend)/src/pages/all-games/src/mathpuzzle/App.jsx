@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import "./App.css";
 
 /**
@@ -61,6 +61,13 @@ const CLUES = {
   "10-8": "? = 48 - 9"
 };
 
+const ORDERED_INPUT_KEYS = Object.keys(SOLUTIONS).sort((a, b) => {
+  const [aRow, aCol] = a.split('-').map(Number);
+  const [bRow, bCol] = b.split('-').map(Number);
+  if (aRow !== bRow) return aRow - bRow;
+  return aCol - bCol;
+});
+
 const MathPuzzle = ({ onComplete }) => {
   useEffect(() => {
     document.body.classList.add("game-math");
@@ -71,16 +78,48 @@ const MathPuzzle = ({ onComplete }) => {
   const [showErrors, setShowErrors] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
+  const inputRefs = useRef({});
+
+  const focusNextInput = (cellKey) => {
+    const currentIndex = ORDERED_INPUT_KEYS.indexOf(cellKey);
+    if (currentIndex < 0) return;
+    const nextKey = ORDERED_INPUT_KEYS[currentIndex + 1];
+    if (!nextKey) return;
+    inputRefs.current[nextKey]?.focus();
+    setSelectedCell(nextKey);
+  };
+
+  const focusPreviousInput = (cellKey) => {
+    const currentIndex = ORDERED_INPUT_KEYS.indexOf(cellKey);
+    if (currentIndex <= 0) return;
+    const prevKey = ORDERED_INPUT_KEYS[currentIndex - 1];
+    inputRefs.current[prevKey]?.focus();
+    setSelectedCell(prevKey);
+  };
 
   const handleChange = (row, col, value) => {
     if (value !== '' && !/^\d+$/.test(value)) return;
     setShowErrors(false);
-    setSelectedCell(`${row}-${col}`);
+    const cellKey = `${row}-${col}`;
+    setSelectedCell(cellKey);
 
     const newGrid = grid.map((r, rIdx) =>
       r.map((cell, cIdx) => (rIdx === row && cIdx === col ? value : cell))
     );
     setGrid(newGrid);
+
+    const targetLength = (SOLUTIONS[cellKey] || '').length || 1;
+    if (value.length >= targetLength) {
+      focusNextInput(cellKey);
+    }
+  };
+
+  const handleKeyDown = (event, row, col) => {
+    const cellKey = `${row}-${col}`;
+    if (event.key === 'Backspace' && grid[row][col] === '') {
+      event.preventDefault();
+      focusPreviousInput(cellKey);
+    }
   };
 
   const verifySolution = () => {
@@ -139,8 +178,13 @@ const MathPuzzle = ({ onComplete }) => {
                       <input
                         type="text"
                         className="mathpuzzle-input"
+                        ref={(el) => {
+                          inputRefs.current[solKey] = el;
+                        }}
                         value={grid[rIdx][cIdx]}
                         onChange={(e) => handleChange(rIdx, cIdx, e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, rIdx, cIdx)}
+                        maxLength={(SOLUTIONS[solKey] || '').length || 1}
                         autoComplete="off"
                         autoCorrect="off"
                         autoCapitalize="off"

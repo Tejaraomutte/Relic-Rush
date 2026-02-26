@@ -2,12 +2,10 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
 import GenieRevealOverlay from '../components/GenieRevealOverlay'
-import lamp from '../assets/images/lamp.jpeg'
-import { getLeaderboard } from '../utils/api'
+import LampDisplay from '../components/LampDisplay'
+import { getLeaderboard, submitRoundScore } from '../utils/api'
 import { triggerGenieReveal } from '../utils/roundFlow'
 import './Results.css'
-
-const API_URL = 'http://localhost:5000'
 
 /* ─── Reveal helper ─── */
 function useReveal() {
@@ -248,21 +246,13 @@ export default function Results({ lampsRemaining = 1 }) {
 
   const submitFinalScore = async (r1, r2, r3, total) => {
     const user = JSON.parse(localStorage.getItem('user'))
+    if (!user?.teamName) return
 
     try {
-      await fetch(`${API_URL}/api/submit-score`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          teamName: user.teamName,
-          round: 'final',
-          score: total,
-          round1: r1,
-          round2: r2,
-          round3: r3
-        })
+      await submitRoundScore(user.teamName, 'final', total, undefined, undefined, undefined, {
+        round1: r1,
+        round2: r2,
+        round3: r3
       })
     } catch (e) { console.error('Error submitting final score:', e) }
   }
@@ -277,6 +267,8 @@ export default function Results({ lampsRemaining = 1 }) {
   const resolvedScore = resultData?.score ?? (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
   const resolvedTimeTaken = resultData?.timeTakenSeconds
   const resolvedQualification = resultData?.qualificationStatus || (isFinalMode ? (isWinnerFromState ? 'Qualified' : 'Not Qualified') : 'Qualified')
+  const isRound1Qualified = round1Score >= 10
+  const resultLampsRemaining = isRound1Mode ? 3 : isRound2Mode ? 2 : 1
 
   const maxPossible = 300
   const barData = [
@@ -335,10 +327,7 @@ export default function Results({ lampsRemaining = 1 }) {
         )}
 
         <div className="result-lamp-wrap" aria-hidden="true">
-          <div className={`result-lamp ${isFinalMode && isWinnerFromState ? 'genie-ready' : ''}`}>
-            <img src={lamp} alt="Relic lamp" className="result-lamp-image" />
-            <div className="result-lamp-glow" />
-          </div>
+          <LampDisplay lampsRemaining={resultLampsRemaining} showMessage={isFinalMode && isWinnerFromState} />
         </div>
 
         <div className="score-card result-panel-card">
@@ -456,7 +445,8 @@ export default function Results({ lampsRemaining = 1 }) {
         )}
 
         <div className="result-actions">
-          {isRound1Mode && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Next Round</button>}
+          {isRound1Mode && isRound1Qualified && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Next Round</button>}
+          {isRound1Mode && !isRound1Qualified && <button className="btn btn-secondary" onClick={() => navigate('/home')}>Eliminated (Score below 10)</button>}
           {isRound2Mode && <button className="btn btn-secondary" onClick={() => navigate('/round3')}>Enter Round 3</button>}
           {isFinalMode && <button className="btn btn-golden" onClick={() => navigate('/relic-story')}>View Lamp</button>}
         </div>

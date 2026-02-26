@@ -33,6 +33,63 @@ function App({ onComplete }) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [hasCompleted, setHasCompleted] = useState(false);
   const inputRefs = useRef([]);
+  const directionRef = useRef("across");
+
+  const isEditable = (row, col) => {
+    return (
+      row >= 0 &&
+      row < solution.length &&
+      col >= 0 &&
+      col < solution[0].length &&
+      solution[row][col] !== "#"
+    );
+  };
+
+  const detectPreferredDirection = (row, col) => {
+    const hasHorizontal = isEditable(row, col - 1) || isEditable(row, col + 1);
+    const hasVertical = isEditable(row - 1, col) || isEditable(row + 1, col);
+
+    if (hasHorizontal && !hasVertical) return "across";
+    if (hasVertical && !hasHorizontal) return "down";
+    return directionRef.current;
+  };
+
+  const moveFocusByDirection = (row, col, direction) => {
+    const [rowStep, colStep] = direction === "down" ? [1, 0] : [0, 1];
+    let r = row + rowStep;
+    let c = col + colStep;
+
+    while (isEditable(r, c)) {
+      inputRefs.current[r]?.[c]?.focus();
+      return true;
+    }
+
+    return false;
+  };
+
+  const focusNextCell = (row, col) => {
+    for (let r = row; r < solution.length; r++) {
+      const startCol = r === row ? col + 1 : 0;
+      for (let c = startCol; c < solution[0].length; c++) {
+        if (solution[r][c] !== "#") {
+          inputRefs.current[r]?.[c]?.focus();
+          return;
+        }
+      }
+    }
+  };
+
+  const focusPrevCell = (row, col) => {
+    for (let r = row; r >= 0; r--) {
+      const startCol = r === row ? col - 1 : solution[0].length - 1;
+      for (let c = startCol; c >= 0; c--) {
+        if (solution[r][c] !== "#") {
+          inputRefs.current[r]?.[c]?.focus();
+          return;
+        }
+      }
+    }
+  };
 
   // Move focus helper
   const moveFocus = (row, col, rowStep, colStep) => {
@@ -61,6 +118,15 @@ function App({ onComplete }) {
     const newGrid = [...grid];
     newGrid[row][col] = value.toLowerCase();
     setGrid(newGrid);
+
+    if (value.length === 1) {
+      const preferredDirection = detectPreferredDirection(row, col);
+      directionRef.current = preferredDirection;
+      const moved = moveFocusByDirection(row, col, preferredDirection);
+      if (!moved) {
+        focusNextCell(row, col);
+      }
+    }
   };
 
   // Handle arrow keys only
@@ -77,13 +143,14 @@ function App({ onComplete }) {
     if (directions[key]) {
       e.preventDefault();
       const [rowStep, colStep] = directions[key];
+      directionRef.current = rowStep !== 0 ? "down" : "across";
       moveFocus(row, col, rowStep, colStep);
     }
 
-    // Backspace move left if empty
+    // Backspace move left/previous if empty
     if (key === "Backspace" && grid[row][col] === "") {
       e.preventDefault();
-      moveFocus(row, col, 0, -1);
+      focusPrevCell(row, col);
     }
   };
 
@@ -143,6 +210,9 @@ function App({ onComplete }) {
                       onChange={(e) =>
                         handleChange(i, j, e.target.value)
                       }
+                      onFocus={() => {
+                        directionRef.current = detectPreferredDirection(i, j);
+                      }}
                       onKeyDown={(e) =>
                         handleKeyDown(e, i, j)
                       }

@@ -60,13 +60,14 @@ export async function loginUser(teamName, password) {
     }
 }
 
-export async function submitRoundScore(teamName, roundNumber, score, questionsSolved, questionTimes, totalRoundTime) {
+export async function submitRoundScore(teamName, roundNumber, score, questionsSolved, questionTimes, totalRoundTime, extraPayload = {}) {
     try {
         const token = localStorage.getItem('token');
         const payload = {
             teamName: teamName,
             round: roundNumber,
-            score: score
+            score: score,
+            ...extraPayload
         };
 
         if (Number.isFinite(questionsSolved)) {

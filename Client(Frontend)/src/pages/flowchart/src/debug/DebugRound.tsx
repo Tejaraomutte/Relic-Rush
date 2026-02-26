@@ -66,7 +66,7 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 			const match = part.match(/___(\d+)___/);
 			if (!match) {
 				return (
-					<span key={`text-${selectedIndex}-${idx}`} className="code-text">{part}</span>
+					<span key={`text-${selectedIndex}-${idx}`} className="code-text" style={{ whiteSpace: 'pre' }}>{part}</span>
 				);
 			}
 			// Handle blanks
@@ -205,7 +205,7 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 							boxShadow: '0 12px 40px #6d28d933',
 							padding: '36px 28px',
 							width: '100%',
-							maxWidth: 700,
+							maxWidth: 980,
 							margin: '0 auto',
 						}}>
 							<div className="challenge-header" style={{ textAlign: 'center', width: '100%' }}>
@@ -250,9 +250,9 @@ export default function DebugRound({ onScoreChange, onProgressChange, isRoundLoc
 								onCopy={(event) => event.preventDefault()}
 								onCut={(event) => event.preventDefault()}
 								onContextMenu={(event) => event.preventDefault()}
-								style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontFamily: 'Fira Mono, Consolas, monospace', background: 'rgba(30,27,46,0.98)', borderRadius: 14, padding: '28px 22px', color: '#f3f4f6', boxShadow: '0 10px 40px #6d28d933', textAlign: 'center', margin: '0 auto', width: '100%', maxWidth: 700, overflowX: 'auto', userSelect: 'none' }}>
+								style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', fontSize: 18, fontFamily: 'Fira Mono, Consolas, monospace', background: 'rgba(30,27,46,0.98)', borderRadius: 14, padding: '28px 22px', color: '#f3f4f6', boxShadow: '0 10px 40px #6d28d933', textAlign: 'left', margin: '0 auto', width: '100%', maxWidth: 920, overflowX: 'auto', userSelect: 'none', whiteSpace: 'pre', tabSize: 4 }}>
 								{currentQuestion.codeTemplate.map((line, lineIdx) => (
-									<div key={`line-${currentQuestion.id}-${lineIdx}`} className="code-line" style={{ textAlign: 'center', marginBottom: 6 }}>
+									<div key={`line-${currentQuestion.id}-${lineIdx}`} className="code-line" style={{ width: '100%', textAlign: 'left', marginBottom: 6, whiteSpace: 'pre' }}>
 										{renderLine(line)}
 									</div>
 								))}

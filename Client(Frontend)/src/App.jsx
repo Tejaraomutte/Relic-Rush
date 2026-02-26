@@ -13,6 +13,11 @@ import CursorTrail from './components/CursorTrail'
 import Leaderboard from './pages/Leaderboard'
 import { getActiveRound, loadGameSession } from './utils/sessionManager'
 
+function shouldShowCursorTrail(pathname = '') {
+  const disabledRoutes = ['/round1', '/round2', '/round3']
+  return !disabledRoutes.some((route) => pathname.startsWith(route))
+}
+
 function ProtectedRoute({ children }) {
   const teamName = localStorage.getItem('teamName')
   const user = localStorage.getItem('user')
@@ -131,7 +136,21 @@ export default function App() {
 
   return (
     <Router>
-      <CursorTrail />
+      <AppContent
+        lampsRemaining={lampsRemaining}
+        reduceLamps={reduceLamps}
+      />
+    </Router>
+  )
+}
+
+function AppContent({ lampsRemaining, reduceLamps }) {
+  const location = useLocation()
+  const showCursorTrail = shouldShowCursorTrail(location.pathname)
+
+  return (
+    <>
+      {showCursorTrail && <CursorTrail />}
       <SessionRestorer />
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -152,6 +171,6 @@ export default function App() {
         <Route path="/relic-story" element={<RelicRevealStoryPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </Router>
+    </>
   )
 }

@@ -225,6 +225,56 @@ const getAdminLeaderboard = async (req, res) => {
   }
 };
 
+/* ================= PUBLIC LEADERBOARD ================= */
+const getPublicLeaderboard = async (req, res) => {
+  try {
+    const leaderboard = await User.aggregate([
+      {
+        $match: { role: "participant" }
+      },
+      {
+        $addFields: {
+          totalCompletionTime: {
+            $sum: {
+              $map: {
+                input: "$rounds",
+                as: "round",
+                in: { $ifNull: ["$$round.totalRoundTime", 0] }
+              }
+            }
+          }
+        }
+      },
+      {
+        $sort: {
+          totalScore: -1,
+          totalCompletionTime: 1,
+          teamName: 1
+        }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $project: {
+          _id: 0,
+          teamName: 1,
+          totalScore: { $ifNull: ["$totalScore", 0] }
+        }
+      }
+    ]);
+
+    const rankedLeaderboard = leaderboard.map((entry, index) => ({
+      rank: index + 1,
+      ...entry
+    }));
+
+    return res.json({ leaderboard: rankedLeaderboard });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 /* ================= SUBMIT SCORE ================= */
 const submitScore = async (req, res) => {
   try {
@@ -331,5 +381,6 @@ module.exports = {
   registerUser,
   loginUser,
   getAdminLeaderboard,
+  getPublicLeaderboard,
   submitScore
 };

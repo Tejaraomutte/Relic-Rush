@@ -18,6 +18,7 @@ const QUALIFICATION_SCORE = 10
 
 export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
+  const round1Score = Number(localStorage.getItem('round1Score') || 0)
   
   // Initialize state with saved values or defaults - load fresh on each mount
   const [completedGames, setCompletedGames] = useState(() => {
@@ -52,12 +53,26 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
 
   // Check if round already completed on mount
   useEffect(() => {
+    if (round1Score < QUALIFICATION_SCORE) {
+      navigate('/results', {
+        replace: true,
+        state: {
+          mode: 'round1',
+          resultData: {
+            score: round1Score,
+            qualificationStatus: 'Not Qualified'
+          }
+        }
+      })
+      return
+    }
+
     const existingScore = Number(localStorage.getItem('round2Score') || 0)
     
     if (isRoundCompleted(2) || existingScore > 0) {
       navigate('/round3', { replace: true })
     }
-  }, [navigate])
+  }, [navigate, round1Score])
 
   // Save state periodically
   useEffect(() => {
@@ -74,8 +89,6 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
 
     return () => clearInterval(saveInterval)
   }, [completedGames, hintsPenalty, timeLeft, isComplete, isRoundLocked])
-
-  const round1Score = Number(localStorage.getItem('round1Score') || 0)
 
   useEffect(() => {
     // DEVELOPMENT MODE: Allow direct access without login
