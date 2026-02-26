@@ -600,9 +600,6 @@ body {
         0 0 60px rgba(255, 215, 0, 0.06);
     overflow: hidden;
 }
-.round-header-with-timer {
-    padding-right: 300px;
-}
 
 .round-header::before {
     content: '';
@@ -682,11 +679,25 @@ body {
     border-radius: 0;
     border: none;
     box-shadow: none;
+    overflow: visible;
+}
+
+.timer-inline {
+    margin-left: auto;
+}
+
+.timer-floating {
     position: fixed;
     top: 14px;
-    right: 44px;
+    right: 36px;
     z-index: 1300;
-    overflow: visible;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(26, 0, 51, 0.88), rgba(15, 20, 25, 0.9));
+    border: 1px solid rgba(255, 215, 0, 0.28);
+    border-radius: 12px;
+    box-shadow:
+        0 8px 22px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 215, 0, 0.1);
 }
 
 .timer-section::before {
@@ -2207,9 +2218,6 @@ body {
         flex-direction: column;
         align-items: center;
     }
-    .round-header-with-timer {
-        padding-right: 32px;
-    }
 
     .header-top {
         justify-content: center;
@@ -2218,12 +2226,11 @@ body {
     .round-title {
         font-size: 36px;
     }
-    .timer-section {
-        top: 10px;
-        right: 50%;
-        transform: translateX(50%);
-        padding: 10px 16px;
+    .timer-floating {
+        right: 18px;
+        top: 12px;
         gap: 10px;
+        padding: 8px 12px;
     }
     .timer-label {
         font-size: 18px;
@@ -2235,11 +2242,6 @@ body {
     }
 
     .options-grid {
-    .timer-section {
-        width: calc(100vw - 20px);
-        max-width: 320px;
-        justify-content: center;
-    }
         grid-template-columns: 1fr 1fr;
     }
 
@@ -2330,6 +2332,17 @@ body {
 
     .result-meta {
         font-size: 18px;
+    }
+
+    .timer-floating {
+        right: 10px;
+        top: 10px;
+        padding: 7px 10px;
+    }
+
+    .timer-label {
+        font-size: 14px;
+        letter-spacing: 0.8px;
     }
 
     /* Info Sections Mobile */

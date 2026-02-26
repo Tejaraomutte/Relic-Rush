@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 /**
  * Unified RoundHeader component for all rounds
@@ -12,6 +12,9 @@ export default function RoundHeader({
   timerLabel = 'Time Remaining',
   showTimer = false 
 }) {
+  const [showFloatingTimer, setShowFloatingTimer] = useState(false)
+  const headerRef = useRef(null)
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -27,17 +30,71 @@ export default function RoundHeader({
 
   const hasTimer = showTimer && timeLeft !== null
 
+  useEffect(() => {
+    if (!hasTimer) {
+      setShowFloatingTimer(false)
+      return
+    }
+
+    const getScrollParent = (element) => {
+      let parent = element?.parentElement
+      while (parent) {
+        const style = window.getComputedStyle(parent)
+        const overflowY = style.overflowY
+        if (overflowY === 'auto' || overflowY === 'scroll') {
+          return parent
+        }
+        parent = parent.parentElement
+      }
+      return window
+    }
+
+    const scrollParent = getScrollParent(headerRef.current)
+
+    const onScroll = () => {
+      const scrollTop = scrollParent === window
+        ? window.scrollY || document.documentElement.scrollTop || 0
+        : scrollParent.scrollTop || 0
+      setShowFloatingTimer(scrollTop > 12)
+    }
+
+    onScroll()
+    if (scrollParent === window) {
+      window.addEventListener('scroll', onScroll, { passive: true })
+    } else {
+      scrollParent.addEventListener('scroll', onScroll, { passive: true })
+      window.addEventListener('scroll', onScroll, { passive: true })
+    }
+
+    return () => {
+      if (scrollParent === window) {
+        window.removeEventListener('scroll', onScroll)
+      } else {
+        scrollParent.removeEventListener('scroll', onScroll)
+        window.removeEventListener('scroll', onScroll)
+      }
+    }
+  }, [hasTimer])
+
   return (
     <>
-      <header className={`round-header ${hasTimer ? 'round-header-with-timer' : ''}`}>
+      <header ref={headerRef} className="round-header">
         <div className="header-top">
           <h1 className="round-title">{roundTitle}</h1>
           {lampsRemaining !== null && <div className="lamps-indicator">{lampsRemaining} Lamps Remaining</div>}
         </div>
         {subtitle && <p className="round-subtitle">{subtitle}</p>}
+        {hasTimer && !showFloatingTimer && (
+          <div className="timer-section timer-inline">
+            <span className="timer-label">{timerLabel}:</span>
+            <span className={`timer-display ${getTimerClass()}`}>
+              {formatTime(timeLeft)}
+            </span>
+          </div>
+        )}
       </header>
-      {hasTimer && (
-        <div className="timer-section">
+      {hasTimer && showFloatingTimer && (
+        <div className="timer-section timer-floating">
           <span className="timer-label">{timerLabel}:</span>
           <span className={`timer-display ${getTimerClass()}`}>
             {formatTime(timeLeft)}
