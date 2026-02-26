@@ -84,22 +84,19 @@ function SessionRestorer() {
     if (!session) return
     
     const activeRound = session.currentRound
+    const hasInProgressRoundState =
+      activeRound >= 1 &&
+      activeRound <= 3 &&
+      Boolean(session[`round${activeRound}State`])
+
+    if (!hasInProgressRoundState) return
     
     // If user is on login page but has active session, redirect to active round
-    if (location.pathname === '/home') {
-      if (activeRound && activeRound > 1 && activeRound <= 3) {
-        navigate(`/round${activeRound}`, { replace: true })
-      }
+    if (['/', '/login', '/home', '/story'].includes(location.pathname)) {
+      navigate(`/round${activeRound}`, { replace: true })
+      return
     }
 
-    if (location.pathname === '/story') {
-      const storyUnlocked = localStorage.getItem('storyUnlocked') === 'true'
-      if (!storyUnlocked) {
-        navigate('/home', { replace: true })
-      } else if (activeRound && activeRound > 1 && activeRound <= 3) {
-        navigate(`/round${activeRound}`, { replace: true })
-      }
-    }
   }, [navigate, location.pathname])
 
   return null

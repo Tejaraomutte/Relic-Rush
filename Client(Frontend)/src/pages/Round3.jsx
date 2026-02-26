@@ -55,6 +55,15 @@ export default function Round3({ reduceLamps }) {
   const [statusMessage, setStatusMessage] = useState('')
   const blockCopy = (event) => event.preventDefault()
 
+  const persistRoundState = () => {
+    saveRoundState(3, {
+      flowchartSolvedCount,
+      debugSolvedCount,
+      activeSection,
+      timeLeft
+    })
+  }
+
   // Check if round already completed on mount
   useEffect(() => {
     const existingScore = Number(localStorage.getItem('round3Score') || 0)
@@ -64,20 +73,36 @@ export default function Round3({ reduceLamps }) {
     }
   }, [navigate])
 
-  // Save state periodically
+  // Save state immediately whenever progress changes
   useEffect(() => {
     if (isRoundLocked || submittedRef.current) return
 
-    const saveInterval = setInterval(() => {
-      saveRoundState(3, {
-        flowchartSolvedCount,
-        debugSolvedCount,
-        activeSection,
-        timeLeft
-      })
-    }, 2000) // Save every 2 seconds
+    persistRoundState()
+  }, [flowchartSolvedCount, debugSolvedCount, activeSection, timeLeft, isRoundLocked])
 
-    return () => clearInterval(saveInterval)
+  // Ensure latest progress is flushed during tab hide/unload/sleep transitions
+  useEffect(() => {
+    if (isRoundLocked || submittedRef.current) return
+
+    const flushProgress = () => {
+      persistRoundState()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushProgress()
+      }
+    }
+
+    window.addEventListener('beforeunload', flushProgress)
+    window.addEventListener('pagehide', flushProgress)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('beforeunload', flushProgress)
+      window.removeEventListener('pagehide', flushProgress)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [flowchartSolvedCount, debugSolvedCount, activeSection, timeLeft, isRoundLocked])
 
   useEffect(() => {

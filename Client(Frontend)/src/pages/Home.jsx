@@ -5,6 +5,7 @@ import kalyanImg from '../assets/images/coordinator.webp'
 import tejaImg from '../assets/images/coordinator.webp'
 import madhaviImg from '../assets/images/coordinator.webp'
 import lampImg from '../assets/images/lamp1.png'
+import lampFallbackImg from '../assets/images/lamp.jpeg'
 import './Home.css'
 
 /* ─── tiny helper: reveal-on-scroll ─── */
@@ -94,6 +95,8 @@ const TEAM = [
 ]
 
 export default function Home() {
+  const [heroLampSrc, setHeroLampSrc] = useState(lampImg)
+
   const handleStartJourney = () => {
     localStorage.setItem('storyUnlocked', 'true')
     navigate('/story')
@@ -163,7 +166,12 @@ export default function Home() {
         <div className="saas-hero-visual">
           <Reveal delay={300}>
             <div className="saas-lamp-wrapper">
-              <img src={lampImg} alt="Mystical lamp" className="saas-lamp-img" />
+              <img
+                src={heroLampSrc}
+                alt="Mystical lamp"
+                className="saas-lamp-img"
+                onError={() => setHeroLampSrc(lampFallbackImg)}
+              />
               <div className="saas-lamp-glow" />
             </div>
           </Reveal>

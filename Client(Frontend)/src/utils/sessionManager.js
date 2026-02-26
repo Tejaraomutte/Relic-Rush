@@ -53,6 +53,10 @@ export const updateGameSession = (updates) => {
   }
 }
 
+const hasAnyRoundProgress = (session = {}) => {
+  return Boolean(session.round1State || session.round2State || session.round3State)
+}
+
 // Save round-specific state
 export const saveRoundState = (roundNumber, stateData) => {
   updateGameSession({
@@ -94,6 +98,15 @@ export const isRoundCompleted = (roundNumber) => {
 
 // Initialize new game session
 export const initGameSession = () => {
+  const existingSession = loadGameSession()
+
+  if (existingSession && hasAnyRoundProgress(existingSession) && !existingSession.round3Completed) {
+    updateGameSession({
+      startedAt: existingSession.startedAt || Date.now()
+    })
+    return
+  }
+
   saveGameSession({
     currentRound: 1,
     round1Completed: false,

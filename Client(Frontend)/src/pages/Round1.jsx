@@ -163,6 +163,15 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const [hasReduced, setHasReduced] = useState(false)
   const blockCopy = (event) => event.preventDefault()
 
+  const persistRoundState = () => {
+    saveRoundState(1, {
+      currentQuestionIndex,
+      selectedAnswers,
+      timeLeft,
+      startedAt: startedAtRef.current
+    })
+  }
+
   // Check if round already completed on mount
   useEffect(() => {
     const existingScore = Number(localStorage.getItem('round1Score') || 0)
@@ -172,20 +181,36 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     }
   }, [navigate])
 
-  // Save state periodically
+  // Save state immediately whenever progress changes
   useEffect(() => {
     if (isComplete || isAnswerLocked) return
 
-    const saveInterval = setInterval(() => {
-      saveRoundState(1, {
-        currentQuestionIndex,
-        selectedAnswers,
-        timeLeft,
-        startedAt: startedAtRef.current
-      })
-    }, 2000) // Save every 2 seconds
+    persistRoundState()
+  }, [currentQuestionIndex, selectedAnswers, timeLeft, isComplete, isAnswerLocked])
 
-    return () => clearInterval(saveInterval)
+  // Ensure latest progress is flushed during tab hide/unload/sleep transitions
+  useEffect(() => {
+    if (isComplete || isAnswerLocked) return
+
+    const flushProgress = () => {
+      persistRoundState()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushProgress()
+      }
+    }
+
+    window.addEventListener('beforeunload', flushProgress)
+    window.addEventListener('pagehide', flushProgress)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('beforeunload', flushProgress)
+      window.removeEventListener('pagehide', flushProgress)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [currentQuestionIndex, selectedAnswers, timeLeft, isComplete, isAnswerLocked])
 
   useEffect(() => {
