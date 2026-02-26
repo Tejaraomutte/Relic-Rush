@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
 import kalyanImg from '../assets/images/kalyan.jpg'
 import tejaImg from '../assets/images/tejasathvika.jpg'
-import madhaviImg from '../assets/images/madhavi.jpg'
+import madhaviImg from '../assets/images/madhavi.jpeg'
 import lampImg from '../assets/images/lamp1.png'
 import lampFallbackImg from '../assets/images/lamp.jpeg'
+import relicLogoImg from '../assets/images/relic logo.png'
 import aboutImg from '../assets/images/about.png'
 import rulesImg from '../assets/images/rules.png'
 import './Home.css'
@@ -108,7 +109,7 @@ const STATS = [
 ]
 
 const TEAM = [
-  { name: 'Teja Sathvika', role: 'Event Coordinator', img: tejaImg },
+  { name: 'TejaSathvika', role: 'Event Coordinator', img: tejaImg },
   { name: 'Kalyan', role: 'Event Coordinator', img: kalyanImg },
   { name: 'Madhavi', role: 'Event Coordinator', img: madhaviImg },
 ]
@@ -118,6 +119,7 @@ export default function Home() {
 
   const handleStartJourney = () => {
     localStorage.setItem('storyUnlocked', 'true')
+    localStorage.setItem('storyCompleted', 'false')
     navigate('/story')
   }
   const navigate = useNavigate()
@@ -138,7 +140,10 @@ export default function Home() {
       {/* ══════════ NAVBAR ══════════ */}
       <nav className={`saas-nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="saas-nav-inner">
-          <span className="saas-nav-brand">⚱️ Relic Rush</span>
+          <span className="saas-nav-brand">
+            <img src={relicLogoImg} alt="Relic Rush logo" className="saas-nav-logo" />
+            <span>RELIC RUSH</span>
+          </span>
           <div className="saas-nav-links">
             <a href="#about">About</a>
             <a href="#rounds">Rounds</a>

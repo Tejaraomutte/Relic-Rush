@@ -16,7 +16,7 @@ function App({ onComplete }) {
   const [towers, setTowers] = useState(initialState);
   const [selected, setSelected] = useState(null);
   const [moves, setMoves] = useState(0);
-  const [hasCompleted, setHasCompleted] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showInvalidMove, setShowInvalidMove] = useState(false);
 
   const handleSelect = (tower) => {
@@ -59,20 +59,23 @@ function App({ onComplete }) {
     setTowers(initialState);
     setMoves(0);
     setSelected(null);
+    setHasSubmitted(false);
   };
 
   const checkWin = towers.C.length === 4;
 
   useEffect(() => {
-    if (checkWin && !hasCompleted) {
-      setHasCompleted(true);
-      if (onComplete) onComplete();
+    if (!checkWin && hasSubmitted) {
+      setHasSubmitted(false);
     }
+  }, [checkWin, hasSubmitted]);
 
-    if (!checkWin && hasCompleted) {
-      setHasCompleted(false);
-    }
-  }, [checkWin, hasCompleted, onComplete]);
+  const handleSubmitPuzzle = () => {
+    if (!checkWin || hasSubmitted) return;
+
+    setHasSubmitted(true);
+    if (onComplete) onComplete();
+  };
 
   return (
     <div className="App">
@@ -132,6 +135,14 @@ function App({ onComplete }) {
 
       <button className="reset-btn" onClick={resetGame}>
         🔄 Reset Game
+      </button>
+
+      <button
+        className="reset-btn"
+        onClick={handleSubmitPuzzle}
+        disabled={!checkWin || hasSubmitted}
+      >
+        {hasSubmitted ? 'Submitted ✓' : 'Submit Puzzle'}
       </button>
     </div>
   );

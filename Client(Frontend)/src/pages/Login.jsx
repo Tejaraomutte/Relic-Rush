@@ -58,6 +58,8 @@ export default function Login() {
       localStorage.setItem('round3Score', '0')
       localStorage.setItem('lampsRemaining', '4')
       localStorage.removeItem('storyUnlocked')
+      localStorage.removeItem('storyCompleted')
+      localStorage.removeItem('relicUnlocked')
       localStorage.removeItem('genieRevealPlayed')
 
       // Initialize game session for participants

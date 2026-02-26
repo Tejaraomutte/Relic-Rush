@@ -4,7 +4,6 @@ import {
   Routes,
   Route,
   Navigate,
-  useNavigate,
   useLocation
 } from 'react-router-dom'
 import PropTypes from 'prop-types'
@@ -20,8 +19,6 @@ import Landing from './pages/Landing'
 import StorySlides from './pages/StorySlides'
 import Leaderboard from './pages/Leaderboard'
 import CursorTrail from './components/CursorTrail'
-
-import { getActiveRound, loadGameSession } from './utils/sessionManager'
 
 /* ------------------ Cursor Visibility ------------------ */
 
@@ -44,14 +41,9 @@ ProtectedRoute.propTypes = {
 /* ------------------ Home Guard ------------------ */
 
 function HomeGuard({ children }) {
-  const activeRound = getActiveRound()
   const role = localStorage.getItem('role')
 
   if (role === 'admin') return children
-
-  if (activeRound && activeRound >= 1 && activeRound <= 3) {
-    return <Navigate to={`/round${activeRound}`} replace />
-  }
 
   return children
 }
@@ -73,38 +65,43 @@ function StoryGuard({ children }) {
   return children
 }
 
-/* ------------------ Session Restorer ------------------ */
+/* ------------------ Round Guard ------------------ */
 
-function SessionRestorer() {
-  const navigate = useNavigate()
-  const location = useLocation()
+function RoundGuard({ children }) {
+  const role = localStorage.getItem('role')
+  const storyUnlocked = localStorage.getItem('storyUnlocked') === 'true'
+  const storyCompleted = localStorage.getItem('storyCompleted') === 'true'
 
-  useEffect(() => {
-    const teamName = localStorage.getItem('teamName')
-    const token = localStorage.getItem('token')
-    const role = localStorage.getItem('role')
+  if (role === 'admin') {
+    return <Navigate to="/leaderboard" replace />
+  }
 
-    if (!teamName || !token || role === 'admin') return
-    if (location.pathname === '/results') return
+  if (!storyUnlocked) {
+    return <Navigate to="/home" replace />
+  }
 
-    const session = loadGameSession()
-    if (!session) return
+  if (!storyCompleted) {
+    return <Navigate to="/story" replace />
+  }
 
-    const activeRound = session.currentRound
+  return children
+}
 
-    const hasInProgressRound =
-      activeRound >= 1 &&
-      activeRound <= 3 &&
-      Boolean(session[`round${activeRound}State`])
+/* ------------------ Relic Story Guard ------------------ */
 
-    if (!hasInProgressRound) return
+function RelicStoryGuard({ children }) {
+  const role = localStorage.getItem('role')
+  const relicUnlocked = localStorage.getItem('relicUnlocked') === 'true'
 
-    if (['/', '/login', '/home', '/story'].includes(location.pathname)) {
-      navigate(`/round${activeRound}`, { replace: true })
-    }
-  }, [navigate, location.pathname])
+  if (role === 'admin') {
+    return <Navigate to="/leaderboard" replace />
+  }
 
-  return null
+  if (!relicUnlocked) {
+    return <Navigate to="/home" replace />
+  }
+
+  return children
 }
 
 /* ------------------ MAIN APP ------------------ */
@@ -152,7 +149,6 @@ function AppContent({ lampsRemaining, reduceLamps }) {
   return (
     <>
       {showCursorTrail && <CursorTrail />}
-      <SessionRestorer />
 
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -194,10 +190,12 @@ function AppContent({ lampsRemaining, reduceLamps }) {
           path="/round1"
           element={
             <ProtectedRoute>
-              <Round1
-                reduceLamps={reduceLamps}
-                lampsRemaining={lampsRemaining}
-              />
+              <RoundGuard>
+                <Round1
+                  reduceLamps={reduceLamps}
+                  lampsRemaining={lampsRemaining}
+                />
+              </RoundGuard>
             </ProtectedRoute>
           }
         />
@@ -206,10 +204,12 @@ function AppContent({ lampsRemaining, reduceLamps }) {
           path="/round2"
           element={
             <ProtectedRoute>
-              <Round2
-                reduceLamps={reduceLamps}
-                lampsRemaining={lampsRemaining}
-              />
+              <RoundGuard>
+                <Round2
+                  reduceLamps={reduceLamps}
+                  lampsRemaining={lampsRemaining}
+                />
+              </RoundGuard>
             </ProtectedRoute>
           }
         />
@@ -218,10 +218,12 @@ function AppContent({ lampsRemaining, reduceLamps }) {
           path="/round3"
           element={
             <ProtectedRoute>
-              <Round3
-                reduceLamps={reduceLamps}
-                lampsRemaining={lampsRemaining}
-              />
+              <RoundGuard>
+                <Round3
+                  reduceLamps={reduceLamps}
+                  lampsRemaining={lampsRemaining}
+                />
+              </RoundGuard>
             </ProtectedRoute>
           }
         />
@@ -235,7 +237,16 @@ function AppContent({ lampsRemaining, reduceLamps }) {
           }
         />
 
-        <Route path="/relic-story" element={<RelicRevealStoryPage />} />
+        <Route
+          path="/relic-story"
+          element={
+            <ProtectedRoute>
+              <RelicStoryGuard>
+                <RelicRevealStoryPage />
+              </RelicStoryGuard>
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

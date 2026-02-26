@@ -215,7 +215,10 @@ export default function StorySlides() {
             </div>
             <button
               className="story-slide-btn visible story-slide-btn-bottom-right"
-              onClick={() => navigate('/round1')}
+              onClick={() => {
+                localStorage.setItem('storyCompleted', 'true');
+                navigate('/round1');
+              }}
               disabled={buttonDisabled}
               style={{ pointerEvents: buttonDisabled ? 'none' : 'auto' }}
             >

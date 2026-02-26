@@ -13,6 +13,12 @@ import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted, c
 const ROUND_DURATION = 900
 const POINTS_PER_SOLVED_PROBLEM = 5
 
+const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
+  if (!Number.isFinite(startedAt)) return 0
+  const elapsed = Math.floor((Date.now() - startedAt) / 1000)
+  return Math.min(Math.max(elapsed, 0), maxDurationSeconds)
+}
+
 const SECTION_OPTIONS = [
   { key: 'flowchart', label: 'Flowchart Challenges' },
   { key: 'debug', label: 'Debug Code Challenges' }
@@ -34,6 +40,8 @@ export default function Round3({ reduceLamps }) {
     const savedState = loadRoundState(3)
     return savedState?.timeLeft ?? ROUND_DURATION
   })
+
+  const startedAtRef = useRef(loadRoundState(3)?.startedAt ?? Date.now())
   
   const timeLeftRef = useRef(loadRoundState(3)?.timeLeft ?? ROUND_DURATION)
   
@@ -60,7 +68,8 @@ export default function Round3({ reduceLamps }) {
       flowchartSolvedCount,
       debugSolvedCount,
       activeSection,
-      timeLeft
+      timeLeft,
+      startedAt: startedAtRef.current
     })
   }
 
@@ -171,9 +180,10 @@ export default function Round3({ reduceLamps }) {
 
     const round3Score = totalSolved * POINTS_PER_SOLVED_PROBLEM
     const totalScore = round1Score + round2Score + round3Score
-    const elapsedSeconds = Math.min(Math.max(ROUND_DURATION - timeLeftRef.current, 0), ROUND_DURATION)
+    const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, ROUND_DURATION)
 
     localStorage.setItem('round3Score', String(round3Score))
+    localStorage.setItem('relicUnlocked', 'true')
 
     const user = JSON.parse(localStorage.getItem('user') || '{}')
     try {

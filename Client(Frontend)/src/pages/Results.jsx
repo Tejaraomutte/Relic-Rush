@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import GenieRevealOverlay from '../components/GenieRevealOverlay'
 import LampDisplay from '../components/LampDisplay'
 import { getLeaderboard, submitRoundScore } from '../utils/api'
-import { triggerGenieReveal } from '../utils/roundFlow'
 import './Results.css'
 
 /* ───────── Reveal Hook ───────── */
@@ -58,18 +56,12 @@ export default function Results({ lampsRemaining = 1 }) {
   const isRound1Mode = mode === 'round1'
   const isRound2Mode = mode === 'round2'
   const isFinalMode = mode === 'final'
-  const isWinnerFromState = Boolean(resultData?.isWinner)
 
   const [round1Score, setRound1Score] = useState(0)
   const [round2Score, setRound2Score] = useState(0)
   const [round3Score, setRound3Score] = useState(0)
   const [totalScore, setTotalScore] = useState(0)
   const [leaderboard, setLeaderboard] = useState([])
-  const [revealActive, setRevealActive] = useState(false)
-  const [interactionLocked, setInteractionLocked] = useState(false)
-  const [revealPlayed, setRevealPlayed] = useState(
-    () => localStorage.getItem('genieRevealPlayed') === 'true'
-  )
   const [showRelicStory, setShowRelicStory] = useState(false)
 
   /* ───────── Load Scores ───────── */
@@ -88,21 +80,7 @@ export default function Results({ lampsRemaining = 1 }) {
       loadLeaderboard()
       submitFinalScore(r1, r2, r3, r1 + r2 + r3)
     }
-
-    if (isFinalMode && isWinnerFromState && !revealPlayed) {
-      triggerGenieReveal({
-        setRevealActive,
-        setInteractionLocked,
-        setRevealPlayed
-      })
-    }
-  }, [isFinalMode, isWinnerFromState])
-
-  useEffect(() => {
-    if (revealPlayed) {
-      localStorage.setItem('genieRevealPlayed', 'true')
-    }
-  }, [revealPlayed])
+  }, [isFinalMode])
 
   const loadLeaderboard = async () => {
     try {
@@ -129,9 +107,11 @@ export default function Results({ lampsRemaining = 1 }) {
   }
 
   const formatDuration = (seconds) => {
-    if (!seconds || typeof seconds !== 'number') return 'N/A'
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
+    const normalizedSeconds = Number(seconds)
+    if (!Number.isFinite(normalizedSeconds) || normalizedSeconds < 0) return 'N/A'
+    const totalSeconds = Math.floor(normalizedSeconds)
+    const m = Math.floor(totalSeconds / 60)
+    const s = totalSeconds % 60
     return `${m}m ${s}s`
   }
 
@@ -143,7 +123,7 @@ export default function Results({ lampsRemaining = 1 }) {
   const resolvedQualification =
     resultData?.qualificationStatus ||
     (isFinalMode
-      ? isWinnerFromState
+      ? Boolean(resultData?.isWinner)
         ? 'Qualified'
         : 'Not Qualified'
       : 'Qualified')
@@ -188,9 +168,7 @@ export default function Results({ lampsRemaining = 1 }) {
     <>
       <Background />
       <main
-        className={`event-container result-container ${
-          interactionLocked ? 'interaction-locked' : ''
-        }`}
+        className="event-container result-container"
       >
         <header className="result-header">
           <h1 className="event-title">JOURNEY'S END</h1>
@@ -199,7 +177,7 @@ export default function Results({ lampsRemaining = 1 }) {
         <div className="result-lamp-wrap">
           <LampDisplay
             lampsRemaining={resultLampsRemaining}
-            showMessage={isFinalMode && isWinnerFromState}
+            showMessage={isFinalMode && Boolean(resultData?.isWinner)}
           />
         </div>
 
@@ -250,39 +228,24 @@ export default function Results({ lampsRemaining = 1 }) {
 
         <div className="result-actions">
           {isRound1Mode && isRound1Qualified && (
-            <button onClick={() => navigate('/round2')}>
+            <button className="res-btn-gold" onClick={() => navigate('/round2')}>
               Next Round
             </button>
           )}
 
           {isRound2Mode && (
-            <button onClick={() => navigate('/round3')}>
+            <button className="res-btn-gold" onClick={() => navigate('/round3')}>
               Enter Round 3
             </button>
           )}
 
-          {isFinalMode && isWinnerFromState && (
-            <button onClick={() => navigate('/relic-story')}>
-              View Lamp
-            </button>
-          )}
-
-          <button onClick={handleHome}>Return Home</button>
+          <button className="res-btn-gold" onClick={handleHome}>Return Home</button>
 
           {isFinalMode && (
-            <button onClick={handleShare}>Share Score</button>
+            <button className="res-btn-gold" onClick={handleShare}>Share Score</button>
           )}
         </div>
       </main>
-
-      <GenieRevealOverlay
-        active={isFinalMode && isWinnerFromState && revealActive}
-        onComplete={() => {
-          setRevealActive(false)
-          setInteractionLocked(false)
-          setRevealPlayed(true)
-        }}
-      />
     </>
   )
 }

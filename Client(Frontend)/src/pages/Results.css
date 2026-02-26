@@ -25,6 +25,18 @@
     from { box-shadow: 0 0 24px 4px #FFD70088, 0 2px 8px #0008; }
     to { box-shadow: 0 0 48px 12px #FFD700cc, 0 2px 16px #000a; }
 }
+
+.result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.result-actions .res-btn-gold {
+    min-width: 170px;
+}
 /* ═══════════════════════════════════════════
    RELIC RUSH — RESULTS PAGE v2 (Charts + Achievements)
    ═══════════════════════════════════════════ */

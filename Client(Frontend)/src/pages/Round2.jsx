@@ -16,6 +16,12 @@ const POINTS_PER_GAME = 10
 const HINT_PENALTY = 5
 const QUALIFICATION_SCORE = 10
 
+const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
+  if (!Number.isFinite(startedAt)) return 0
+  const elapsed = Math.floor((Date.now() - startedAt) / 1000)
+  return Math.min(Math.max(elapsed, 0), maxDurationSeconds)
+}
+
 export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
   const round1Score = Number(localStorage.getItem('round1Score') || 0)
@@ -189,10 +195,7 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
 
     const score = Math.max((completedCount * POINTS_PER_GAME) - hintsPenalty, 0)
     const questionsSolved = completedCount
-    const elapsedSeconds = Math.min(
-      Math.max(ROUND_DURATION - (timeLeftRef.current || 0), 0),
-      ROUND_DURATION
-    )
+    const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, ROUND_DURATION)
     const qualificationStatus = score >= QUALIFICATION_SCORE ? 'Qualified' : 'Not Qualified'
 
     setRound2Score(score)

@@ -1,25 +1,8 @@
-/* Section image wrapper for About & Rules */
-/* About section image wrapper (smaller, centered) */
-.section-image-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 40px 0;
-}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
-.section-image-wrapper img {
-    width: 100%;
-    max-width: 380px;
-    height: auto;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
 /* ═══════════════════════════════════════════
    RELIC RUSH — SaaS HOMEPAGE STYLES
    ═══════════════════════════════════════════ */
-
-/* ── Google Fonts import (Cinzel + Inter) ── */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* ── Design Tokens ── */
 :root {
@@ -35,6 +18,23 @@
     --saas-text-dim: #a3a3a3;
     --saas-radius: 16px;
     --saas-max-w: 1140px;
+}
+
+/* Section image wrapper for About & Rules */
+/* About section image wrapper (smaller, centered) */
+.section-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px 0;
+}
+
+.section-image-wrapper img {
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 /* ─────────────── NAVBAR ─────────────── */
@@ -68,12 +68,22 @@
 }
 
 .saas-nav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
     font-family: 'Cinzel', serif;
-    font-size: 22px;
+    font-size: 36px;
     font-weight: 700;
     color: var(--saas-gold);
-    letter-spacing: 1px;
-    text-shadow: 0 0 18px rgba(255, 215, 0, 0.3);
+    letter-spacing: 2px;
+    text-shadow: 0 0 22px rgba(255, 215, 0, 0.45);
+}
+
+.saas-nav-logo {
+    width: 78px;
+    height: 78px;
+    object-fit: contain;
+    filter: brightness(1.2) drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
 }
 
 .saas-nav-links {

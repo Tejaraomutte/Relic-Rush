@@ -129,6 +129,12 @@ const ROUND_DURATION = 900
 const POINTS_PER_QUESTION = 5
 const QUALIFICATION_SCORE = 10
 
+const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
+  if (!Number.isFinite(startedAt)) return 0
+  const elapsed = Math.floor((Date.now() - startedAt) / 1000)
+  return Math.min(Math.max(elapsed, 0), maxDurationSeconds)
+}
+
 export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
   
@@ -311,10 +317,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
 
     const score = correctCount * POINTS_PER_QUESTION
     const questionsSolved = correctCount
-    const elapsedSeconds = Math.min(
-      Math.max(ROUND_DURATION - (timeLeftRef.current || 0), 0),
-      ROUND_DURATION
-    )
+    const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, ROUND_DURATION)
     const qualificationStatus = score >= QUALIFICATION_SCORE ? 'Qualified' : 'Not Qualified'
 
     setFinalScore(score)

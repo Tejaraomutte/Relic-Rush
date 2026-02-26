@@ -54,7 +54,7 @@ function App({ onComplete }) {
 
   const attackingQueens = getAttackingQueens();
   const queenCount = board.flat().filter(cell => cell === 1).length;
-  const [hasCompleted, setHasCompleted] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const getStatus = () => {
     if (queenCount < SIZE) {
@@ -70,17 +70,13 @@ function App({ onComplete }) {
 
   const status = getStatus();
 
-  useEffect(() => {
-    const solved = queenCount === SIZE && attackingQueens.size === 0;
-    if (solved && !hasCompleted) {
-      setHasCompleted(true);
-      if (onComplete) onComplete();
-    }
+  const isSolved = queenCount === SIZE && attackingQueens.size === 0;
 
-    if (!solved && hasCompleted) {
-      setHasCompleted(false);
+  useEffect(() => {
+    if (!isSolved && hasSubmitted) {
+      setHasSubmitted(false);
     }
-  }, [queenCount, attackingQueens, hasCompleted, onComplete]);
+  }, [isSolved, hasSubmitted]);
 
   const resetBoard = () => {
     setBoard(
@@ -88,6 +84,14 @@ function App({ onComplete }) {
         .fill()
         .map(() => Array(SIZE).fill(0))
     );
+    setHasSubmitted(false);
+  };
+
+  const handleSubmitPuzzle = () => {
+    if (!isSolved || hasSubmitted) return;
+
+    setHasSubmitted(true);
+    if (onComplete) onComplete();
   };
 
   return (
@@ -134,6 +138,14 @@ function App({ onComplete }) {
 
         <button onClick={resetBoard} className="reset-btn">
           Reset Puzzle
+        </button>
+
+        <button
+          onClick={handleSubmitPuzzle}
+          className="reset-btn"
+          disabled={!isSolved || hasSubmitted}
+        >
+          {hasSubmitted ? 'Submitted ✓' : 'Submit Puzzle'}
         </button>
 
       </div>
