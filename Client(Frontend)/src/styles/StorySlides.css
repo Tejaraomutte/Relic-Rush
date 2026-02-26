@@ -71,8 +71,8 @@
   text-shadow: 0 2px 12px #1a2a3a, 0 1px 0 #cfd8e6;
 }
 .story-slide-dialogue-slide3 {
-  color: #bfa14a;
-  text-shadow: 0 2px 18px #2a1a0a, 0 1px 0 #6d5520;
+  color: #fff;
+  text-shadow: 0 2px 18px #2a1a0a, 0 1px 0 #fff;
 }
 .story-slide-dialogue-speaker {
   font-weight: 700;
@@ -98,9 +98,11 @@
   margin-bottom: 1.1rem;
   text-align: center;
 }
+
+/* Ensure mysteriousVoice text is white for slide 3 */
 .story-slide-mystery-slide3 {
-  color: #bfa14a;
-  text-shadow: 0 2px 18px #2a1a0a, 0 1px 0 #6d5520;
+  color: #fff;
+  text-shadow: 0 2px 18px #2a1a0a, 0 1px 0 #fff;
 }
 .story-slide-btn-bottom-right {
   position: absolute;

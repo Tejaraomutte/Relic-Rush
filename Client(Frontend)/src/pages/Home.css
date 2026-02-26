@@ -1,3 +1,19 @@
+/* Section image wrapper for About & Rules */
+/* About section image wrapper (smaller, centered) */
+.section-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px 0;
+}
+
+.section-image-wrapper img {
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
 /* ═══════════════════════════════════════════
    RELIC RUSH — SaaS HOMEPAGE STYLES
    ═══════════════════════════════════════════ */
@@ -724,14 +740,14 @@
 
 .saas-team-img-wrap {
     position: relative;
-    width: 110px;
-    height: 110px;
+    width: 180px;
+    height: 180px;
     margin: 0 auto 20px;
 }
 
 .saas-team-img {
-    width: 110px;
-    height: 110px;
+    width: 180px;
+    height: 180px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid rgba(255, 215, 0, 0.3);

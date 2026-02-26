@@ -26,48 +26,55 @@ const SLIDE3_SUBTITLE_DELAY = 1200; // Wait before button
 // Slide 1 Player dialogue
 const slide1Dialogue = [
   [
-    { speaker: 'Player 1', text: 'Are you sure this is the place?' },
-    { speaker: 'Player 2', text: 'The legend said the relic lies beyond these gates.' }
+    { speaker: 'Player 1', text: 'Are you sure this is the Sultan’s digital palace?' },
+    { speaker: 'Player 2', text: 'Yes… and the relic is hidden behind layers of logic and code.' }
   ],
+
   [
-    { speaker: 'Player 1', text: 'Are you sure this is the place?' },
-    { speaker: 'Player 2', text: 'The legend said the relic lies beyond these gates.' }
+    { speaker: 'Player 1', text: 'Look at those four lamps… which one is real?' },
+    { speaker: 'Player 2', text: 'Only one holds the true power. The rest are clever illusions.' }
   ],
+
   [
-    { speaker: 'Player 1', text: 'This castle… it feels alive.' },
-    { speaker: 'Player 2', text: 'Or it’s warning us to turn back.' }
+    { speaker: 'Player 1', text: 'The walls are glowing with strange symbols.' },
+    { speaker: 'Player 2', text: 'Those aren’t symbols… they’re algorithms guarding the treasure.' }
   ],
+
   [
-    { speaker: 'Player 1', text: 'This castle… it feels alive.' },
-    { speaker: 'Player 2', text: 'Or it’s warning us to turn back.' }
+    { speaker: 'Player 1', text: 'Did you hear that? It sounded like a ticking clock.' },
+    { speaker: 'Player 2', text: 'The timer has begun. Every second matters from now on.' }
   ],
+
   [
-    { speaker: 'Player 1', text: 'No turning back now.' },
-    { speaker: 'Player 2', text: 'Whatever waits inside… we face it together.' }
+    { speaker: 'Player 1', text: 'This first challenge looks simple… but I don’t trust it.' },
+    { speaker: 'Player 2', text: 'In this palace, even the easiest question hides a trap.' }
   ],
+
   [
-    { speaker: 'Player 1', text: 'No turning back now.' },
-    { speaker: 'Player 2', text: 'Whatever waits inside… we face it together.' }
+    { speaker: 'Player 1', text: 'No matter what happens, we think before we act.' },
+    { speaker: 'Player 2', text: 'Together, we solve the riddles… and claim the original lamp.' }
   ],
 ];
-
 // Slide 2 Player dialogue
 const slide2Dialogue = [
   [
-    { speaker: 'Player 1', text: 'That’s impossible…' },
-    { speaker: 'Player 2', text: 'There should only be one.' }
+    { speaker: 'Player 1', text: 'That’s impossible… there are four of them.' },
+    { speaker: 'Player 2', text: 'The Sultan wasn’t joking. Only one is real.' }
   ],
+
   [
-    { speaker: 'Player 1', text: 'Four lamps. Identical.' },
-    { speaker: 'Player 2', text: 'This has to be a test.' }
+    { speaker: 'Player 1', text: 'They look identical. No marks. No clues.' },
+    { speaker: 'Player 2', text: 'Then we’ll need logic… not luck.' }
   ],
+
   [
-    { speaker: 'Player 1', text: 'Which one holds the true relic?' },
-    { speaker: 'Player 2', text: 'And which ones are illusions?' }
+    { speaker: 'Player 1', text: 'Maybe the real lamp reacts to something?' },
+    { speaker: 'Player 2', text: 'Or maybe it waits for the right mind to choose it.' }
   ],
+
   [
-    { speaker: 'Player 1', text: 'Which one holds the true relic?' },
-    { speaker: 'Player 2', text: 'And which ones are illusions?' }
+    { speaker: 'Player 1', text: 'Choose wrong… and we lose a chance.' },
+    { speaker: 'Player 2', text: 'Choose wisely… and one illusion disappears.' }
   ],
 ];
 

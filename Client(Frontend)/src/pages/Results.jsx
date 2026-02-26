@@ -7,46 +7,54 @@ import { getLeaderboard, submitRoundScore } from '../utils/api'
 import { triggerGenieReveal } from '../utils/roundFlow'
 import './Results.css'
 
-/* ─── Reveal helper ─── */
+/* ───────── Reveal Hook ───────── */
+
 function useReveal() {
   const ref = useRef(null)
+
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { el.classList.add('revealed'); obs.unobserve(el) } },
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add('revealed')
+          observer.unobserve(el)
+        }
+      },
       { threshold: 0.15 }
     )
-    obs.observe(el)
-    return () => obs.disconnect()
+
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
+
   return ref
 }
-function Reveal({ children, className = '', delay = 0 }) {
+
+function Reveal({ children, delay = 0 }) {
   const ref = useReveal()
   return (
-    <div ref={ref} className={`reveal-on-scroll ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+    <div
+      ref={ref}
+      className="reveal-on-scroll"
+      style={{ transitionDelay: `${delay}ms` }}
+    >
       {children}
     </div>
   )
 }
 
-/* ─── Medal helper ─── */
-function getMedal(rank) {
-  if (rank === 1) return '🥇'
-  if (rank === 2) return '🥈'
-  if (rank === 3) return '🥉'
-  return null
-}
+/* ───────── MAIN COMPONENT ───────── */
 
-/* ═══════════════════════════════════════════
-   MAIN RESULTS COMPONENT
-   ═══════════════════════════════════════════ */
 export default function Results({ lampsRemaining = 1 }) {
   const navigate = useNavigate()
   const location = useLocation()
+
   const mode = location.state?.mode || 'final'
   const resultData = location.state?.resultData || null
+
   const isRound1Mode = mode === 'round1'
   const isRound2Mode = mode === 'round2'
   const isFinalMode = mode === 'final'
@@ -59,41 +67,50 @@ export default function Results({ lampsRemaining = 1 }) {
   const [leaderboard, setLeaderboard] = useState([])
   const [revealActive, setRevealActive] = useState(false)
   const [interactionLocked, setInteractionLocked] = useState(false)
-  const [revealPlayed, setRevealPlayed] = useState(() => localStorage.getItem('genieRevealPlayed') === 'true')
+  const [revealPlayed, setRevealPlayed] = useState(
+    () => localStorage.getItem('genieRevealPlayed') === 'true'
+  )
   const [showRelicStory, setShowRelicStory] = useState(false)
-  const finalSubmittedRef = useRef(false)
-  const revealTriggeredRef = useRef(false)
+
+  /* ───────── Load Scores ───────── */
 
   useEffect(() => {
     const r1 = parseInt(localStorage.getItem('round1Score')) || 0
     const r2 = parseInt(localStorage.getItem('round2Score')) || 0
     const r3 = parseInt(localStorage.getItem('round3Score')) || 0
-    const total = r1 + r2 + r3
+
     setRound1Score(r1)
     setRound2Score(r2)
     setRound3Score(r3)
-    setTotalScore(total)
+    setTotalScore(r1 + r2 + r3)
 
-    if (isFinalMode && !finalSubmittedRef.current) {
-      finalSubmittedRef.current = true
+    if (isFinalMode) {
       loadLeaderboard()
-      submitFinalScore(r1, r2, r3, total)
+      submitFinalScore(r1, r2, r3, r1 + r2 + r3)
     }
-    if (isFinalMode && isWinnerFromState && !revealPlayed && !revealTriggeredRef.current) {
-      revealTriggeredRef.current = true
-      triggerGenieReveal({ setRevealActive, setInteractionLocked, setRevealPlayed })
+
+    if (isFinalMode && isWinnerFromState && !revealPlayed) {
+      triggerGenieReveal({
+        setRevealActive,
+        setInteractionLocked,
+        setRevealPlayed
+      })
     }
-  }, [navigate, isFinalMode, isWinnerFromState, revealPlayed])
+  }, [isFinalMode, isWinnerFromState])
 
   useEffect(() => {
-    if (revealPlayed) localStorage.setItem('genieRevealPlayed', 'true')
+    if (revealPlayed) {
+      localStorage.setItem('genieRevealPlayed', 'true')
+    }
   }, [revealPlayed])
 
   const loadLeaderboard = async () => {
     try {
       const data = await getLeaderboard()
       setLeaderboard(data.slice(0, 10) || [])
-    } catch (e) { console.error('Error loading leaderboard:', e) }
+    } catch (e) {
+      console.error('Leaderboard error:', e)
+    }
   }
 
   const submitFinalScore = async (r1, r2, r3, total) => {
@@ -106,102 +123,165 @@ export default function Results({ lampsRemaining = 1 }) {
         round2: r2,
         round3: r3
       })
-    } catch (e) { console.error('Error submitting final score:', e) }
+    } catch (e) {
+      console.error('Submit score error:', e)
+    }
   }
 
   const formatDuration = (seconds) => {
-    if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return 'N/A'
-    const minutes = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${minutes}m ${secs}s`
+    if (!seconds || typeof seconds !== 'number') return 'N/A'
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${m}m ${s}s`
   }
 
-  const resolvedScore = resultData?.score ?? (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
-  const resolvedTimeTaken = resultData?.timeTakenSeconds
-  const resolvedQualification = resultData?.qualificationStatus || (isFinalMode ? (isWinnerFromState ? 'Qualified' : 'Not Qualified') : 'Qualified')
+  const resolvedScore =
+    resultData?.score ??
+    (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
+
+  const resolvedTime = resultData?.timeTakenSeconds
+  const resolvedQualification =
+    resultData?.qualificationStatus ||
+    (isFinalMode
+      ? isWinnerFromState
+        ? 'Qualified'
+        : 'Not Qualified'
+      : 'Qualified')
+
   const isRound1Qualified = round1Score >= 10
-  const resultLampsRemaining = isRound1Mode ? 3 : isRound2Mode ? 2 : 1
+  const resultLampsRemaining = isRound1Mode
+    ? 3
+    : isRound2Mode
+    ? 2
+    : 1
+
+  const handleHome = () => {
+    localStorage.clear()
+    navigate('/')
+  }
+
+  const handleShare = () => {
+    const text = `🎉 I found the True Relic!\nFinal Score: ${totalScore}`
+    navigator.share
+      ? navigator.share({ title: 'Relic Rush', text })
+      : alert(text)
+  }
+
+  if (showRelicStory) {
+    return (
+      <>
+        <Background />
+        <div className="relic-story-container">
+          <h2>Relic Reveal Story</h2>
+          <button
+            className="btn btn-golden"
+            onClick={() => setShowRelicStory(false)}
+          >
+            ← Back to Score
+          </button>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
       <Background />
-      <main className={`event-container result-container ${interactionLocked ? 'interaction-locked' : ''}`}>
+      <main
+        className={`event-container result-container ${
+          interactionLocked ? 'interaction-locked' : ''
+        }`}
+      >
         <header className="result-header">
-          <h1 className="event-title">
-            {isRound1Mode ? 'ROUND 1 RESULT' : isRound2Mode ? 'ROUND 2 RESULT' : "JOURNEY'S END"}
-          </h1>
+          <h1 className="event-title">JOURNEY'S END</h1>
         </header>
 
-        {isRound1Mode && (
-          <p className="loading-text">Review your Round 1 score, then click Next Round to continue.</p>
-        )}
-        {isRound2Mode && (
-          <p className="loading-text">Round 2 completed! Ready to face your next challenge?</p>
-        )}
-
-        <div className="result-lamp-wrap" aria-hidden="true">
-          <LampDisplay lampsRemaining={resultLampsRemaining} showMessage={isFinalMode && isWinnerFromState} />
+        <div className="result-lamp-wrap">
+          <LampDisplay
+            lampsRemaining={resultLampsRemaining}
+            showMessage={isFinalMode && isWinnerFromState}
+          />
         </div>
 
-        <div className="score-card result-panel-card">
-          <div className="score-item">
-            <span className="score-label">Score</span>
-            <span className="score-value">{resolvedScore}</span>
+        <Reveal delay={100}>
+          <div className="score-card result-panel-card">
+            <div className="score-item">
+              <span>Score</span>
+              <span>{resolvedScore}</span>
+            </div>
+            <div className="score-item">
+              <span>Time Taken</span>
+              <span>
+                {typeof resolvedTime === 'number'
+                  ? formatDuration(resolvedTime)
+                  : 'N/A'}
+              </span>
+            </div>
+            <div className="score-item">
+              <span>Status</span>
+              <span>{resolvedQualification}</span>
+            </div>
           </div>
-          <div className="score-item">
-            <span className="score-label">Time Taken</span>
-            <span className="score-value result-meta">{typeof resolvedTimeTaken === 'number' ? formatDuration(resolvedTimeTaken) : 'N/A'}</span>
-          </div>
-          <div className="score-item">
-            <span className="score-label">Qualification Status</span>
-            <span className="score-value result-meta">{resolvedQualification}</span>
-          </div>
-        </div>
+        </Reveal>
 
-        {/* ═══ LEADERBOARD ═══ */}
+        <Reveal delay={150}>
+          <div className="score-card">
+            <div className="score-item">Round 1: {round1Score}</div>
+            <div className="score-item">Round 2: {round2Score}</div>
+            <div className="score-item">Round 3: {round3Score}</div>
+            <div className="score-item total-score">Total: {totalScore}</div>
+          </div>
+        </Reveal>
+
         {isFinalMode && (
-          <Reveal delay={500}>
-            <div className="res-leaderboard">
-              <h3 className="res-leaderboard-heading">
-                <span className="res-gradient-text">Top 10</span> Champions
-              </h3>
-              {leaderboard.length === 0 ? (
-                <p className="res-empty-msg">No scores yet. Be the first to conquer!</p>
-              ) : (
-                <div className="res-leaderboard-list">
-                  {leaderboard.map((entry, index) => (
-                    <div key={index} className={`res-lb-row ${index < 3 ? 'res-lb-top' : ''}`}>
-                      <div className="res-lb-rank">
-                        {getMedal(index + 1) || <span className="res-lb-rank-num">{index + 1}</span>}
-                      </div>
-                      <div className="res-lb-name">{entry.teamName || entry.name || entry.email}</div>
-                      <div className="res-lb-score">{entry.totalScore || 0}</div>
-                    </div>
-                  ))}
+          <Reveal delay={200}>
+            <div className="leaderboard-card">
+              <h3>Top 10 Champions</h3>
+              {leaderboard.map((entry, index) => (
+                <div key={index} className="leaderboard-row">
+                  <span>{index + 1}</span>
+                  <span>{entry.teamName}</span>
+                  <span>{entry.totalScore}</span>
                 </div>
-              )}
+              ))}
             </div>
           </Reveal>
         )}
 
-        {/* ═══ RELIC HIDDEN ═══ */}
-        {isFinalMode && !isWinnerFromState && (
-          <Reveal delay={550}>
-            <div className="res-hidden-msg"><span>🌙</span> The relic remains hidden…</div>
-          </Reveal>
-        )}
-
         <div className="result-actions">
-          {isRound1Mode && isRound1Qualified && <button className="btn btn-secondary" onClick={() => navigate('/round2')}>Next Round</button>}
-          {isRound1Mode && !isRound1Qualified && <button className="btn btn-secondary" onClick={() => navigate('/home')}>Eliminated (Score below 10)</button>}
-          {isRound2Mode && <button className="btn btn-secondary" onClick={() => navigate('/round3')}>Enter Round 3</button>}
-          {isFinalMode && <button className="btn btn-golden" onClick={() => navigate('/relic-story')}>View Lamp</button>}
+          {isRound1Mode && isRound1Qualified && (
+            <button onClick={() => navigate('/round2')}>
+              Next Round
+            </button>
+          )}
+
+          {isRound2Mode && (
+            <button onClick={() => navigate('/round3')}>
+              Enter Round 3
+            </button>
+          )}
+
+          {isFinalMode && isWinnerFromState && (
+            <button onClick={() => navigate('/relic-story')}>
+              View Lamp
+            </button>
+          )}
+
+          <button onClick={handleHome}>Return Home</button>
+
+          {isFinalMode && (
+            <button onClick={handleShare}>Share Score</button>
+          )}
         </div>
       </main>
 
       <GenieRevealOverlay
         active={isFinalMode && isWinnerFromState && revealActive}
-        onComplete={() => { setRevealActive(false); setInteractionLocked(false); setRevealPlayed(true) }}
+        onComplete={() => {
+          setRevealActive(false)
+          setInteractionLocked(false)
+          setRevealPlayed(true)
+        }}
       />
     </>
   )

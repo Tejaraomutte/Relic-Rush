@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import kalyanImg from '../assets/images/coordinator.webp'
-import tejaImg from '../assets/images/coordinator.webp'
-import madhaviImg from '../assets/images/coordinator.webp'
+import kalyanImg from '../assets/images/kalyan.jpg'
+import tejaImg from '../assets/images/tejasathvika.jpg'
+import madhaviImg from '../assets/images/madhavi.jpg'
 import lampImg from '../assets/images/lamp1.png'
 import lampFallbackImg from '../assets/images/lamp.jpeg'
+import aboutImg from '../assets/images/about.png'
+import rulesImg from '../assets/images/rules.png'
 import './Home.css'
 
 /* ─── tiny helper: reveal-on-scroll ─── */
@@ -77,8 +79,25 @@ const RULES = [
   { icon: '🏺', text: 'The event begins with four lamps — only one is the original. Each round eliminates one duplicate.' },
   { icon: '⚔️', text: 'Round 1 eliminates the first duplicate lamp. Only qualified participants proceed.' },
   { icon: '🔑', text: 'Round 2 is a 1-on-1, clue-based challenge. Using a clue deducts 5 points.' },
+    { 
+    icon: '🧠', 
+    text: 'Round 3 – The Architect’s Trial: You will face 4 flowchart problems and 3 coding problems. You must submit any 2 flowcharts of your choice and solve any 2 coding problems you are confident in.' 
+  },
   { icon: '⏳', text: 'All rounds are strictly time-bound. Submit within the time limit.' },
   { icon: '🏆', text: 'The final winning team unlocks the original lamp. Highest score + least time wins.' },
+    { 
+    icon: '📜', 
+    text: 'Participants must maintain discipline and follow all event instructions. Any unfair practice leads to immediate disqualification.' 
+  },
+   { 
+    icon: '⚡', 
+    text: 'No external help, internet browsing, or AI tools are allowed during the competition unless explicitly permitted by the organizers.' 
+  },
+    { 
+    icon: '🪔', 
+    text: 'The judges’ decision is final. Once a lamp is extinguished, it cannot be reclaimed.' 
+  },
+ 
 ]
 
 const STATS = [
@@ -89,9 +108,9 @@ const STATS = [
 ]
 
 const TEAM = [
-  { name: 'Kalyan', role: 'Tech Coordinator', img: kalyanImg },
-  { name: 'Teja Sathvika', role: 'Tech Coordinator', img: tejaImg },
-  { name: 'Madhavi', role: 'Tech Coordinator', img: madhaviImg },
+  { name: 'Teja Sathvika', role: 'Event Coordinator', img: tejaImg },
+  { name: 'Kalyan', role: 'Event Coordinator', img: kalyanImg },
+  { name: 'Madhavi', role: 'Event Coordinator', img: madhaviImg },
 ]
 
 export default function Home() {
@@ -186,6 +205,10 @@ export default function Home() {
             The Legend of <span className="saas-gradient-text">Relic Rush</span>
           </h2>
         </Reveal>
+        {/* About section image (smaller, centered, lands below heading) */}
+        <div className="section-image-wrapper">
+          <img src={aboutImg} alt="About" />
+        </div>
         <Reveal delay={120}>
           <p className="saas-section-desc">
             Participants are presented with four digital genie lamps — but only one is the original.
@@ -254,6 +277,10 @@ export default function Home() {
             Every great quest has its code of honor. Read carefully before you enter the arena.
           </p>
         </Reveal>
+        {/* Rules section image below heading/desc */}
+        <div className="section-image-wrapper">
+          <img src={rulesImg} alt="Rules" />
+        </div>
 
         <div className="saas-rules-list">
           {RULES.map((rule, i) => (
