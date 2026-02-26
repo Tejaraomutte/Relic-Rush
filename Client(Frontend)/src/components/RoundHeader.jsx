@@ -25,14 +25,18 @@ export default function RoundHeader({
     return ''
   }
 
+  const hasTimer = showTimer && timeLeft !== null
+
   return (
-    <header className="round-header">
-      <div className="header-top">
-        <h1 className="round-title">{roundTitle}</h1>
-        {lampsRemaining !== null && <div className="lamps-indicator">{lampsRemaining} Lamps Remaining</div>}
-      </div>
-      {subtitle && <p className="round-subtitle">{subtitle}</p>}
-      {showTimer && timeLeft !== null && (
+    <>
+      <header className={`round-header ${hasTimer ? 'round-header-with-timer' : ''}`}>
+        <div className="header-top">
+          <h1 className="round-title">{roundTitle}</h1>
+          {lampsRemaining !== null && <div className="lamps-indicator">{lampsRemaining} Lamps Remaining</div>}
+        </div>
+        {subtitle && <p className="round-subtitle">{subtitle}</p>}
+      </header>
+      {hasTimer && (
         <div className="timer-section">
           <span className="timer-label">{timerLabel}:</span>
           <span className={`timer-display ${getTimerClass()}`}>
@@ -40,6 +44,6 @@ export default function RoundHeader({
           </span>
         </div>
       )}
-    </header>
+    </>
   )
 }

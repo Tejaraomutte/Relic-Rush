@@ -337,7 +337,7 @@ export default function Results({ lampsRemaining = 1 }) {
           </div>
           <div className="score-item">
             <span className="score-label">Time Taken</span>
-            <span className="score-value result-meta">{typeof resolvedTimeTaken === 'number' ? `${resolvedTimeTaken}s` : 'N/A'}</span>
+            <span className="score-value result-meta">{typeof resolvedTimeTaken === 'number' ? formatDuration(resolvedTimeTaken) : 'N/A'}</span>
           </div>
           <div className="score-item">
             <span className="score-label">Qualification Status</span>
