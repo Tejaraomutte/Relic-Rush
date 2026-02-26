@@ -47,7 +47,7 @@ const questions = [
   •	If the left chest is heavier than the right one, he swaps them.
   •	He continues this process only once across the row.
   After completing this single royal sweep, what is the new arrangement of the treasure chests?`,
-    questionImage: "src/assets/images/q3.jpeg",
+    questionImage: "src/assets/images/q2.jpeg",
     options: [
       { text: "1, 3, 1, 4, 5, 9", image: null },
       { text: "3, 1, 4, 1, 5, 9", image: null },
@@ -77,7 +77,7 @@ for(int i = 0; i < 33; i++) {
 clue[j] = '\0';
 printf("%s", clue);
 What is the output of the above code?`,
-    questionImage: "src/assets/images/q2.jpeg",
+    questionImage: "src/assets/images/q3.jpeg",
     options: [
       { text: " Nomadtribes", image: null },
       { text: "desertnight", image: null },
@@ -148,6 +148,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     const savedState = loadRoundState(1)
     return savedState?.timeLeft ?? ROUND_DURATION
   })
+  const timeLeftRef = useRef(loadRoundState(1)?.timeLeft ?? ROUND_DURATION)
   
   const startedAtRef = useRef(loadRoundState(1)?.startedAt ?? Date.now())
   
@@ -192,6 +193,10 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   }, [selectedAnswers])
 
   useEffect(() => {
+    timeLeftRef.current = timeLeft
+  }, [timeLeft])
+
+  useEffect(() => {
     if (isComplete || isAnswerLocked) return
 
     const handlePopState = () => {
@@ -228,7 +233,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     if (isComplete || isAnswerLocked) return
 
     const stopTimer = startTimer({
-      duration: ROUND_DURATION,
+      duration: timeLeftRef.current,
       onTick: setTimeLeft,
       onTimeUp: onTimeUp,
       isLocked: () => submittedRef.current || isAnswerLocked || isComplete
@@ -282,7 +287,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     const score = correctCount * POINTS_PER_QUESTION
     const questionsSolved = correctCount
     const elapsedSeconds = Math.min(
-      Math.max(Math.round((Date.now() - startedAtRef.current) / 1000), 0),
+      Math.max(ROUND_DURATION - (timeLeftRef.current || 0), 0),
       ROUND_DURATION
     )
     const qualificationStatus = score >= QUALIFICATION_SCORE ? 'Qualified' : 'Not Qualified'

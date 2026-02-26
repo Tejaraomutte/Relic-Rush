@@ -36,6 +36,7 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     const savedState = loadRoundState(2)
     return savedState?.timeLeft ?? ROUND_DURATION
   })
+  const timeLeftRef = useRef(loadRoundState(2)?.timeLeft ?? ROUND_DURATION)
   
   const startedAtRef = useRef(loadRoundState(2)?.startedAt ?? Date.now())
   
@@ -91,11 +92,15 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   }, [completedGames, hintsPenalty, timeLeft, isComplete, isRoundLocked])
 
   useEffect(() => {
+    timeLeftRef.current = timeLeft
+  }, [timeLeft])
+
+  useEffect(() => {
     // DEVELOPMENT MODE: Allow direct access without login
     if (isComplete || isRoundLocked) return
 
     const stopTimer = startTimer({
-      duration: ROUND_DURATION,
+      duration: timeLeftRef.current,
       onTick: setTimeLeft,
       onTimeUp: handleTimeUp,
       isLocked: () => submittedRef.current || isRoundLocked || isComplete
@@ -160,7 +165,7 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     const score = Math.max((completedCount * POINTS_PER_GAME) - hintsPenalty, 0)
     const questionsSolved = completedCount
     const elapsedSeconds = Math.min(
-      Math.max(Math.round((Date.now() - startedAtRef.current) / 1000), 0),
+      Math.max(ROUND_DURATION - (timeLeftRef.current || 0), 0),
       ROUND_DURATION
     )
     const qualificationStatus = score >= QUALIFICATION_SCORE ? 'Qualified' : 'Not Qualified'

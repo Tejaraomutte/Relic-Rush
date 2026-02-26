@@ -49,9 +49,10 @@ export default function Leaderboard() {
   }
 
   const formatTime = (seconds) => {
-    if (!seconds) return '--'
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
+    const safeSeconds = Number(seconds)
+    if (!Number.isFinite(safeSeconds) || safeSeconds < 0) return '--'
+    const mins = Math.floor(safeSeconds / 60)
+    const secs = safeSeconds % 60
     return `${mins}m ${secs}s`
   }
 
@@ -136,7 +137,7 @@ export default function Leaderboard() {
                             {round1 ? round1.roundScore : '--'}
                           </div>
                           <div style={{ fontSize: '0.77rem', color: '#aaa', marginTop: '2px' }}>
-                            {round1 ? formatTime(round1.totalRoundTime) : '--'}
+                            {round1 && Number(round1.roundScore) > 0 ? formatTime(round1.totalRoundTime) : '--'}
                           </div>
                         </td>
                         <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.90rem', color: '#fff', backgroundColor: 'rgba(192, 192, 192, 0.08)', verticalAlign: 'middle', width: '15%' }}>
@@ -144,7 +145,7 @@ export default function Leaderboard() {
                             {round2 ? round2.roundScore : '--'}
                           </div>
                           <div style={{ fontSize: '0.77rem', color: '#aaa', marginTop: '2px' }}>
-                            {round2 ? formatTime(round2.totalRoundTime) : '--'}
+                            {round2 && Number(round2.roundScore) > 0 ? formatTime(round2.totalRoundTime) : '--'}
                           </div>
                         </td>
                         <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.90rem', color: '#fff', backgroundColor: 'rgba(205, 127, 50, 0.08)', verticalAlign: 'middle', width: '15%' }}>
@@ -152,7 +153,7 @@ export default function Leaderboard() {
                             {round3 ? round3.roundScore : '--'}
                           </div>
                           <div style={{ fontSize: '0.77rem', color: '#aaa', marginTop: '2px' }}>
-                            {round3 ? formatTime(round3.totalRoundTime) : '--'}
+                            {round3 && Number(round3.roundScore) > 0 ? formatTime(round3.totalRoundTime) : '--'}
                           </div>
                         </td>
                       </tr>

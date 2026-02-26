@@ -88,7 +88,7 @@ export default function Round3({ reduceLamps }) {
     if (isRoundLocked) return
 
     const stopTimer = startTimer({
-      duration: ROUND_DURATION,
+      duration: timeLeftRef.current,
       onTick: setTimeLeft,
       onTimeUp: handleTimeUp,
       isLocked: () => submittedRef.current || isRoundLocked

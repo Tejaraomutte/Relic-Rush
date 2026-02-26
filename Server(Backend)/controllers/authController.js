@@ -195,6 +195,7 @@ const getAdminLeaderboard = async (req, res) => {
           teamName: 1,
           totalScore: { $ifNull: ["$totalScore", 0] },
           totalCompletionTime: 1,
+          timeTaken: "$totalCompletionTime",
           rounds: {
             $map: {
               input: "$rounds",
@@ -326,15 +327,37 @@ const submitScore = async (req, res) => {
       }
     };
 
+    const upsertFinalRoundScore = (roundNumber, roundScore) => {
+      const existingIndex = (user.rounds || []).findIndex(
+        (item) => item.roundNumber === roundNumber
+      );
+
+      if (existingIndex >= 0) {
+        const existingRound = user.rounds[existingIndex];
+        user.rounds[existingIndex] = {
+          ...existingRound.toObject(),
+          roundScore: toNumber(roundScore, existingRound.roundScore || 0)
+        };
+      } else {
+        user.rounds.push(buildRoundPayload({
+          roundNumber,
+          score: roundScore,
+          questionsSolved: 0,
+          questionTimes: [],
+          totalRoundTime: 0
+        }));
+      }
+    };
+
     if (round === "final") {
       if (round1 !== undefined) {
-        upsertRound(buildRoundPayload({ roundNumber: 1, score: round1 }));
+        upsertFinalRoundScore(1, round1);
       }
       if (round2 !== undefined) {
-        upsertRound(buildRoundPayload({ roundNumber: 2, score: round2 }));
+        upsertFinalRoundScore(2, round2);
       }
       if (round3 !== undefined) {
-        upsertRound(buildRoundPayload({ roundNumber: 3, score: round3 }));
+        upsertFinalRoundScore(3, round3);
       }
     } else {
       const numericRound = Number(round);
@@ -342,12 +365,12 @@ const submitScore = async (req, res) => {
         return res.status(400).json({ message: "Invalid round number" });
       }
 
-      const alreadySubmitted = (user.rounds || []).some(
-        (item) => item.roundNumber === numericRound
-      );
+      if (numericRound === 1) {
+        user.rounds = (user.rounds || []).filter((item) => item.roundNumber !== 2 && item.roundNumber !== 3);
+      }
 
-      if (alreadySubmitted) {
-        return res.status(409).json({ message: "Round already submitted" });
+      if (numericRound === 2) {
+        user.rounds = (user.rounds || []).filter((item) => item.roundNumber !== 3);
       }
 
       upsertRound(buildRoundPayload({
