@@ -46,8 +46,8 @@ export default function RelicRevealStory({ onBackToScore }) {
   }
 
   return (
-    <div className="relic-reveal-overlay">
-      <div className="relic-reveal-bg" />
+    <div className={`relic-reveal-overlay ${isLast ? 'last-frame-only' : ''}`}>
+      {!isLast && <div className="relic-reveal-bg" />}
       <div className={`relic-reveal-frame fade-in ${isLast ? 'last-frame' : ''}`}>
         <img
           src={frameImages[currentFrame]}
