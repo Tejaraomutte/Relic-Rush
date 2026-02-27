@@ -154,7 +154,52 @@ body{
 .category{margin-bottom:18px}
 .sidebar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;box-shadow:0 6px 18px rgba(79,70,229,0.18)}
-.reactflow-wrapper{flex:1;position:relative;min-height:520px;overflow:hidden;background:linear-gradient(180deg,#f8fbff,#eef4fb)}
+.reactflow-wrapper{
+  flex:1;
+  position:relative;
+  min-height:520px;
+  overflow:hidden;
+  isolation:isolate;
+  border-radius:14px;
+  border:1px solid rgba(148,163,184,0.28);
+  background:
+    linear-gradient(145deg, rgba(246, 249, 255, 0.94) 0%, rgba(236, 244, 255, 0.92) 42%, rgba(239, 241, 255, 0.9) 100%);
+  box-shadow:
+    0 12px 34px rgba(30, 41, 59, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -26px 44px rgba(99, 102, 241, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px) saturate(118%);
+  -webkit-backdrop-filter: blur(10px) saturate(118%);
+}
+
+.reactflow-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.16) 1.1px, transparent 1.1px);
+  background-size: 22px 22px;
+  opacity: 0.28;
+}
+
+.reactflow-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(70% 55% at 14% 10%, rgba(129, 140, 248, 0.18), transparent 72%),
+    radial-gradient(65% 50% at 88% 90%, rgba(56, 189, 248, 0.15), transparent 72%);
+}
+
+.reactflow-wrapper .react-flow {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
 .reactflow-canvas{height:100vh}
 .custom-node{color:#0f172a;padding:14px 20px;border-radius:10px;box-shadow:var(--node-shadow);transition:transform .18s ease,box-shadow .18s ease}
 .custom-node:hover{transform:translateY(-6px)}
@@ -172,7 +217,6 @@ body{
 .parallelogram.node-io{background:linear-gradient(135deg,#6366f1,#4f46e5) !important;box-shadow:0 0 18px rgba(99,102,241,0.5), 0 12px 32px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.2) !important;border:2px solid #312e81 !important}
 .parallelogram.node-io:hover{box-shadow:0 0 28px rgba(99,102,241,0.7), 0 16px 44px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;transform:skewX(-20deg) translateY(-4px)}
 .terminator-shape{border-radius:999px;padding:10px 18px;display:inline-block}
-.reactflow{background-image: linear-gradient(0deg, rgba(0,0,0,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);background-size:24px 24px}
 .floating-editor{position:absolute;right:22px;top:18px;background:#fff;padding:10px;border-radius:8px;box-shadow:0 10px 30px rgba(2,6,23,0.08);z-index:10}
 
 /* Enhanced vibrant node visuals with strong contrast for presentation */
@@ -221,8 +265,81 @@ body{
 header h2{font-weight:700}
 header .btn{background:linear-gradient(90deg,#4f46e5,#6d28d9);box-shadow:0 8px 24px rgba(79,70,229,0.16)}
 
+.flow-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background-color: transparent;
+  box-shadow: 0 8px 24px rgba(30, 41, 59, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.flow-btn.flow-btn-submit {
+  background: linear-gradient(135deg, #5b7cfa 0%, #5b4ae6 55%, #7d3cff 100%) !important;
+}
+
+.flow-btn.flow-btn-submit:hover {
+  background: linear-gradient(135deg, #6b88ff 0%, #624ff0 55%, #8a46ff 100%) !important;
+}
+
+.flow-btn.flow-btn-restart {
+  background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 52%, #7c3aed 100%) !important;
+}
+
+.flow-btn.flow-btn-restart:hover {
+  background: linear-gradient(135deg, #5b52ef 0%, #7634e3 52%, #8a49f5 100%) !important;
+}
+
+.flow-warning-notice {
+  width: min(96%, 920px);
+  margin: 14px auto 10px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 215, 0, 0.46);
+  background:
+    linear-gradient(145deg, rgba(63, 37, 111, 0.46) 0%, rgba(41, 24, 80, 0.5) 55%, rgba(28, 18, 62, 0.56) 100%);
+  backdrop-filter: blur(8px) saturate(118%);
+  -webkit-backdrop-filter: blur(8px) saturate(118%);
+  box-shadow:
+    0 10px 26px rgba(31, 41, 55, 0.2),
+    0 0 22px rgba(250, 204, 21, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  text-align: center;
+  animation: flowNoticeFadeIn 520ms ease-out both;
+}
+
+.flow-warning-notice h3 {
+  margin: 0 0 6px;
+  color: #facc15;
+  font-size: clamp(1.02rem, 2vw, 1.2rem);
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.24);
+}
+
+.flow-warning-notice p {
+  margin: 0;
+  color: #e5e7eb;
+  font-size: clamp(0.88rem, 1.7vw, 0.98rem);
+  line-height: 1.45;
+}
+
+@keyframes flowNoticeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Ensure reactflow grid stays subtle */
-.reactflow{background-image: linear-gradient(0deg, rgba(0,0,0,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);background-size:28px 28px}
+.reactflow-wrapper .react-flow__background {
+  opacity: 0.24;
+}
 
 /* Category theme helpers - Vibrant colors with strong contrast */
 .node-computer.cat-programming,

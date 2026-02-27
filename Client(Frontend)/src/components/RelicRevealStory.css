@@ -71,6 +71,17 @@
   margin: 0;
   transition: opacity 0.5s;
 }
+
+.relic-reveal-frame.last-frame {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.relic-reveal-img.relic-reveal-img-last {
+  object-fit: contain;
+  object-position: center center;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: none;
+}
 .relic-reveal-convo {
   position: absolute;
   top: 7vh;

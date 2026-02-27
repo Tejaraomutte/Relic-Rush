@@ -48,8 +48,12 @@ export default function RelicRevealStory({ onBackToScore }) {
   return (
     <div className="relic-reveal-overlay">
       <div className="relic-reveal-bg" />
-      <div className="relic-reveal-frame fade-in">
-        <img src={frameImages[currentFrame]} alt="Relic Story Frame" className="relic-reveal-img" />
+      <div className={`relic-reveal-frame fade-in ${isLast ? 'last-frame' : ''}`}>
+        <img
+          src={frameImages[currentFrame]}
+          alt="Relic Story Frame"
+          className={`relic-reveal-img ${isLast ? 'relic-reveal-img-last' : ''}`}
+        />
         {currentFrame < 4 && (
           <div className="relic-reveal-convo">
             {conversations[currentFrame].map((line, i) => (
@@ -57,12 +61,6 @@ export default function RelicRevealStory({ onBackToScore }) {
                 <span className="relic-reveal-speaker">{line.speaker}:</span> {line.text}
               </div>
             ))}
-          </div>
-        )}
-        {currentFrame === 4 && (
-          <div className="relic-reveal-congrats">
-            <span className="relic-reveal-congrats-main">🎉 Congratulations!</span>
-            <span className="relic-reveal-congrats-sub">You have found the True Relic Lamp</span>
           </div>
         )}
         <div className="relic-reveal-actions">

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
 import LampDisplay from '../components/LampDisplay'
-import { getLeaderboard, submitRoundScore } from '../utils/api'
+import { submitRoundScore } from '../utils/api'
 import './Results.css'
 
 /* ───────── Reveal Hook ───────── */
@@ -61,8 +61,9 @@ export default function Results({ lampsRemaining = 1 }) {
   const [round2Score, setRound2Score] = useState(0)
   const [round3Score, setRound3Score] = useState(0)
   const [totalScore, setTotalScore] = useState(0)
-  const [leaderboard, setLeaderboard] = useState([])
-  const [showRelicStory, setShowRelicStory] = useState(false)
+  const [showRound1LampStage, setShowRound1LampStage] = useState(false)
+  const [showRound2LampStage, setShowRound2LampStage] = useState(false)
+  const [animatedLampCount, setAnimatedLampCount] = useState(4)
 
   /* ───────── Load Scores ───────── */
 
@@ -77,19 +78,9 @@ export default function Results({ lampsRemaining = 1 }) {
     setTotalScore(r1 + r2 + r3)
 
     if (isFinalMode) {
-      loadLeaderboard()
       submitFinalScore(r1, r2, r3, r1 + r2 + r3)
     }
   }, [isFinalMode])
-
-  const loadLeaderboard = async () => {
-    try {
-      const data = await getLeaderboard()
-      setLeaderboard(data.slice(0, 10) || [])
-    } catch (e) {
-      console.error('Leaderboard error:', e)
-    }
-  }
 
   const submitFinalScore = async (r1, r2, r3, total) => {
     const user = JSON.parse(localStorage.getItem('user'))
@@ -129,37 +120,101 @@ export default function Results({ lampsRemaining = 1 }) {
       : 'Qualified')
 
   const isRound1Qualified = round1Score >= 10
+  const isRound1TransitionMode = isRound1Mode && isRound1Qualified
+  const isRound2TransitionMode = isRound2Mode
   const resultLampsRemaining = isRound1Mode
     ? 3
     : isRound2Mode
     ? 2
     : 1
 
+  useEffect(() => {
+    let timeoutId
+
+    if (isRound1TransitionMode) {
+      if (showRound1LampStage) {
+        setAnimatedLampCount(4)
+        timeoutId = setTimeout(() => {
+          setAnimatedLampCount(3)
+        }, 200)
+      } else {
+        setAnimatedLampCount(4)
+      }
+    } else if (isRound2TransitionMode) {
+      if (showRound2LampStage) {
+        setAnimatedLampCount(3)
+        timeoutId = setTimeout(() => {
+          setAnimatedLampCount(2)
+        }, 200)
+      } else {
+        setAnimatedLampCount(3)
+      }
+    } else if (isFinalMode) {
+      setAnimatedLampCount(1)
+    } else {
+      setAnimatedLampCount(resultLampsRemaining)
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [isRound1TransitionMode, showRound1LampStage, isRound2TransitionMode, showRound2LampStage, isFinalMode, resultLampsRemaining])
+
   const handleHome = () => {
     localStorage.clear()
     navigate('/')
   }
 
-  const handleShare = () => {
-    const text = `🎉 I found the True Relic!\nFinal Score: ${totalScore}`
-    navigator.share
-      ? navigator.share({ title: 'Relic Rush', text })
-      : alert(text)
+  const handleViewLamp = () => {
+    navigate('/relic-story')
   }
 
-  if (showRelicStory) {
+  if (isFinalMode) {
     return (
       <>
         <Background />
-        <div className="relic-story-container">
-          <h2>Relic Reveal Story</h2>
-          <button
-            className="btn btn-golden"
-            onClick={() => setShowRelicStory(false)}
-          >
-            ← Back to Score
-          </button>
-        </div>
+        <main className="event-container result-container">
+          <div className="result-lamp-wrap">
+            <LampDisplay
+              lampsRemaining={1}
+              showMessage={true}
+            />
+          </div>
+
+          <Reveal delay={100}>
+            <div className="score-card result-panel-card">
+              <div className="score-item">
+                <span>Score</span>
+                <span>{resolvedScore}</span>
+              </div>
+              <div className="score-item">
+                <span>Time Taken</span>
+                <span>
+                  {typeof resolvedTime === 'number'
+                    ? formatDuration(resolvedTime)
+                    : 'N/A'}
+                </span>
+              </div>
+              <div className="score-item">
+                <span>Status</span>
+                <span>{resolvedQualification}</span>
+              </div>
+            </div>
+          </Reveal>
+
+          <Reveal delay={150}>
+            <div className="score-card">
+              <div className="score-item">Round 1: {round1Score}</div>
+              <div className="score-item">Round 2: {round2Score}</div>
+              <div className="score-item">Round 3: {round3Score}</div>
+              <div className="score-item total-score">Total: {totalScore}</div>
+            </div>
+          </Reveal>
+
+          <div className="result-actions">
+            <button className="res-btn-gold" onClick={handleViewLamp}>View Lamp</button>
+          </div>
+        </main>
       </>
     )
   }
@@ -170,80 +225,80 @@ export default function Results({ lampsRemaining = 1 }) {
       <main
         className="event-container result-container"
       >
-        <header className="result-header">
-          <h1 className="event-title">JOURNEY'S END</h1>
-        </header>
+    
 
-        <div className="result-lamp-wrap">
-          <LampDisplay
-            lampsRemaining={resultLampsRemaining}
-            showMessage={isFinalMode && Boolean(resultData?.isWinner)}
-          />
-        </div>
-
-        <Reveal delay={100}>
-          <div className="score-card result-panel-card">
-            <div className="score-item">
-              <span>Score</span>
-              <span>{resolvedScore}</span>
-            </div>
-            <div className="score-item">
-              <span>Time Taken</span>
-              <span>
-                {typeof resolvedTime === 'number'
-                  ? formatDuration(resolvedTime)
-                  : 'N/A'}
-              </span>
-            </div>
-            <div className="score-item">
-              <span>Status</span>
-              <span>{resolvedQualification}</span>
-            </div>
+        {(!isRound1TransitionMode || showRound1LampStage) && (!isRound2TransitionMode || showRound2LampStage) && (
+          <div className="result-lamp-wrap">
+            <LampDisplay
+              lampsRemaining={animatedLampCount}
+              showMessage={isFinalMode && Boolean(resultData?.isWinner)}
+            />
           </div>
-        </Reveal>
+        )}
 
-        <Reveal delay={150}>
-          <div className="score-card">
-            <div className="score-item">Round 1: {round1Score}</div>
-            <div className="score-item">Round 2: {round2Score}</div>
-            <div className="score-item">Round 3: {round3Score}</div>
-            <div className="score-item total-score">Total: {totalScore}</div>
-          </div>
-        </Reveal>
-
-        {isFinalMode && (
-          <Reveal delay={200}>
-            <div className="leaderboard-card">
-              <h3>Top 10 Champions</h3>
-              {leaderboard.map((entry, index) => (
-                <div key={index} className="leaderboard-row">
-                  <span>{index + 1}</span>
-                  <span>{entry.teamName}</span>
-                  <span>{entry.totalScore}</span>
+        {!(isRound1TransitionMode && showRound1LampStage) && !(isRound2TransitionMode && showRound2LampStage) && (
+          <>
+            <Reveal delay={100}>
+              <div className="score-card result-panel-card">
+                <div className="score-item">
+                  <span>Score</span>
+                  <span>{resolvedScore}</span>
                 </div>
-              ))}
-            </div>
-          </Reveal>
+                <div className="score-item">
+                  <span>Time Taken</span>
+                  <span>
+                    {typeof resolvedTime === 'number'
+                      ? formatDuration(resolvedTime)
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="score-item">
+                  <span>Status</span>
+                  <span>{resolvedQualification}</span>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal delay={150}>
+              <div className="score-card">
+                <div className="score-item">Round 1: {round1Score}</div>
+                <div className="score-item">Round 2: {round2Score}</div>
+                <div className="score-item">Round 3: {round3Score}</div>
+                <div className="score-item total-score">Total: {totalScore}</div>
+              </div>
+            </Reveal>
+          </>
         )}
 
         <div className="result-actions">
-          <button className="res-btn-gold" onClick={handleHome}>Return Home</button>
+          {!isRound1TransitionMode && !isRound2TransitionMode && (
+            <button className="res-btn-gold" onClick={handleHome}>Return Home</button>
+          )}
 
-          {isRound1Mode && isRound1Qualified && (
+          {isRound1TransitionMode && !showRound1LampStage && (
+            <button className="res-btn-gold" onClick={() => setShowRound1LampStage(true)}>
+              Next
+            </button>
+          )}
+
+          {isRound1TransitionMode && showRound1LampStage && (
             <button className="res-btn-gold" onClick={() => navigate('/round2')}>
               Next Round
             </button>
           )}
 
-          {isRound2Mode && (
-            <button className="res-btn-gold" onClick={() => navigate('/round3')}>
-              Enter Round 3
+          {isRound2TransitionMode && !showRound2LampStage && (
+            <button className="res-btn-gold" onClick={() => setShowRound2LampStage(true)}>
+              Next
             </button>
           )}
 
-          {isFinalMode && (
-            <button className="res-btn-gold" onClick={handleShare}>Share Score</button>
+          {isRound2TransitionMode && showRound2LampStage && (
+            <button className="res-btn-gold" onClick={() => navigate('/round3')}>
+              Next Round
+            </button>
           )}
+
         </div>
       </main>
     </>

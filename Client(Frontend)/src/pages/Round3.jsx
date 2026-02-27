@@ -163,18 +163,18 @@ export default function Round3({ reduceLamps }) {
 
   const getProgressState = (flowSolved = flowchartSolvedRef.current, debugSolved = debugSolvedRef.current) => {
     const totalSolved = flowSolved + debugSolved
-    const isEligibleWinner = flowSolved >= 2 && debugSolved >= 2 && totalSolved >= 4
+    const canSubmitRound = totalSolved >= 4
 
     return {
       totalSolved,
-      isEligibleWinner
+      canSubmitRound
     }
   }
 
   const finalizeRound = async (wasAutoSubmitted) => {
     const round1Score = Number(localStorage.getItem('round1Score') || 0)
     const round2Score = Number(localStorage.getItem('round2Score') || 0)
-    const { totalSolved, isEligibleWinner } = getProgressState(flowchartSolvedRef.current, debugSolvedRef.current)
+    const { totalSolved, canSubmitRound } = getProgressState(flowchartSolvedRef.current, debugSolvedRef.current)
 
     const round3Score = totalSolved * POINTS_PER_SOLVED_PROBLEM
     const totalScore = round1Score + round2Score + round3Score
@@ -208,9 +208,9 @@ export default function Round3({ reduceLamps }) {
       resultData: {
         score: totalScore,
         timeTakenSeconds: elapsedSeconds,
-        qualificationStatus: isEligibleWinner ? 'Qualified' : 'Not Qualified',
+        qualificationStatus: canSubmitRound ? 'Qualified' : 'Not Qualified',
         wasAutoSubmitted,
-        isWinner: isEligibleWinner
+        isWinner: canSubmitRound
       }
     })
   }
@@ -229,10 +229,10 @@ export default function Round3({ reduceLamps }) {
   const handleSubmitRound = async () => {
     if (submittedRef.current || isRoundLocked) return
 
-    const { isEligibleWinner } = getProgressState()
+    const { canSubmitRound } = getProgressState()
 
-    if (!isEligibleWinner) {
-      setStatusMessage('Complete at least 2 Flowchart and 2 Debug challenges before final submission.')
+    if (!canSubmitRound) {
+      setStatusMessage('Solve at least 4 challenges before final submission.')
       return
     }
 
@@ -245,7 +245,7 @@ export default function Round3({ reduceLamps }) {
     })
   }
 
-  const { isEligibleWinner } = getProgressState()
+  const { canSubmitRound } = getProgressState()
 
   return (
     <>
@@ -259,7 +259,7 @@ export default function Round3({ reduceLamps }) {
       >
         <RoundHeader
           roundTitle="ROUND 3"
-          subtitle="Complete any 4 challenges with at least 2 from each section."
+          subtitle="Complete any 4 challenges before final submission."
           lampsRemaining={null}
           timeLeft={timeLeft}
           showTimer={true}
@@ -370,7 +370,7 @@ export default function Round3({ reduceLamps }) {
           visible={!!statusMessage}
         />
 
-        {isEligibleWinner && (
+        {canSubmitRound && (
           <section className="round-actions" style={{ paddingTop: 0 }}>
             <button
               className="btn btn-golden"

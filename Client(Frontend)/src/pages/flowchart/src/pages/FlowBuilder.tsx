@@ -205,7 +205,7 @@ function FlowBuilderContent({
           justifyContent: 'space-between',
           padding: '10px 16px',
           borderBottom: '1px solid rgba(15,23,42,0.04)',
-          background: 'linear-gradient(180deg,#ffffff,#fbfdff)',
+          background: 'linear-gradient(180deg, rgba(99,102,241,0.16), rgba(79,70,229,0.1))',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -218,10 +218,10 @@ function FlowBuilderContent({
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* Timer removed, only show action buttons */}
-          <button className="btn" onClick={handleSubmit} disabled={isRoundLocked}>
-            Submit Flowchart
+          <button className="btn flow-btn flow-btn-submit" onClick={handleSubmit} disabled={isRoundLocked}>
+            Submit
           </button>
-          <button className="btn" onClick={() => setNodes([])} disabled={isRoundLocked}>
+          <button className="btn flow-btn flow-btn-restart" onClick={() => setNodes([])} disabled={isRoundLocked}>
             Restart
           </button>
         </div>
@@ -254,6 +254,15 @@ function FlowBuilderContent({
           </div>
         </div>
       )}
+
+      <section className="flow-warning-notice" role="alert" aria-live="polite">
+        <h3>⚠️ Important Notice:</h3>
+        <p>Drag and Drop the Blocks to build Flowchart.</p>
+        <p>Some blocks in this challenge are FAKE.</p>
+        <p>Choose and connect blocks carefully.</p>
+        <p>Incorrect blocks may lead to wrong logic.</p>
+        <p>Same blocks might be used more than one time.</p>
+      </section>
 
       <div className="app-shell" style={{ height: 'calc(100% - 72px)', minHeight: 520 }}>
         <Sidebar

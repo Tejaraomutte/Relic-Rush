@@ -1,48 +1,67 @@
 import React, { useEffect, useState, useRef } from 'react'
-import lamp from '../assets/images/lamp.jpeg'
+import lamp from '../assets/images/lamp2.png'
 import '../styles/LampDisplay.css'
 
 export default function LampDisplay({ lampsRemaining = 4, showMessage = false }) {
   const [displayLamps, setDisplayLamps] = useState(lampsRemaining)
   const [fadingIndex, setFadingIndex] = useState(null)       // which lamp is dying
-  const [phase, setPhase] = useState(null)                   // 'flicker' → 'glow' → 'dissolve' → null
+  const [phase, setPhase] = useState(null)                   // 'glow' → 'dissolve' → null
+  const [showEliminationMessage, setShowEliminationMessage] = useState(false)
   const timeoutsRef = useRef([])
 
+  const clearTimers = () => {
+    timeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId))
+    timeoutsRef.current = []
+  }
+
   useEffect(() => {
-    // Clear any running timeouts on cleanup
-    return () => timeoutsRef.current.forEach(t => clearTimeout(t))
+    return () => clearTimers()
   }, [])
 
   useEffect(() => {
+    if (lampsRemaining > displayLamps) {
+      clearTimers()
+      setDisplayLamps(lampsRemaining)
+      setFadingIndex(null)
+      setPhase(null)
+      setShowEliminationMessage(false)
+      return
+    }
+
+    if (lampsRemaining === displayLamps) {
+      return
+    }
+
     if (lampsRemaining < displayLamps) {
+      clearTimers()
+
       const dyingIndex = displayLamps - 1
       setFadingIndex(dyingIndex)
-
-      // Phase 1: Flicker (flame stutters)
-      setPhase('flicker')
+      setShowEliminationMessage(false)
 
       const t1 = setTimeout(() => {
-        // Phase 2: Bright glow (last flare)
+        // Pre-fade glow aura
         setPhase('glow')
-      }, 1200)
+      }, 200)
 
       const t2 = setTimeout(() => {
-        // Phase 3: Dissolve (fade out + particles)
+        // Smooth fade + scale down
         setPhase('dissolve')
-      }, 2200)
+      }, 1500)
 
       const t3 = setTimeout(() => {
         // Done — remove lamp from DOM
         setDisplayLamps(lampsRemaining)
         setFadingIndex(null)
         setPhase(null)
-      }, 3600)
+        setShowEliminationMessage(true)
+      }, 3300)
 
       timeoutsRef.current = [t1, t2, t3]
     }
   }, [lampsRemaining, displayLamps])
 
-  const isLastLamp = lampsRemaining === 1
+  const isLastLamp = displayLamps === 1
 
   return (
     <div className={`lamp-display-container ${isLastLamp ? 'final-state' : ''}`}>
@@ -104,9 +123,18 @@ export default function LampDisplay({ lampsRemaining = 4, showMessage = false })
         </div>
       )}
 
+      {showEliminationMessage && (
+        <div className="elimination-message-wrap" role="status" aria-live="polite">
+          <div className="elimination-message-card">
+            <h3>Congratulations!</h3>
+            <p>You have successfully eliminated 1 duplicate lamp.</p>
+          </div>
+        </div>
+      )}
+
       <div className="lamps-counter">
         <span className="counter-text">
-          {lampsRemaining} of 4 Lamps Remaining
+          {displayLamps} of 4 Lamps Remaining
         </span>
       </div>
     </div>
