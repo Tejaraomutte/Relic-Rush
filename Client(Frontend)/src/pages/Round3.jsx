@@ -28,36 +28,34 @@ export default function Round3({ reduceLamps }) {
   const navigate = useNavigate()
   const hasReducedRef = useRef(false)
   const submittedRef = useRef(false)
+  const initialRoundStateRef = useRef(loadRoundState(3))
+  const initialRoundState = initialRoundStateRef.current
   
   // Initialize state with saved values or defaults - load fresh on each mount
   const [activeSection, setActiveSection] = useState(() => {
-    const savedState = loadRoundState(3)
-    console.log('Round3 - Loading saved state:', savedState)
-    return savedState?.activeSection ?? null
+    console.log('Round3 - Loading saved state:', initialRoundState)
+    return initialRoundState?.activeSection ?? null
   })
   
   const [timeLeft, setTimeLeft] = useState(() => {
-    const savedState = loadRoundState(3)
-    return savedState?.timeLeft ?? ROUND_DURATION
+    return initialRoundState?.timeLeft ?? ROUND_DURATION
   })
 
-  const startedAtRef = useRef(loadRoundState(3)?.startedAt ?? Date.now())
+  const startedAtRef = useRef(initialRoundState?.startedAt ?? Date.now())
   
-  const timeLeftRef = useRef(loadRoundState(3)?.timeLeft ?? ROUND_DURATION)
+  const timeLeftRef = useRef(initialRoundState?.timeLeft ?? ROUND_DURATION)
   
   const [flowchartSolvedCount, setFlowchartSolvedCount] = useState(() => {
-    const savedState = loadRoundState(3)
-    return savedState?.flowchartSolvedCount ?? 0
+    return initialRoundState?.flowchartSolvedCount ?? 0
   })
   
-  const flowchartSolvedRef = useRef(loadRoundState(3)?.flowchartSolvedCount ?? 0)
+  const flowchartSolvedRef = useRef(initialRoundState?.flowchartSolvedCount ?? 0)
   
   const [debugSolvedCount, setDebugSolvedCount] = useState(() => {
-    const savedState = loadRoundState(3)
-    return savedState?.debugSolvedCount ?? 0
+    return initialRoundState?.debugSolvedCount ?? 0
   })
   
-  const debugSolvedRef = useRef(loadRoundState(3)?.debugSolvedCount ?? 0)
+  const debugSolvedRef = useRef(initialRoundState?.debugSolvedCount ?? 0)
   
   const [isRoundLocked, setIsRoundLocked] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
@@ -275,7 +273,16 @@ export default function Round3({ reduceLamps }) {
                 <div
                   key={option.key}
                   className="option-card"
-                  onClick={() => setActiveSection(option.key)}
+                  onClick={() => {
+                    setActiveSection(option.key)
+                    saveRoundState(3, {
+                      flowchartSolvedCount: flowchartSolvedRef.current,
+                      debugSolvedCount: debugSolvedRef.current,
+                      activeSection: option.key,
+                      timeLeft: timeLeftRef.current,
+                      startedAt: startedAtRef.current
+                    })
+                  }}
                 >
                   <p>{option.label}</p>
                 </div>
@@ -287,14 +294,32 @@ export default function Round3({ reduceLamps }) {
             <section className="round-actions" style={{ paddingTop: 0 }}>
               <button
                 className="btn btn-secondary"
-                onClick={() => setActiveSection('flowchart')}
+                onClick={() => {
+                  setActiveSection('flowchart')
+                  saveRoundState(3, {
+                    flowchartSolvedCount: flowchartSolvedRef.current,
+                    debugSolvedCount: debugSolvedRef.current,
+                    activeSection: 'flowchart',
+                    timeLeft: timeLeftRef.current,
+                    startedAt: startedAtRef.current
+                  })
+                }}
                 disabled={isRoundLocked || activeSection === 'flowchart'}
               >
                 Switch to Flowchart Challenges
               </button>
               <button
                 className="btn btn-secondary"
-                onClick={() => setActiveSection('debug')}
+                onClick={() => {
+                  setActiveSection('debug')
+                  saveRoundState(3, {
+                    flowchartSolvedCount: flowchartSolvedRef.current,
+                    debugSolvedCount: debugSolvedRef.current,
+                    activeSection: 'debug',
+                    timeLeft: timeLeftRef.current,
+                    startedAt: startedAtRef.current
+                  })
+                }}
                 disabled={isRoundLocked || activeSection === 'debug'}
               >
                 Switch to Debug Code Challenges
@@ -309,6 +334,14 @@ export default function Round3({ reduceLamps }) {
                 onProgressChange={(payload) => {
                   flowchartSolvedRef.current = payload.solvedCount
                   setFlowchartSolvedCount(payload.solvedCount)
+
+                  saveRoundState(3, {
+                    flowchartSolvedCount: payload.solvedCount,
+                    debugSolvedCount: debugSolvedRef.current,
+                    activeSection,
+                    timeLeft: timeLeftRef.current,
+                    startedAt: startedAtRef.current
+                  })
                 }}
               />
             ) : (
@@ -317,6 +350,14 @@ export default function Round3({ reduceLamps }) {
                 onProgressChange={(payload) => {
                   debugSolvedRef.current = payload.solvedCount
                   setDebugSolvedCount(payload.solvedCount)
+
+                  saveRoundState(3, {
+                    flowchartSolvedCount: flowchartSolvedRef.current,
+                    debugSolvedCount: payload.solvedCount,
+                    activeSection,
+                    timeLeft: timeLeftRef.current,
+                    startedAt: startedAtRef.current
+                  })
                 }}
               />
             )}

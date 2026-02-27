@@ -29,12 +29,42 @@ const GAME_HINTS = {
   hanoi: 'First move the smallest disk to Tower B, then focus on moving the remaining stack to Tower B before placing the largest disk.'
 };
 
-function App({ sequentialMode = false, onRoundComplete, onProgress, onHintUsed }) {
-  const [game, setGame] = useState(sequentialMode ? GAME_ORDER[0] : null);
-  const [currentGameIndex, setCurrentGameIndex] = useState(0);
-  const [completedGames, setCompletedGames] = useState(0);
-  const [usedHintGames, setUsedHintGames] = useState([]);
+function App({
+  sequentialMode = false,
+  onRoundComplete,
+  onProgress,
+  onHintUsed,
+  initialProgressState = null,
+  onStateChange
+}) {
+  const normalizedCompletedGames = Math.max(0, Math.min(Number(initialProgressState?.completedGames) || 0, GAME_ORDER.length));
+  const defaultIndex = Math.min(normalizedCompletedGames, GAME_ORDER.length - 1);
+  const normalizedCurrentGameIndex = Number.isInteger(initialProgressState?.currentGameIndex)
+    ? Math.max(0, Math.min(initialProgressState.currentGameIndex, GAME_ORDER.length - 1))
+    : defaultIndex;
+  const normalizedCurrentGame = GAME_ORDER.includes(initialProgressState?.currentGame)
+    ? initialProgressState.currentGame
+    : GAME_ORDER[normalizedCurrentGameIndex];
+  const normalizedUsedHintGames = Array.isArray(initialProgressState?.usedHintGames)
+    ? initialProgressState.usedHintGames.filter(gameKey => GAME_ORDER.includes(gameKey))
+    : [];
+
+  const [game, setGame] = useState(sequentialMode ? normalizedCurrentGame : null);
+  const [currentGameIndex, setCurrentGameIndex] = useState(sequentialMode ? normalizedCurrentGameIndex : 0);
+  const [completedGames, setCompletedGames] = useState(sequentialMode ? normalizedCompletedGames : 0);
+  const [usedHintGames, setUsedHintGames] = useState(sequentialMode ? normalizedUsedHintGames : []);
   const blockCopy = (event) => event.preventDefault();
+
+  React.useEffect(() => {
+    if (!sequentialMode || !onStateChange) return;
+
+    onStateChange({
+      currentGame: game,
+      currentGameIndex,
+      completedGames,
+      usedHintGames
+    });
+  }, [sequentialMode, onStateChange, game, currentGameIndex, completedGames, usedHintGames]);
 
   const handleGameComplete = () => {
     if (!sequentialMode) return;
@@ -46,13 +76,15 @@ function App({ sequentialMode = false, onRoundComplete, onProgress, onHintUsed }
     }
 
     if (nextCompleted >= GAME_ORDER.length) {
+      setCurrentGameIndex(GAME_ORDER.length - 1);
+      setGame(null);
       if (onRoundComplete) {
         onRoundComplete(nextCompleted);
       }
       return;
     }
 
-    const nextIndex = currentGameIndex + 1;
+    const nextIndex = Math.min(currentGameIndex + 1, GAME_ORDER.length - 1);
     setCurrentGameIndex(nextIndex);
 
     setTimeout(() => {
@@ -98,7 +130,7 @@ function App({ sequentialMode = false, onRoundComplete, onProgress, onHintUsed }
       {sequentialMode && (
         <div className="game-progress">
           <p className="game-progress-text">
-            Game Progress: {completedGames + 1} of {GAME_ORDER.length}
+            Game Progress: {Math.min(completedGames + 1, GAME_ORDER.length)} of {GAME_ORDER.length}
           </p>
         </div>
       )}

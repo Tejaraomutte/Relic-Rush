@@ -227,6 +227,8 @@ export default function Results({ lampsRemaining = 1 }) {
         )}
 
         <div className="result-actions">
+          <button className="res-btn-gold" onClick={handleHome}>Return Home</button>
+
           {isRound1Mode && isRound1Qualified && (
             <button className="res-btn-gold" onClick={() => navigate('/round2')}>
               Next Round
@@ -238,8 +240,6 @@ export default function Results({ lampsRemaining = 1 }) {
               Enter Round 3
             </button>
           )}
-
-          <button className="res-btn-gold" onClick={handleHome}>Return Home</button>
 
           {isFinalMode && (
             <button className="res-btn-gold" onClick={handleShare}>Share Score</button>

@@ -1,0 +1,57 @@
+.waiting-page {
+  align-items: center;
+  justify-content: center;
+}
+
+.waiting-card {
+  width: 100%;
+  max-width: 760px;
+  padding: 40px 32px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  background: linear-gradient(160deg, rgba(15, 20, 25, 0.88), rgba(26, 0, 51, 0.72));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 215, 0, 0.1),
+    0 0 60px rgba(255, 215, 0, 0.04);
+}
+
+.waiting-title {
+  margin: 0;
+  font-size: clamp(36px, 4vw, 52px);
+  line-height: 1.15;
+}
+
+.waiting-subtitle {
+  margin: 0;
+  max-width: 620px;
+  line-height: 1.4;
+}
+
+.waiting-description {
+  margin: 0 0 6px;
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+.waiting-next-btn {
+  min-width: 190px;
+  margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+  .waiting-card {
+    padding: 28px 18px;
+  }
+
+  .waiting-title {
+    font-size: clamp(30px, 9vw, 40px);
+  }
+}

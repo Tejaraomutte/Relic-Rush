@@ -46,7 +46,7 @@ export async function autoSubmitRound({
 }
 
 export function showResults({ navigate, mode, resultData }) {
-  navigate('/results', {
+  navigate('/waiting', {
     state: {
       mode,
       resultData

@@ -129,6 +129,22 @@ const ROUND_DURATION = 900
 const POINTS_PER_QUESTION = 5
 const QUALIFICATION_SCORE = 10
 
+const getResumeQuestionIndex = (savedState) => {
+  if (!savedState) return 0
+
+  const savedIndex = Number(savedState.currentQuestionIndex)
+  if (Number.isInteger(savedIndex) && savedIndex >= 0) {
+    return Math.min(savedIndex, questions.length - 1)
+  }
+
+  if (Array.isArray(savedState.selectedAnswers)) {
+    const firstUnanswered = savedState.selectedAnswers.findIndex(answer => answer === null || answer === undefined)
+    if (firstUnanswered >= 0) return firstUnanswered
+  }
+
+  return 0
+}
+
 const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
   if (!Number.isFinite(startedAt)) return 0
   const elapsed = Math.floor((Date.now() - startedAt) / 1000)
@@ -137,26 +153,26 @@ const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
 
 export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
+
+  const initialRoundStateRef = useRef(loadRoundState(1))
+  const initialRoundState = initialRoundStateRef.current
   
   // Initialize state with saved values or defaults - load fresh on each mount
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
-    const savedState = loadRoundState(1)
-    console.log('Round1 - Loading saved state:', savedState)
-    return savedState?.currentQuestionIndex ?? 0
+    console.log('Round1 - Loading saved state:', initialRoundState)
+    return getResumeQuestionIndex(initialRoundState)
   })
   
   const [selectedAnswers, setSelectedAnswers] = useState(() => {
-    const savedState = loadRoundState(1)
-    return savedState?.selectedAnswers ?? new Array(questions.length).fill(null)
+    return initialRoundState?.selectedAnswers ?? new Array(questions.length).fill(null)
   })
   
   const [timeLeft, setTimeLeft] = useState(() => {
-    const savedState = loadRoundState(1)
-    return savedState?.timeLeft ?? ROUND_DURATION
+    return initialRoundState?.timeLeft ?? ROUND_DURATION
   })
-  const timeLeftRef = useRef(loadRoundState(1)?.timeLeft ?? ROUND_DURATION)
+  const timeLeftRef = useRef(initialRoundState?.timeLeft ?? ROUND_DURATION)
   
-  const startedAtRef = useRef(loadRoundState(1)?.startedAt ?? Date.now())
+  const startedAtRef = useRef(initialRoundState?.startedAt ?? Date.now())
   
   const submittedRef = useRef(false)
   const selectedAnswersRef = useRef([])
@@ -291,6 +307,13 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     const newAnswers = [...selectedAnswers]
     newAnswers[currentQuestionIndex] = optionIndex
     setSelectedAnswers(newAnswers)
+
+    saveRoundState(1, {
+      currentQuestionIndex,
+      selectedAnswers: newAnswers,
+      timeLeft: timeLeftRef.current,
+      startedAt: startedAtRef.current
+    })
   }
 
   const handleSubmitQuestion = async () => {
@@ -303,6 +326,15 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
         submitRound: () => completeRound(selectedAnswers, false)
       })
     } else {
+      const nextQuestionIndex = Math.min(currentQuestionIndex + 1, questions.length - 1)
+
+      saveRoundState(1, {
+        currentQuestionIndex: nextQuestionIndex,
+        selectedAnswers,
+        timeLeft: timeLeftRef.current,
+        startedAt: startedAtRef.current
+      })
+
       setCurrentQuestionIndex(prev => prev + 1)
     }
   }

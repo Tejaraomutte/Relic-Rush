@@ -25,30 +25,40 @@ const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
 export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
   const round1Score = Number(localStorage.getItem('round1Score') || 0)
+  const initialRoundStateRef = useRef(loadRoundState(2))
+  const initialRoundState = initialRoundStateRef.current
   
   // Initialize state with saved values or defaults - load fresh on each mount
   const [completedGames, setCompletedGames] = useState(() => {
-    const savedState = loadRoundState(2)
-    console.log('Round2 - Loading saved state:', savedState)
-    return savedState?.completedGames ?? 0
+    console.log('Round2 - Loading saved state:', initialRoundState)
+    return initialRoundState?.completedGames ?? 0
   })
   
   const [hintsPenalty, setHintsPenalty] = useState(() => {
-    const savedState = loadRoundState(2)
-    return savedState?.hintsPenalty ?? 0
+    return initialRoundState?.hintsPenalty ?? 0
   })
   
   const [timeLeft, setTimeLeft] = useState(() => {
-    const savedState = loadRoundState(2)
-    return savedState?.timeLeft ?? ROUND_DURATION
+    return initialRoundState?.timeLeft ?? ROUND_DURATION
   })
-  const timeLeftRef = useRef(loadRoundState(2)?.timeLeft ?? ROUND_DURATION)
+  const timeLeftRef = useRef(initialRoundState?.timeLeft ?? ROUND_DURATION)
   
-  const startedAtRef = useRef(loadRoundState(2)?.startedAt ?? Date.now())
+  const startedAtRef = useRef(initialRoundState?.startedAt ?? Date.now())
   
   const submittedRef = useRef(false)
-  const completedGamesRef = useRef(loadRoundState(2)?.completedGames ?? 0)
-  const hintsPenaltyRef = useRef(loadRoundState(2)?.hintsPenalty ?? 0)
+  const completedGamesRef = useRef(initialRoundState?.completedGames ?? 0)
+  const hintsPenaltyRef = useRef(initialRoundState?.hintsPenalty ?? 0)
+  const currentGameIndexRef = useRef(
+    Number.isInteger(initialRoundState?.currentGameIndex)
+      ? initialRoundState.currentGameIndex
+      : (initialRoundState?.completedGames ?? 0)
+  )
+  const currentGameRef = useRef(initialRoundState?.currentGame ?? null)
+  const usedHintGamesRef = useRef(
+    Array.isArray(initialRoundState?.usedHintGames)
+      ? initialRoundState.usedHintGames
+      : []
+  )
   
   const [round2Score, setRound2Score] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
@@ -63,6 +73,9 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
       completedGames,
       hintsPenalty,
       timeLeft,
+      currentGameIndex: currentGameIndexRef.current,
+      currentGame: currentGameRef.current,
+      usedHintGames: usedHintGamesRef.current,
       startedAt: startedAtRef.current
     })
   }
@@ -177,6 +190,32 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     setCompletedGames(count)
     const score = Math.max((count * POINTS_PER_GAME) - hintsPenaltyRef.current, 0)
     setRound2Score(score)
+
+    saveRoundState(2, {
+      completedGames: count,
+      hintsPenalty: hintsPenaltyRef.current,
+      timeLeft: timeLeftRef.current,
+      currentGameIndex: currentGameIndexRef.current,
+      currentGame: currentGameRef.current,
+      usedHintGames: usedHintGamesRef.current,
+      startedAt: startedAtRef.current
+    })
+  }
+
+  const handleAllGamesStateChange = (state) => {
+    currentGameIndexRef.current = state.currentGameIndex
+    currentGameRef.current = state.currentGame
+    usedHintGamesRef.current = state.usedHintGames
+
+    saveRoundState(2, {
+      completedGames: state.completedGames,
+      hintsPenalty: hintsPenaltyRef.current,
+      timeLeft: timeLeftRef.current,
+      currentGameIndex: state.currentGameIndex,
+      currentGame: state.currentGame,
+      usedHintGames: state.usedHintGames,
+      startedAt: startedAtRef.current
+    })
   }
 
   const handleTimeUp = () => {
@@ -273,6 +312,17 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
                 sequentialMode={true}
                 onRoundComplete={handleRound2Complete}
                 onProgress={handleProgress}
+                initialProgressState={{
+                  completedGames,
+                  currentGameIndex: Number.isInteger(initialRoundState?.currentGameIndex)
+                    ? initialRoundState.currentGameIndex
+                    : completedGames,
+                  currentGame: initialRoundState?.currentGame,
+                  usedHintGames: Array.isArray(initialRoundState?.usedHintGames)
+                    ? initialRoundState.usedHintGames
+                    : []
+                }}
+                onStateChange={handleAllGamesStateChange}
                 onHintUsed={() => {
                   if (isRoundLocked || submittedRef.current) return
 
@@ -281,6 +331,17 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
                     hintsPenaltyRef.current = newPenalty
                     const newScore = Math.max((completedGamesRef.current * POINTS_PER_GAME) - newPenalty, 0)
                     setRound2Score(newScore)
+
+                    saveRoundState(2, {
+                      completedGames: completedGamesRef.current,
+                      hintsPenalty: newPenalty,
+                      timeLeft: timeLeftRef.current,
+                      currentGameIndex: currentGameIndexRef.current,
+                      currentGame: currentGameRef.current,
+                      usedHintGames: usedHintGamesRef.current,
+                      startedAt: startedAtRef.current
+                    })
+
                     return newPenalty
                   })
                 }}

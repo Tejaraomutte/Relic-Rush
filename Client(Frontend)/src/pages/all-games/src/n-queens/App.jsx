@@ -65,6 +65,10 @@ function App({ onComplete }) {
       return { text: "Queens are attacking each other!", type: "error" };
     }
 
+    if (!hasSubmitted) {
+      return { text: "Valid board! Click Submit Puzzle.", type: "warning" };
+    }
+
     return { text: "Perfect Solution! 🎉", type: "success" };
   };
 
@@ -142,7 +146,7 @@ function App({ onComplete }) {
 
         <button
           onClick={handleSubmitPuzzle}
-          className="reset-btn"
+          className="reset-btn submit-btn"
           disabled={!isSolved || hasSubmitted}
         >
           {hasSubmitted ? 'Submitted ✓' : 'Submit Puzzle'}

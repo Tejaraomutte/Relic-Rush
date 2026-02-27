@@ -173,3 +173,7 @@ body.game-hanoi .reset-btn {
 body.game-hanoi .reset-btn:hover {
   background: #00ffae;
 }
+
+body.game-hanoi .submit-btn {
+  margin-left: 12px;
+}

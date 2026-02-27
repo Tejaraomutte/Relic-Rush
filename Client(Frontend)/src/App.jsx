@@ -14,6 +14,7 @@ import Round1 from './pages/Round1'
 import Round2 from './pages/Round2'
 import Round3 from './pages/Round3'
 import Results from './pages/Results'
+import Waiting from './pages/Waiting'
 import RelicRevealStoryPage from './pages/RelicRevealStoryPage'
 import Landing from './pages/Landing'
 import StorySlides from './pages/StorySlides'
@@ -224,6 +225,15 @@ function AppContent({ lampsRemaining, reduceLamps }) {
                   lampsRemaining={lampsRemaining}
                 />
               </RoundGuard>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/waiting"
+          element={
+            <ProtectedRoute>
+              <Waiting />
             </ProtectedRoute>
           }
         />

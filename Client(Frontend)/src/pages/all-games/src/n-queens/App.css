@@ -118,6 +118,10 @@ body.game-nqueens .reset-btn:hover {
   background: #ddd;
 }
 
+body.game-nqueens .submit-btn {
+  margin-left: 12px;
+}
+
 /* ANIMATIONS */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }

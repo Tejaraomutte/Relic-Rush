@@ -107,7 +107,7 @@ function App({ onComplete }) {
 
       <div className="stats">
         <span>Moves: {moves}</span>
-        {checkWin && (
+        {checkWin && hasSubmitted && (
           <span className="win">🎉 Puzzle Solved!</span>
         )}
       </div>
@@ -138,7 +138,7 @@ function App({ onComplete }) {
       </button>
 
       <button
-        className="reset-btn"
+        className="reset-btn submit-btn"
         onClick={handleSubmitPuzzle}
         disabled={!checkWin || hasSubmitted}
       >
