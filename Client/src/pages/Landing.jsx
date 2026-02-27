@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Landing.css";
-import AnimatedContent from '../components/buttonsbit.jsx';
+import AnimatedContent from '../components/Buttonsbit.jsx';
 
 const Landing = () => {
   const navigate = useNavigate();
