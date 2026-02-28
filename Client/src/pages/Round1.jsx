@@ -29,7 +29,7 @@ const questions = [
   •	Choose the smallest total.
 
   What is the least costly route for the royal messenger to reach Emerald Harbor (F) from the Golden Palace (A)?`,
-    questionImage: "src/assets/images/q1.jpeg",
+    questionImage: "../assets/images/q1.jpeg",
     options: [
       { text: "A → B → D → F", image: null },
       { text: " A → C → E → F", image: null },
@@ -47,7 +47,7 @@ const questions = [
   •	If the left chest is heavier than the right one, he swaps them.
   •	He continues this process only once across the row.
   After completing this single royal sweep, what is the new arrangement of the treasure chests?`,
-    questionImage: "src/assets/images/q2.jpeg",
+    questionImage: "../assets/images/q2.jpeg",
     options: [
       { text: "1, 3, 1, 4, 5, 9", image: null },
       { text: "3, 1, 4, 1, 5, 9", image: null },
@@ -77,7 +77,7 @@ for(int i = 0; i < 33; i++) {
 clue[j] = '\0';
 printf("%s", clue);
 What is the output of the above code?`,
-    questionImage: "src/assets/images/q3.jpeg",
+    questionImage: "../assets/images/q3.jpeg",
     options: [
       { text: " Nomadtribes", image: null },
       { text: "desertnight", image: null },
@@ -97,7 +97,7 @@ A sample sacred tile formation below contains 5 total squares.
 Now, the Grand Vizier reveals a larger enchanted pattern.
 Your task is to uncover all possible squares hidden inside the formation —
 including small, medium, and large ones.`,
-    questionImage: "src/assets/images/q4.webp",
+    questionImage: "../assets/images/q4.webp",
     options: [
       { text: "12", image: null },
       { text: "13", image: null },
@@ -113,12 +113,12 @@ However, time has damaged one portion of the sacred pattern…
 A section of the magical carving has vanished, leaving behind a missing symbol marked with a question mark (?).
 Question:
 Find the correct figure from the given options that perfectly replaces the missing part (?) in the problem figure and restores the royal pattern.`,
-    questionImage: "src/assets/images/q5.png",
+    questionImage: "../assets/images/q5.png",
     options: [
-      { text: null, image: "src/assets/images/q5-1.png" },
-      { text: null, image: "src/assets/images/q5-2.png" },
-      { text: null, image: "src/assets/images/q5-3.png" },
-      { text: null, image: "src/assets/images/q5-4.png" }
+      { text: null, image: "../assets/images/q5-1.png" },
+      { text: null, image: "../assets/images/q5-2.png" },
+      { text: null, image: "../assets/images/q5-3.png" },
+      { text: null, image: "../assets/images/q5-4.png" }
     ],
     correct: 0
   }
