@@ -2,10 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
 import RoundHeader from '../components/RoundHeader'
-import ScoreDisplay from '../components/ScoreDisplay'
-import ActionButtons from '../components/ActionButtons'
 import ResultMessage from '../components/ResultMessage'
-import LampDisplay from '../components/LampDisplay'
 import AllGames from './all-games/src/App'
 import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
@@ -64,7 +61,6 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const [isComplete, setIsComplete] = useState(false)
   const [isRoundLocked, setIsRoundLocked] = useState(false)
   const [resultMessage, setResultMessage] = useState('')
-  const [lampsAfter, setLampsAfter] = useState(() => Number(localStorage.getItem('lampsRemaining') || lampsRemaining))
   const [hasReduced, setHasReduced] = useState(false)
   const blockCopy = (event) => event.preventDefault()
 
@@ -243,7 +239,6 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     if (!hasReduced && reduceLamps) {
       const newLamps = 2
       setHasReduced(true)
-      setLampsAfter(newLamps)
       localStorage.setItem('lampsRemaining', String(newLamps))
       reduceLamps()
     }
@@ -253,26 +248,26 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     
     setIsComplete(true)
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    try {
-      if (user && user.teamName) {
-        await submitRoundScore(user.teamName, 2, score, questionsSolved, [], elapsedSeconds)
-      }
-    } catch (error) {
-      console.error('Error submitting score:', error)
-      setResultMessage('Score saved locally. Online submission failed.')
+    const resultPayload = {
+      score,
+      timeTakenSeconds: elapsedSeconds,
+      qualificationStatus,
+      wasAutoSubmitted
     }
 
     showResults({
       navigate,
       mode: 'round2',
-      resultData: {
-        score,
-        timeTakenSeconds: elapsedSeconds,
-        qualificationStatus,
-        wasAutoSubmitted
-      }
+      resultData: resultPayload
     })
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    if (user && user.teamName) {
+      submitRoundScore(user.teamName, 2, score, questionsSolved, [], elapsedSeconds)
+        .catch((error) => {
+          console.error('Error submitting score:', error)
+        })
+    }
   }
 
   const handleRound2Complete = (completedCount) => {
@@ -284,8 +279,6 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
       submitRound: () => completeRound(completedCount || 0, false)
     })
   }
-
-  const totalScore = round1Score + round2Score
 
   return (
     <>
@@ -305,7 +298,7 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
           showTimer={!isComplete}
         />
 
-        {!isComplete ? (
+        {!isComplete && (
           <>
             <div className={isRoundLocked ? 'interaction-locked' : ''}>
               <AllGames
@@ -350,23 +343,6 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
 
             <ResultMessage message={resultMessage} type="info" visible={!!resultMessage} />
           </>
-        ) : (
-          <section className="round-complete">
-            <LampDisplay lampsRemaining={lampsAfter} showMessage={false} />
-            <ScoreDisplay
-              scores={[
-                { label: 'Round 1 Score', value: round1Score },
-                { label: 'Round 2 Score', value: round2Score },
-                { label: 'Total Score', value: totalScore, isTotal: true }
-              ]}
-              showTotal={false}
-            />
-            <ActionButtons
-              buttons={[
-                { label: 'Proceed to Round 3', variant: 'btn-golden', onClick: () => navigate('/round3') }
-              ]}
-            />
-          </section>
         )}
       </main>
     </>
