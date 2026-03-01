@@ -111,6 +111,29 @@
   margin-top: 0;
   z-index: 30;
 }
+
+.story-slide-btn-bottom-left {
+  position: absolute;
+  left: 4vw;
+  bottom: 5vh;
+  margin-top: 0;
+  z-index: 30;
+}
+
+.story-slide-btn-skip {
+  background: rgba(20, 16, 10, 0.8);
+  color: #e2c275;
+  border: 1px solid rgba(226, 194, 117, 0.7);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.story-slide-btn-skip:hover,
+.story-slide-btn-skip:focus {
+  transform: scale(1.03);
+  background: rgba(34, 26, 16, 0.9);
+  box-shadow: 0 4px 16px rgba(226, 194, 117, 0.35);
+  filter: none;
+}
 /* StorySlides.css - Cinematic Story Sequence */
 
 .story-slide-root {

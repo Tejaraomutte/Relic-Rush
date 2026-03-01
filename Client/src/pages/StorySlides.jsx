@@ -143,6 +143,15 @@ export default function StorySlides() {
     }
   };
 
+  const handleSkipStory = () => {
+    setSlideIdx(2);
+    setFrameIdx(slide3Dialogue.length - 1);
+    setShowText(true);
+    setShowSubtitle(true);
+    setShowNext(false);
+    setButtonDisabled(false);
+  };
+
   // Frame image path
   const frameSrc = SLIDE_FRAMES[slideIdx][frameIdx];
 
@@ -196,14 +205,25 @@ export default function StorySlides() {
         {((slideIdx === 0 && slide1Dialogue[frameIdx]) ||
           (slideIdx === 1 && slide2Dialogue[frameIdx]) ||
           (slideIdx === 2 && frameIdx < slide3Dialogue.length - 1 && slide3Dialogue[frameIdx])) ? (
-          <button
-            className="story-slide-btn visible story-slide-btn-bottom-right"
-            onClick={handleNext}
-            disabled={buttonDisabled}
-            style={{ pointerEvents: buttonDisabled ? 'none' : 'auto' }}
-          >
-            Next →
-          </button>
+          <>
+            <button
+              className="story-slide-btn visible story-slide-btn-bottom-left story-slide-btn-skip"
+              onClick={handleSkipStory}
+              disabled={buttonDisabled}
+              style={{ pointerEvents: buttonDisabled ? 'none' : 'auto' }}
+            >
+              Skip Story
+            </button>
+
+            <button
+              className="story-slide-btn visible story-slide-btn-bottom-right"
+              onClick={handleNext}
+              disabled={buttonDisabled}
+              style={{ pointerEvents: buttonDisabled ? 'none' : 'auto' }}
+            >
+              Next →
+            </button>
+          </>
         ) : null}
         {/* Mysterious voice message and Enter Arena button for the last frame of slide 3 */}
         {slideIdx === 2 && frameIdx === slide3Dialogue.length - 1 && (

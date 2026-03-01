@@ -110,16 +110,22 @@ export default function Results({ lampsRemaining = 1 }) {
     resultData?.score ??
     (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
 
+  const effectiveRound1Score = isRound1Mode
+    ? Number(resultData?.score ?? round1Score)
+    : Number(round1Score)
+  const isRound1Qualified = effectiveRound1Score >= 10
+
   const resolvedTime = resultData?.timeTakenSeconds
   const resolvedQualification =
-    resultData?.qualificationStatus ||
+    (isRound1Mode && !isRound1Qualified
+      ? 'Disqualified'
+      : resultData?.qualificationStatus) ||
     (isFinalMode
       ? Boolean(resultData?.isWinner)
         ? 'Qualified'
         : 'Not Qualified'
       : 'Qualified')
 
-  const isRound1Qualified = round1Score >= 10
   const isRound1TransitionMode = isRound1Mode && isRound1Qualified
   const isRound2TransitionMode = isRound2Mode
   const resultLampsRemaining = isRound1Mode
@@ -127,6 +133,11 @@ export default function Results({ lampsRemaining = 1 }) {
     : isRound2Mode
     ? 2
     : 1
+  const shouldShowRound1Lamps = !isRound1Mode || isRound1Qualified
+  const shouldRenderLampStage =
+    shouldShowRound1Lamps &&
+    (!isRound1TransitionMode || showRound1LampStage) &&
+    (!isRound2TransitionMode || showRound2LampStage)
 
   useEffect(() => {
     let timeoutId
@@ -227,13 +238,22 @@ export default function Results({ lampsRemaining = 1 }) {
       >
     
 
-        {(!isRound1TransitionMode || showRound1LampStage) && (!isRound2TransitionMode || showRound2LampStage) && (
+        {shouldRenderLampStage && (
           <div className="result-lamp-wrap">
             <LampDisplay
               lampsRemaining={animatedLampCount}
               showMessage={isFinalMode && Boolean(resultData?.isWinner)}
             />
           </div>
+        )}
+
+        {isRound1Mode && !isRound1Qualified && (
+          <Reveal delay={70}>
+            <div className="res-hidden-msg">
+              <span>⚠️</span>
+              Disqualified
+            </div>
+          </Reveal>
         )}
 
         {!(isRound1TransitionMode && showRound1LampStage) && !(isRound2TransitionMode && showRound2LampStage) && (

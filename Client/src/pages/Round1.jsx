@@ -397,6 +397,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   }
 
   const question = questions[currentQuestionIndex]
+  const isRound1Qualified = finalScore >= QUALIFICATION_SCORE
 
   return (
     <>
@@ -459,7 +460,14 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
           </div>
         ) : (
           <section className="round-complete">
-            <LampDisplay lampsRemaining={lampsAfter} showMessage={false} />
+            {isRound1Qualified ? (
+              <LampDisplay lampsRemaining={lampsAfter} showMessage={false} />
+            ) : (
+              <div className="result-message error visible">
+                <span>⚠️ </span>
+                Disqualified
+              </div>
+            )}
             <ScoreDisplay
               scores={[
                 { label: 'Round 1 Score', value: finalScore },
