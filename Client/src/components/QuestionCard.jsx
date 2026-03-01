@@ -8,6 +8,7 @@ export default function QuestionCard({
   questionNumber = null,
   questionText = '',
   questionImage = null,
+  preserveFormatting = false,
   children // For custom content inside the card
 }) {
   const blockCopy = (event) => {
@@ -23,7 +24,7 @@ export default function QuestionCard({
       style={{ userSelect: 'none' }}
     >
       {questionText && (
-        <h2 className="question-text">
+        <h2 className={`question-text ${preserveFormatting ? 'question-text-preformatted' : ''}`}>
           {questionNumber !== null && `Q${questionNumber}. `}
           {questionText}
         </h2>

@@ -59,50 +59,51 @@ export default function Leaderboard() {
   return (
     <>
       <Background />
-      <main className="event-container leaderboard-container premium-glass-container premium-fade-in" style={{ paddingBottom: '40px' }}>
-        <header className="leaderboard-header premium-glow-text" style={{ marginBottom: '0px', paddingBottom: '30px' }}>
-          <h1 className="event-title premium-gold-gradient" style={{ marginBottom: '10px' }}>ADMIN LEADERBOARD</h1>
-          <p className="event-subtitle premium-glow-text" style={{ marginBottom: '0px' }}>Welcome, {teamName}</p>
+      <main
+        className="event-container leaderboard-container admin-leaderboard-page premium-glass-container premium-fade-in"
+      >
+        <header className="leaderboard-header admin-leaderboard-header premium-glow-text">
+          <h1 className="event-title admin-leaderboard-title premium-gold-gradient">ADMIN LEADERBOARD</h1>
+          <p className="event-subtitle admin-leaderboard-subtitle premium-glow-text">Welcome, {teamName}</p>
           <button 
             onClick={handleLogout}
-            className="btn btn-golden logout-btn premium-glow-btn"
-            style={{ position: 'absolute', top: '20px', right: '20px', padding: '10px 20px' }}
+            className="btn btn-golden logout-btn premium-glow-btn admin-logout-btn"
           >
             <span className="btn-text">Logout</span>
           </button>
         </header>
 
-        <div className="leaderboard-card premium-glass-card" style={{ maxWidth: '1200px', margin: '20px auto 0 auto', padding: '0px' }}>
+        <div className="leaderboard-card premium-glass-card admin-leaderboard-card">
           {loading && (
-            <div className="loading-message premium-glow-text" style={{ textAlign: 'center', fontSize: '1.2rem', padding: '30px' }}>
+            <div className="loading-message premium-glow-text admin-state-message">
               Loading leaderboard...
             </div>
           )}
 
           {error && (
-            <div className="error-message premium-glow-text" style={{ textAlign: 'center', color: '#ff6b6b', fontSize: '1.2rem', padding: '30px' }}>
+            <div className="error-message premium-glow-text admin-state-message admin-error-message">
               {error}
             </div>
           )}
 
           {!loading && !error && leaderboard.length === 0 && (
-            <div className="empty-message premium-glow-text" style={{ textAlign: 'center', fontSize: '1.2rem', padding: '30px' }}>
+            <div className="empty-message premium-glow-text admin-state-message">
               No teams have submitted scores yet.
             </div>
           )}
 
           {!loading && !error && leaderboard.length > 0 && (
-            <div className="leaderboard-table-container" style={{ overflowX: 'auto', padding: '30px 30px 30px 30px' }}>
-              <table className="leaderboard-table" style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', marginTop: '0px' }}>
+            <div className="admin-leaderboard-table-container">
+              <table className="admin-leaderboard-table">
                 <thead>
-                  <tr style={{ borderBottom: '2px solid rgba(212, 175, 55, 0.5)', backgroundColor: 'transparent' }}>
-                    <th style={{ padding: '15px 8px', textAlign: 'center', color: '#d4af37', fontSize: '0.95rem', fontWeight: 'bold', width: '8%' }}>Rank</th>
-                    <th style={{ padding: '15px 8px', textAlign: 'left', color: '#d4af37', fontSize: '0.95rem', fontWeight: 'bold', width: '17%' }}>Team Name</th>
-                    <th style={{ padding: '15px 8px', textAlign: 'center', color: '#d4af37', fontSize: '0.95rem', fontWeight: 'bold', width: '15%' }}>Total Score</th>
-                    <th style={{ padding: '15px 8px', textAlign: 'center', color: '#d4af37', fontSize: '0.95rem', fontWeight: 'bold', width: '15%' }}>Total Time</th>
-                    <th style={{ padding: '15px 8px', textAlign: 'center', color: '#ffd700', fontSize: '0.90rem', fontWeight: 'bold', width: '15%' }}>Round 1</th>
-                    <th style={{ padding: '15px 8px', textAlign: 'center', color: '#c0c0c0', fontSize: '0.90rem', fontWeight: 'bold', width: '15%' }}>Round 2</th>
-                    <th style={{ padding: '15px 8px', textAlign: 'center', color: '#cd7f32', fontSize: '0.90rem', fontWeight: 'bold', width: '15%' }}>Round 3</th>
+                  <tr>
+                    <th className="admin-col-rank">Rank</th>
+                    <th className="admin-col-team">Team Name</th>
+                    <th className="admin-col-score">Total Score</th>
+                    <th className="admin-col-time">Total Time</th>
+                    <th className="admin-col-round admin-col-round1">Round 1</th>
+                    <th className="admin-col-round admin-col-round2">Round 2</th>
+                    <th className="admin-col-round admin-col-round3">Round 3</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -114,45 +115,41 @@ export default function Leaderboard() {
                     return (
                       <tr 
                         key={index}
-                        style={{ 
-                          borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
-                          backgroundColor: entry.rank <= 3 ? 'rgba(212, 175, 55, 0.1)' : 'transparent',
-                          height: '75px'
-                        }}
+                        className={entry.rank <= 3 ? 'admin-highlight-row' : ''}
                       >
-                        <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '1.3rem', fontWeight: 'bold', color: entry.rank === 1 ? '#ffd700' : entry.rank === 2 ? '#c0c0c0' : entry.rank === 3 ? '#cd7f32' : '#fff', verticalAlign: 'middle', width: '8%' }}>
+                        <td className={`admin-rank-value rank-${entry.rank}`}>
                           {entry.rank}
                         </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'left', fontSize: '1rem', color: '#fff', fontWeight: 'bold', verticalAlign: 'middle', width: '17%' }}>
+                        <td className="admin-team-name">
                           {entry.teamName}
                         </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '1.2rem', fontWeight: 'bold', color: '#d4af37', verticalAlign: 'middle', width: '15%' }}>
+                        <td className="admin-total-score">
                           {entry.totalScore || 0}
                         </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.90rem', color: '#aaa', fontWeight: 'bold', verticalAlign: 'middle', width: '15%' }}>
+                        <td className="admin-total-time">
                           {formatTime(entry.totalCompletionTime)}
                         </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.90rem', color: '#fff', backgroundColor: 'rgba(255, 215, 0, 0.08)', verticalAlign: 'middle', width: '15%' }}>
-                          <div style={{ fontWeight: 'bold', color: '#ffd700', fontSize: '1.05rem' }}>
+                        <td className="admin-round-cell admin-round-cell-1">
+                          <div className="admin-round-score admin-round-score-1">
                             {round1 ? round1.roundScore : '--'}
                           </div>
-                          <div style={{ fontSize: '0.77rem', color: '#aaa', marginTop: '2px' }}>
+                          <div className="admin-round-time">
                             {round1 && Number(round1.roundScore) > 0 ? formatTime(round1.totalRoundTime) : '--'}
                           </div>
                         </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.90rem', color: '#fff', backgroundColor: 'rgba(192, 192, 192, 0.08)', verticalAlign: 'middle', width: '15%' }}>
-                          <div style={{ fontWeight: 'bold', color: '#c0c0c0', fontSize: '1.05rem' }}>
+                        <td className="admin-round-cell admin-round-cell-2">
+                          <div className="admin-round-score admin-round-score-2">
                             {round2 ? round2.roundScore : '--'}
                           </div>
-                          <div style={{ fontSize: '0.77rem', color: '#aaa', marginTop: '2px' }}>
+                          <div className="admin-round-time">
                             {round2 && Number(round2.roundScore) > 0 ? formatTime(round2.totalRoundTime) : '--'}
                           </div>
                         </td>
-                        <td style={{ padding: '12px 8px', textAlign: 'center', fontSize: '0.90rem', color: '#fff', backgroundColor: 'rgba(205, 127, 50, 0.08)', verticalAlign: 'middle', width: '15%' }}>
-                          <div style={{ fontWeight: 'bold', color: '#cd7f32', fontSize: '1.05rem' }}>
+                        <td className="admin-round-cell admin-round-cell-3">
+                          <div className="admin-round-score admin-round-score-3">
                             {round3 ? round3.roundScore : '--'}
                           </div>
-                          <div style={{ fontSize: '0.77rem', color: '#aaa', marginTop: '2px' }}>
+                          <div className="admin-round-time">
                             {round3 && Number(round3.roundScore) > 0 ? formatTime(round3.totalRoundTime) : '--'}
                           </div>
                         </td>

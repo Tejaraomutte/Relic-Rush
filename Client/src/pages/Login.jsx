@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/Login.css'
-import LoginParticles from '../components/LoginParticles'
 import { loginUser } from '../utils/api'
 import { initGameSession, clearGameSession } from '../utils/sessionManager'
 
@@ -124,8 +123,6 @@ export default function Login() {
 
   return (
     <div className="login-bg">
-
-      <LoginParticles />
 
       <div className="login-overlay" />
 

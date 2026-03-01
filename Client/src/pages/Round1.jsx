@@ -422,6 +422,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
               questionNumber={currentQuestionIndex + 1}
               questionText={question.question}
               questionImage={question.questionImage}
+              preserveFormatting={currentQuestionIndex === 2}
             >
               <div className="options-grid">
                 {question.options.map((option, index) => (
