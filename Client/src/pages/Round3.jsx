@@ -4,7 +4,6 @@ import Background from '../components/Background'
 import RoundHeader from '../components/RoundHeader'
 import ActionButtons from '../components/ActionButtons'
 import ResultMessage from '../components/ResultMessage'
-import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 import FlowBuilder from './flowchart/src/pages/FlowBuilder'
 import DebugRound from './flowchart/src/debug/DebugRound'
@@ -179,8 +178,9 @@ export default function Round3({ reduceLamps }) {
     const round1Score = Number(localStorage.getItem('round1Score') || 0)
     const round2Score = Number(localStorage.getItem('round2Score') || 0)
     const { totalSolved, canSubmitRound } = getProgressState(flowchartSolvedRef.current, debugSolvedRef.current)
+    const answeredCount = Math.max(0, Number(totalSolved) || 0)
 
-    const round3Score = totalSolved * POINTS_PER_SOLVED_PROBLEM
+    const round3Score = answeredCount * POINTS_PER_SOLVED_PROBLEM
     const totalScore = round1Score + round2Score + round3Score
     const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, ROUND_DURATION)
 
@@ -188,14 +188,6 @@ export default function Round3({ reduceLamps }) {
     localStorage.setItem('relicUnlocked', 'true')
 
     const user = JSON.parse(sessionStorage.getItem('user') || '{}')
-    try {
-      if (user && user.teamName) {
-        await submitRoundScore(user.teamName, 3, round3Score, totalSolved, [], elapsedSeconds)
-      }
-    } catch (error) {
-      console.error('Error submitting score:', error)
-      setStatusMessage('Score saved locally. Online submission failed.')
-    }
 
     if (!hasReducedRef.current && reduceLamps) {
       hasReducedRef.current = true
@@ -214,7 +206,16 @@ export default function Round3({ reduceLamps }) {
         timeTakenSeconds: elapsedSeconds,
         qualificationStatus: canSubmitRound ? 'Qualified' : 'Not Qualified',
         wasAutoSubmitted,
-        isWinner: canSubmitRound
+        isWinner: canSubmitRound,
+        submissionPayload: {
+          roundNumber: 3,
+          teamName: user?.teamName || '',
+          roundScore: round3Score,
+          questionsSolved: answeredCount,
+          questionTimes: [],
+          actualTimeTakenSeconds: elapsedSeconds,
+          totalRoundTimeSeconds: ROUND_DURATION
+        }
       }
     })
   }

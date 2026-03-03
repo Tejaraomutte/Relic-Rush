@@ -7,7 +7,6 @@ import ActionButtons from '../components/ActionButtons'
 import ResultMessage from '../components/ResultMessage'
 import ScoreDisplay from '../components/ScoreDisplay'
 import LampDisplay from '../components/LampDisplay'
-import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
 
@@ -125,7 +124,7 @@ Find the correct figure from the given options that perfectly replaces the missi
 ]
 
 const ROUND_NUMBER = 1
-const ROUND_DURATION = 900
+const ROUND_DURATION = 600
 const POINTS_PER_QUESTION = 5
 const QUALIFICATION_SCORE = 10
 
@@ -346,29 +345,25 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const completeRound = async (answers, wasAutoSubmitted) => {
     setIsAnswerLocked(true)
 
+    const answeredCount = answers.reduce((total, answer) => {
+      if (answer === null || answer === undefined) return total
+      return total + 1
+    }, 0)
+
     const correctCount = answers.reduce((total, answer, index) => {
       if (answer === questions[index].correct) return total + 1
       return total
     }, 0)
 
     const score = correctCount * POINTS_PER_QUESTION
-    const questionsSolved = correctCount
+    const questionsSolved = answeredCount
     const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, ROUND_DURATION)
     const qualificationStatus = score >= QUALIFICATION_SCORE ? 'Qualified' : 'Not Qualified'
 
     setFinalScore(score)
     localStorage.setItem('round1Score', score.toString())
-    localStorage.setItem('currentRound', '2')
 
     const user = JSON.parse(sessionStorage.getItem('user') || '{}')
-    try {
-      if (user && user.teamName) {
-        await submitRoundScore(user.teamName, ROUND_NUMBER, score, questionsSolved, [], elapsedSeconds)
-      }
-    } catch (error) {
-      console.error('Error submitting score:', error)
-      showResultMessage('Score saved locally. Online submission failed.', 'error')
-    }
 
     if (!hasReduced && reduceLamps) {
       setHasReduced(true)
@@ -388,7 +383,16 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
         score,
         timeTakenSeconds: elapsedSeconds,
         qualificationStatus,
-        wasAutoSubmitted
+        wasAutoSubmitted,
+        submissionPayload: {
+          roundNumber: ROUND_NUMBER,
+          teamName: user?.teamName || '',
+          roundScore: score,
+          questionsSolved,
+          questionTimes: [],
+          actualTimeTakenSeconds: elapsedSeconds,
+          totalRoundTimeSeconds: ROUND_DURATION
+        }
       }
     })
   }

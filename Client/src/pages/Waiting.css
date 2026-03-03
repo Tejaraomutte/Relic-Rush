@@ -46,6 +46,23 @@
   margin-top: 6px;
 }
 
+.waiting-next-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.waiting-countdown {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f5d16b;
+}
+
+.waiting-error {
+  margin: 0;
+  color: #ff8b8b;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .waiting-card {
     padding: 28px 18px;

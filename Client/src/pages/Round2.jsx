@@ -4,7 +4,6 @@ import Background from '../components/Background'
 import RoundHeader from '../components/RoundHeader'
 import ResultMessage from '../components/ResultMessage'
 import AllGames from './all-games/src/App'
-import { submitRoundScore } from '../utils/api'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
 
@@ -217,14 +216,14 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const completeRound = async (completedCount, wasAutoSubmitted) => {
     setIsRoundLocked(true)
 
-    const score = Math.max((completedCount * POINTS_PER_GAME) - hintsPenalty, 0)
-    const questionsSolved = completedCount
+    const answeredCount = Math.max(0, Number(completedCount) || 0)
+    const score = Math.max((answeredCount * POINTS_PER_GAME) - hintsPenalty, 0)
+    const questionsSolved = answeredCount
     const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, ROUND_DURATION)
     const qualificationStatus = score >= QUALIFICATION_SCORE ? 'Qualified' : 'Not Qualified'
 
     setRound2Score(score)
     localStorage.setItem('round2Score', String(score))
-    localStorage.setItem('currentRound', '3')
 
     if (!hasReduced && reduceLamps) {
       const newLamps = 2
@@ -245,19 +244,23 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
       wasAutoSubmitted
     }
 
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}')
     showResults({
       navigate,
       mode: 'round2',
-      resultData: resultPayload
+      resultData: {
+        ...resultPayload,
+        submissionPayload: {
+          roundNumber: 2,
+          teamName: user?.teamName || '',
+          roundScore: score,
+          questionsSolved,
+          questionTimes: [],
+          actualTimeTakenSeconds: elapsedSeconds,
+          totalRoundTimeSeconds: ROUND_DURATION
+        }
+      }
     })
-
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}')
-    if (user && user.teamName) {
-      submitRoundScore(user.teamName, 2, score, questionsSolved, [], elapsedSeconds)
-        .catch((error) => {
-          console.error('Error submitting score:', error)
-        })
-    }
   }
 
   const handleRound2Complete = (completedCount) => {
