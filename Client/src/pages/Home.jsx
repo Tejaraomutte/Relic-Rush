@@ -116,13 +116,37 @@ const TEAM = [
 
 export default function Home() {
   const [heroLampSrc, setHeroLampSrc] = useState(lampImg)
+  const navigate = useNavigate()
 
   const handleStartJourney = () => {
+    const currentRound = Number(localStorage.getItem('currentRound') || 1)
+    const eventCompleted = localStorage.getItem('eventCompleted') === 'true'
+
+    if (eventCompleted) {
+      localStorage.setItem('storyUnlocked', 'true')
+      localStorage.setItem('storyCompleted', 'true')
+      localStorage.setItem('relicUnlocked', 'true')
+      navigate('/results')
+      return
+    }
+
+    if (currentRound === 1) {
+      localStorage.setItem('storyUnlocked', 'true')
+      localStorage.setItem('storyCompleted', 'false')
+      navigate('/story')
+      return
+    }
+
     localStorage.setItem('storyUnlocked', 'true')
-    localStorage.setItem('storyCompleted', 'false')
-    navigate('/story')
+    localStorage.setItem('storyCompleted', 'true')
+
+    if (currentRound === 2) {
+      navigate('/round2')
+      return
+    }
+
+    navigate('/round3')
   }
-  const navigate = useNavigate()
 
   /* ─── Navbar scroll shadow ─── */
   const [scrolled, setScrolled] = useState(false)

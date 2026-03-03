@@ -11,9 +11,19 @@ const roundSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   teamName: { type: String, required: true, unique: true, trim: true },
   email: { type: String, trim: true, lowercase: true, unique: true, sparse: true },
+  player1Name: { type: String, trim: true, default: "" },
+  player2Name: { type: String, trim: true, default: null },
+  teamMembers: {
+    type: [String],
+    default: [],
+    set: (members) => Array.isArray(members)
+      ? members.map((member) => String(member || "").trim()).filter(Boolean)
+      : []
+  },
   role: { type: String, enum: ["admin", "participant"], default: "participant" },
   password: { type: String, required: true },
   isLoggedIn: { type: Boolean, default: false },
+  currentRound: { type: Number, default: 1, min: 1, max: 3 },
   rounds: {
     type: [roundSchema],
     default: []
@@ -28,7 +38,14 @@ const userSchema = new mongoose.Schema({
     round2: { type: Number, default: 0 },
     round3: { type: Number, default: 0 }
   },
-  totalScore: { type: Number, default: 0 }
+  totalScore: { type: Number, default: 0 },
+  totalTime: { type: Number, default: 0 },
+  round1Score: { type: Number, default: 0 },
+  round1Time: { type: Number, default: 0 },
+  round2Score: { type: Number, default: 0 },
+  round2Time: { type: Number, default: 0 },
+  round3Score: { type: Number, default: 0 },
+  round3Time: { type: Number, default: 0 }
 }, { timestamps: true });
 
 userSchema.pre("save", function updateTotalScore() {
@@ -38,11 +55,22 @@ userSchema.pre("save", function updateTotalScore() {
     const round = getRound(roundNumber);
     return Number(round?.roundScore || 0);
   };
+  const getRoundTime = (roundNumber) => {
+    const round = getRound(roundNumber);
+    return Number(round?.totalRoundTime || 0);
+  };
+
+  const round1Score = getScore(1);
+  const round2Score = getScore(2);
+  const round3Score = getScore(3);
+  const round1Time = getRoundTime(1);
+  const round2Time = getRoundTime(2);
+  const round3Time = getRoundTime(3);
 
   this.scores = {
-    round1: getScore(1),
-    round2: getScore(2),
-    round3: getScore(3)
+    round1: round1Score,
+    round2: round2Score,
+    round3: round3Score
   };
 
   this.roundsPlayed = {
@@ -51,7 +79,15 @@ userSchema.pre("save", function updateTotalScore() {
     round3Played: Boolean(getRound(3))
   };
 
-  this.totalScore = rounds.reduce((sum, round) => sum + (round.roundScore || 0), 0);
+  this.round1Score = round1Score;
+  this.round2Score = round2Score;
+  this.round3Score = round3Score;
+  this.round1Time = round1Time;
+  this.round2Time = round2Time;
+  this.round3Time = round3Time;
+
+  this.totalScore = round1Score + round2Score + round3Score;
+  this.totalTime = round1Time + round2Time + round3Time;
 });
 
 module.exports = mongoose.model("User", userSchema);

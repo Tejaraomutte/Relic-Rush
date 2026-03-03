@@ -194,12 +194,16 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     })
   }
 
-  // Check if round already completed on mount
+  // Route access by currentRound only (crash recovery safe)
   useEffect(() => {
-    const existingScore = Number(localStorage.getItem('round1Score') || 0)
-    
-    if (isRoundCompleted(1) || existingScore > 0) {
+    const assignedRound = Number(localStorage.getItem('currentRound') || 1)
+    if (assignedRound === 2) {
       navigate('/round2', { replace: true })
+      return
+    }
+
+    if (assignedRound === 3) {
+      navigate('/round3', { replace: true })
     }
   }, [navigate])
 
@@ -354,8 +358,9 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
 
     setFinalScore(score)
     localStorage.setItem('round1Score', score.toString())
+    localStorage.setItem('currentRound', '2')
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}')
     try {
       if (user && user.teamName) {
         await submitRoundScore(user.teamName, ROUND_NUMBER, score, questionsSolved, [], elapsedSeconds)

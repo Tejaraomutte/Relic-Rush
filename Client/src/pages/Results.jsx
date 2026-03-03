@@ -83,7 +83,7 @@ export default function Results({ lampsRemaining = 1 }) {
   }, [isFinalMode])
 
   const submitFinalScore = async (r1, r2, r3, total) => {
-    const user = JSON.parse(localStorage.getItem('user'))
+    const user = JSON.parse(sessionStorage.getItem('user'))
     if (!user?.teamName) return
 
     try {
@@ -172,6 +172,7 @@ export default function Results({ lampsRemaining = 1 }) {
   }, [isRound1TransitionMode, showRound1LampStage, isRound2TransitionMode, showRound2LampStage, isFinalMode, resultLampsRemaining])
 
   const handleHome = () => {
+    sessionStorage.clear()
     localStorage.clear()
     navigate('/')
   }

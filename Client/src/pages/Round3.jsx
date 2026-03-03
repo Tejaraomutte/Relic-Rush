@@ -71,12 +71,16 @@ export default function Round3({ reduceLamps }) {
     })
   }
 
-  // Check if round already completed on mount
+  // Route access by currentRound only (crash recovery safe)
   useEffect(() => {
-    const existingScore = Number(localStorage.getItem('round3Score') || 0)
-    
-    if (isRoundCompleted(3) || existingScore > 0) {
-      navigate('/results', { state: { mode: 'final' }, replace: true })
+    const assignedRound = Number(localStorage.getItem('currentRound') || 1)
+    if (assignedRound === 1) {
+      navigate('/round1', { replace: true })
+      return
+    }
+
+    if (assignedRound === 2) {
+      navigate('/round2', { replace: true })
     }
   }, [navigate])
 
@@ -183,7 +187,7 @@ export default function Round3({ reduceLamps }) {
     localStorage.setItem('round3Score', String(round3Score))
     localStorage.setItem('relicUnlocked', 'true')
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}')
     try {
       if (user && user.teamName) {
         await submitRoundScore(user.teamName, 3, round3Score, totalSolved, [], elapsedSeconds)

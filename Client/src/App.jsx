@@ -18,7 +18,7 @@ import Waiting from './pages/Waiting'
 import RelicRevealStoryPage from './pages/RelicRevealStoryPage'
 import Landing from './pages/Landing'
 import StorySlides from './pages/StorySlides'
-import Leaderboard from './pages/Leaderboard'
+import AdminDashboard from './pages/Leaderboard'
 import CursorTrail from './components/CursorTrail'
 
 /* ------------------ Cursor Visibility ------------------ */
@@ -31,7 +31,7 @@ function shouldShowCursorTrail(pathname = '') {
 /* ------------------ Protected Route ------------------ */
 
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
   return token ? children : <Navigate to="/login" replace />
 }
 
@@ -39,10 +39,59 @@ ProtectedRoute.propTypes = {
   children: PropTypes.node.isRequired,
 }
 
+function AdminRoute({ children }) {
+  const token = sessionStorage.getItem('token')
+  const role = sessionStorage.getItem('role')
+
+  if (!token) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (role !== 'admin') {
+    return <Navigate to="/home" replace />
+  }
+
+  return children
+}
+
+function RootRoute() {
+  const token = sessionStorage.getItem('token')
+  const role = sessionStorage.getItem('role')
+
+  if (token && role === 'admin') {
+    return <Navigate to="/admin-dashboard" replace />
+  }
+
+  if (token) {
+    return <Navigate to="/home" replace />
+  }
+
+  return <Landing />
+}
+
+function LoginRoute() {
+  const token = sessionStorage.getItem('token')
+  const role = sessionStorage.getItem('role')
+
+  if (token && role === 'admin') {
+    return <Navigate to="/admin-dashboard" replace />
+  }
+
+  if (token) {
+    return <Navigate to="/home" replace />
+  }
+
+  return <Login />
+}
+
+AdminRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+}
+
 /* ------------------ Home Guard ------------------ */
 
 function HomeGuard({ children }) {
-  const role = localStorage.getItem('role')
+  const role = sessionStorage.getItem('role')
 
   if (role === 'admin') return children
 
@@ -52,11 +101,11 @@ function HomeGuard({ children }) {
 /* ------------------ Story Guard ------------------ */
 
 function StoryGuard({ children }) {
-  const role = localStorage.getItem('role')
+  const role = sessionStorage.getItem('role')
   const storyUnlocked = localStorage.getItem('storyUnlocked') === 'true'
 
   if (role === 'admin') {
-    return <Navigate to="/leaderboard" replace />
+    return <Navigate to="/admin-dashboard" replace />
   }
 
   if (!storyUnlocked) {
@@ -69,12 +118,12 @@ function StoryGuard({ children }) {
 /* ------------------ Round Guard ------------------ */
 
 function RoundGuard({ children }) {
-  const role = localStorage.getItem('role')
+  const role = sessionStorage.getItem('role')
   const storyUnlocked = localStorage.getItem('storyUnlocked') === 'true'
   const storyCompleted = localStorage.getItem('storyCompleted') === 'true'
 
   if (role === 'admin') {
-    return <Navigate to="/leaderboard" replace />
+    return <Navigate to="/admin-dashboard" replace />
   }
 
   if (!storyUnlocked) {
@@ -91,11 +140,11 @@ function RoundGuard({ children }) {
 /* ------------------ Relic Story Guard ------------------ */
 
 function RelicStoryGuard({ children }) {
-  const role = localStorage.getItem('role')
+  const role = sessionStorage.getItem('role')
   const relicUnlocked = localStorage.getItem('relicUnlocked') === 'true'
 
   if (role === 'admin') {
-    return <Navigate to="/leaderboard" replace />
+    return <Navigate to="/admin-dashboard" replace />
   }
 
   if (!relicUnlocked) {
@@ -152,7 +201,8 @@ function AppContent({ lampsRemaining, reduceLamps }) {
       {showCursorTrail && <CursorTrail />}
 
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<RootRoute />} />
+        <Route path="/landing" element={<Landing />} />
 
         <Route
           path="/home"
@@ -165,7 +215,7 @@ function AppContent({ lampsRemaining, reduceLamps }) {
           }
         />
 
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<LoginRoute />} />
 
         <Route
           path="/story"
@@ -178,12 +228,14 @@ function AppContent({ lampsRemaining, reduceLamps }) {
           }
         />
 
+        <Route path="/leaderboard" element={<Navigate to="/admin-dashboard" replace />} />
+
         <Route
-          path="/leaderboard"
+          path="/admin-dashboard"
           element={
-            <ProtectedRoute>
-              <Leaderboard />
-            </ProtectedRoute>
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
           }
         />
 

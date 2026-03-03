@@ -2,7 +2,7 @@ const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 export async function loginUser(teamName, password) {
     try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+        const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export async function loginUser(teamName, password) {
 
 export async function submitRoundScore(teamName, roundNumber, score, questionsSolved, questionTimes, totalRoundTime, extraPayload = {}) {
     try {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         const payload = {
             teamName: teamName,
             round: roundNumber,
@@ -141,6 +141,70 @@ export async function getAdminLeaderboard(token) {
         return await response.json();
     } catch (error) {
         console.error('Error fetching admin leaderboard:', error);
+        throw error;
+    }
+}
+
+export async function createTeamByAdmin(token, payload) {
+    try {
+        const response = await fetch(`${API_URL}/admin/teams`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type') || '';
+            let message = '';
+
+            if (contentType.includes('application/json')) {
+                const data = await response.json().catch(() => ({}));
+                message = data?.message || '';
+            } else {
+                message = await response.text().catch(() => '');
+            }
+
+            throw new Error(message || `Failed to create team (${response.status})`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error creating team:', error);
+        throw error;
+    }
+}
+
+export async function updateTeamByAdmin(token, teamId, payload) {
+    try {
+        const response = await fetch(`${API_URL}/admin/update-team/${teamId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type') || '';
+            let message = '';
+
+            if (contentType.includes('application/json')) {
+                const data = await response.json().catch(() => ({}));
+                message = data?.message || '';
+            } else {
+                message = await response.text().catch(() => '');
+            }
+
+            throw new Error(message || `Failed to update team (${response.status})`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error updating team:', error);
         throw error;
     }
 }

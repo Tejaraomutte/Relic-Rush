@@ -1848,10 +1848,22 @@ body {
 }
 
 .admin-logout-btn {
+    padding: 10px 20px;
+}
+
+.admin-login-compact-btn {
+    min-width: 140px;
+    padding: 8px 16px;
+    font-size: 0.95rem;
+}
+
+.admin-header-actions {
     position: absolute;
     top: 6px;
     right: 0;
-    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .admin-leaderboard-card {
@@ -1875,20 +1887,98 @@ body {
     padding: 30px;
 }
 
+.admin-auth-box {
+    width: min(92vw, 980px);
+    margin: 0 auto;
+    padding: 18px 18px 22px;
+}
+
+.admin-auth-hint {
+    padding: 16px;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+.admin-login-inline-form {
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
+    border: 1px solid rgba(212, 175, 55, 0.26);
+    border-radius: 14px;
+    background: rgba(12, 12, 28, 0.6);
+    padding: 12px;
+}
+
+.admin-login-inline-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.admin-login-submit-btn {
+    width: 100%;
+    min-width: 130px;
+    padding: 10px 14px;
+}
+
+.admin-inline-password {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.admin-password-toggle {
+    min-width: 78px;
+    height: 46px;
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    border-radius: 10px;
+    background: rgba(18, 24, 52, 0.9);
+    color: #d4af37;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.admin-password-toggle:hover {
+    background: rgba(24, 30, 62, 1);
+}
+
+.admin-login-error {
+    margin-top: 8px;
+    padding: 10px;
+    font-size: 0.95rem;
+}
+
+.admin-add-team-form {
+    margin: 20px 28px 0;
+    padding: 22px;
+    border-radius: 14px;
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    background: rgba(9, 12, 28, 0.58);
+}
+
+.admin-form-title {
+    margin-bottom: 16px;
+    text-align: center;
+    color: #d4af37;
+    letter-spacing: 0.8px;
+}
+
 .admin-error-message {
     color: #ff6b6b;
 }
 
 .admin-leaderboard-table-container {
     overflow-x: auto;
-    padding: 32px 30px;
+    padding: 12px 16px 20px;
 }
 
 .admin-leaderboard-table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    min-width: 1140px;
+    min-width: 1180px;
 }
 
 .admin-leaderboard-table thead tr {
@@ -1896,35 +1986,39 @@ body {
 }
 
 .admin-leaderboard-table th {
-    padding: 20px 10px;
+    padding: 10px 8px;
     text-align: center;
     color: #d4af37;
-    font-size: 1.08rem;
+    font-size: 0.96rem;
     font-weight: 700;
     letter-spacing: 0.4px;
 }
 
 .admin-leaderboard-table td {
-    height: 104px;
-    padding: 18px 10px;
+    height: 64px;
+    padding: 8px 8px;
     text-align: center;
     vertical-align: middle;
     border-bottom: 1px solid rgba(212, 175, 55, 0.2);
 }
 
 .admin-col-rank {
-    width: 8%;
+    width: 6%;
 }
 
 .admin-col-team {
-    width: 17%;
+    width: 14%;
     text-align: left !important;
 }
 
 .admin-col-score,
 .admin-col-time,
 .admin-col-round {
-    width: 15%;
+    width: 9%;
+}
+
+.admin-col-action {
+    width: 9%;
 }
 
 .admin-col-round1 {
@@ -1944,7 +2038,7 @@ body {
 }
 
 .admin-rank-value {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #ffffff;
 }
@@ -1963,19 +2057,19 @@ body {
 
 .admin-team-name {
     text-align: left !important;
-    font-size: 1.45rem;
+    font-size: 1rem;
     color: #fff;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .admin-total-score {
-    font-size: 1.7rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: #d4af37;
 }
 
 .admin-total-time {
-    font-size: 1.2rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #aaa;
 }
@@ -1998,7 +2092,7 @@ body {
 }
 
 .admin-round-score {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
 }
 
@@ -2015,9 +2109,81 @@ body {
 }
 
 .admin-round-time {
-    margin-top: 4px;
-    font-size: 0.98rem;
+    margin-top: 8px;
+    font-size: 0.85rem;
     color: #aaa;
+}
+
+.admin-edit-btn {
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    background: rgba(11, 18, 44, 0.85);
+    color: #ffd700;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.admin-edit-btn:hover {
+    background: rgba(19, 28, 64, 0.95);
+}
+
+.admin-edit-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    background: rgba(4, 6, 18, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.admin-edit-modal {
+    width: min(92vw, 980px);
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 14px;
+    background: linear-gradient(140deg, rgba(24, 12, 36, 0.95), rgba(10, 19, 37, 0.95));
+    padding: 18px;
+}
+
+.admin-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.admin-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #d4af37;
+    font-weight: 600;
+    min-height: 46px;
+}
+
+.admin-edit-actions {
+    margin-top: 6px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.admin-edit-cancel {
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: transparent;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
 }
 
 @media (max-width: 1024px) {
@@ -2032,16 +2198,16 @@ body {
     }
 
     .admin-leaderboard-table {
-        min-width: 980px;
+        min-width: 1260px;
     }
 
     .admin-team-name {
-        font-size: 1.25rem;
+        font-size: 0.95rem;
     }
 
     .admin-total-score,
     .admin-rank-value {
-        font-size: 1.45rem;
+        font-size: 1.05rem;
     }
 }
 
@@ -2051,9 +2217,30 @@ body {
     }
 
     .admin-logout-btn {
+        transform: none;
+    }
+
+    .admin-login-compact-btn {
+        transform: none;
+    }
+
+    .admin-header-actions {
         top: 0;
         right: 50%;
         transform: translateX(50%);
+    }
+
+    .admin-login-inline-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-add-team-form {
+        margin: 14px;
+        padding: 16px;
+    }
+
+    .admin-edit-grid {
+        grid-template-columns: 1fr;
     }
 
     .admin-leaderboard-title {

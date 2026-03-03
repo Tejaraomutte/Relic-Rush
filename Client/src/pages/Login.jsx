@@ -43,18 +43,18 @@ export default function Login() {
       showMessage('Login successful! Redirecting...', 'success')
 
       // Store authentication data
-      localStorage.setItem('teamName', loginResponse.teamName)
-      localStorage.setItem('token', loginResponse.token)
-      localStorage.setItem('role', loginResponse.role || 'participant')
-      localStorage.setItem('user', JSON.stringify({
+      sessionStorage.setItem('teamName', loginResponse.teamName)
+      sessionStorage.setItem('token', loginResponse.token)
+      sessionStorage.setItem('role', loginResponse.role || 'participant')
+      sessionStorage.setItem('user', JSON.stringify({
         teamName: loginResponse.teamName,
         name: loginResponse.teamName,
         id: loginResponse._id
       }))
 
-      localStorage.setItem('round1Score', '0')
-      localStorage.setItem('round2Score', '0')
-      localStorage.setItem('round3Score', '0')
+      localStorage.setItem('round1Score', String(loginResponse?.scores?.round1 || 0))
+      localStorage.setItem('round2Score', String(loginResponse?.scores?.round2 || 0))
+      localStorage.setItem('round3Score', String(loginResponse?.scores?.round3 || 0))
       localStorage.setItem('lampsRemaining', '4')
       localStorage.removeItem('storyUnlocked')
       localStorage.removeItem('storyCompleted')
@@ -67,11 +67,36 @@ export default function Login() {
         initGameSession() // Start fresh session
       }
 
+      const currentRound = Number(loginResponse?.roundAccess?.nextRound || loginResponse.currentRound || 1)
+      const eventCompleted = Boolean(loginResponse?.roundAccess?.eventCompleted || loginResponse?.eventCompleted)
+      const roundAccess = loginResponse?.roundAccess || {}
+      const hasAnyCompletedRound = Boolean(
+        roundAccess?.rounds?.round1?.isCompleted ||
+        roundAccess?.rounds?.round2?.isCompleted ||
+        roundAccess?.rounds?.round3?.isCompleted
+      )
+      const isFirstLoginFlow = loginResponse.role !== 'admin' && !eventCompleted && currentRound === 1 && !hasAnyCompletedRound
+
+      localStorage.setItem('currentRound', String(currentRound))
+      localStorage.setItem('eventCompleted', eventCompleted ? 'true' : 'false')
+
       // Redirect based on role
-      const redirectPath = loginResponse.role === 'admin' ? '/leaderboard' : '/home'
+      let redirectPath = '/home'
+      let redirectState = undefined
+
+      if (loginResponse.role === 'admin') {
+        redirectPath = '/admin-dashboard'
+      } else {
+        localStorage.setItem('storyUnlocked', 'false')
+        localStorage.setItem('storyCompleted', 'false')
+        if (eventCompleted) {
+          localStorage.setItem('relicUnlocked', 'true')
+        }
+        redirectPath = '/home'
+      }
       
       setTimeout(() => {
-        navigate(redirectPath)
+        navigate(redirectPath, redirectState ? { state: redirectState } : undefined)
       }, 1500)
 
     } catch (error) {

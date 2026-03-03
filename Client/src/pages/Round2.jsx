@@ -21,7 +21,6 @@ const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
 
 export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
-  const round1Score = Number(localStorage.getItem('round1Score') || 0)
   const initialRoundStateRef = useRef(loadRoundState(2))
   const initialRoundState = initialRoundStateRef.current
   
@@ -76,28 +75,18 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     })
   }
 
-  // Check if round already completed on mount
+  // Route access by currentRound only (crash recovery safe)
   useEffect(() => {
-    if (round1Score < QUALIFICATION_SCORE) {
-      navigate('/results', {
-        replace: true,
-        state: {
-          mode: 'round1',
-          resultData: {
-            score: round1Score,
-            qualificationStatus: 'Not Qualified'
-          }
-        }
-      })
+    const assignedRound = Number(localStorage.getItem('currentRound') || 1)
+    if (assignedRound === 1) {
+      navigate('/round1', { replace: true })
       return
     }
 
-    const existingScore = Number(localStorage.getItem('round2Score') || 0)
-    
-    if (isRoundCompleted(2) || existingScore > 0) {
+    if (assignedRound === 3) {
       navigate('/round3', { replace: true })
     }
-  }, [navigate, round1Score])
+  }, [navigate])
 
   // Save state immediately whenever progress changes
   useEffect(() => {
@@ -235,6 +224,7 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
 
     setRound2Score(score)
     localStorage.setItem('round2Score', String(score))
+    localStorage.setItem('currentRound', '3')
 
     if (!hasReduced && reduceLamps) {
       const newLamps = 2
@@ -261,7 +251,7 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
       resultData: resultPayload
     })
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}')
     if (user && user.teamName) {
       submitRoundScore(user.teamName, 2, score, questionsSolved, [], elapsedSeconds)
         .catch((error) => {
