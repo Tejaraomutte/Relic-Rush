@@ -57,7 +57,7 @@ export default function AdminDashboard() {
       return
     }
 
-    fetchLeaderboard(token)
+    fetchLeaderboard(token, { withLoader: true })
   }, [navigate])
 
   useEffect(() => {
@@ -90,9 +90,11 @@ export default function AdminDashboard() {
     }
   }, [])
 
-  const fetchLeaderboard = async (token) => {
+  const fetchLeaderboard = async (token, { withLoader = false } = {}) => {
     try {
-      setLoading(true)
+      if (withLoader) {
+        setLoading(true)
+      }
       const data = await getAdminLeaderboard(token)
       setLeaderboard(data)
       setIsAdminAuthenticated(true)
@@ -102,7 +104,9 @@ export default function AdminDashboard() {
       setIsAdminAuthenticated(false)
       setError(err.message || 'Failed to load dashboard')
     } finally {
-      setLoading(false)
+      if (withLoader) {
+        setLoading(false)
+      }
     }
   }
 
