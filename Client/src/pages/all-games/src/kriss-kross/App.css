@@ -105,6 +105,11 @@
   color: var(--primary-gold, #FFD700);
 }
 
+.kriss-question-message {
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
 /* Word List */
 .word-list {
   text-align: left;

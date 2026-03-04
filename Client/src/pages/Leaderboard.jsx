@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import { createTeamByAdmin, getAdminLeaderboard, updateTeamByAdmin } from '../utils/api'
+import { createTeamByAdmin, getAdminLeaderboard, getRoundStatuses, startRoundByAdmin, updateTeamByAdmin } from '../utils/api'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -26,6 +26,10 @@ export default function AdminDashboard() {
   const [editingTeamId, setEditingTeamId] = useState('')
   const [editSubmitting, setEditSubmitting] = useState(false)
   const [editError, setEditError] = useState('')
+  const [roundStatuses, setRoundStatuses] = useState([])
+  const [startingRound, setStartingRound] = useState(null)
+  const [roundActionMessage, setRoundActionMessage] = useState('')
+  const [roundActionError, setRoundActionError] = useState('')
   const [editForm, setEditForm] = useState({
     teamName: '',
     player1Name: '',
@@ -58,6 +62,7 @@ export default function AdminDashboard() {
     }
 
     fetchLeaderboard(token, { withLoader: true })
+    fetchRoundStates(token)
   }, [navigate])
 
   useEffect(() => {
@@ -70,6 +75,7 @@ export default function AdminDashboard() {
 
     const syncDashboard = () => {
       fetchLeaderboard(token)
+      fetchRoundStates(token)
     }
 
     const handleVisibilityChange = () => {
@@ -107,6 +113,36 @@ export default function AdminDashboard() {
       if (withLoader) {
         setLoading(false)
       }
+    }
+  }
+
+  const fetchRoundStates = async (token) => {
+    try {
+      const response = await getRoundStatuses(token)
+      setRoundStatuses(Array.isArray(response?.rounds) ? response.rounds : [])
+      setRoundActionError('')
+    } catch (err) {
+      console.error('Error fetching round statuses:', err)
+      setRoundActionError(err.message || 'Failed to load round statuses')
+    }
+  }
+
+  const handleStartRound = async (roundNumber) => {
+    const token = sessionStorage.getItem('token')
+    if (!token) return
+
+    try {
+      setStartingRound(roundNumber)
+      setRoundActionError('')
+      setRoundActionMessage('')
+
+      await startRoundByAdmin(token, roundNumber)
+      await fetchRoundStates(token)
+      setRoundActionMessage(`Round ${roundNumber} started for waiting teams.`)
+    } catch (err) {
+      setRoundActionError(err.message || `Failed to start round ${roundNumber}`)
+    } finally {
+      setStartingRound(null)
     }
   }
 
@@ -265,6 +301,14 @@ export default function AdminDashboard() {
     return `${mins}m ${secs}s`
   }
 
+  const getRoundStatusText = (roundNumber) => {
+    const state = roundStatuses.find((entry) => Number(entry?.roundNumber) === Number(roundNumber))
+    if (!state) return 'Unknown'
+    if (state.isActive) return `Live (${formatTime(state.timeRemainingSeconds || 0)} left)`
+    if (state.status === 'completed') return 'Completed'
+    return 'Waiting'
+  }
+
   return (
     <>
       <Background />
@@ -386,6 +430,44 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {!loading && isAdminAuthenticated && !error && (
+            <div className="admin-auth-box" style={{ marginBottom: '1rem' }}>
+              <div className="admin-login-inline-form">
+                <div className="admin-login-inline-grid" style={{ gridTemplateColumns: 'repeat(3, minmax(180px, 1fr))' }}>
+                  {[1, 2, 3].map((roundNumber) => (
+                    <button
+                      key={`start-round-${roundNumber}`}
+                      type="button"
+                      className="btn btn-golden premium-glow-btn admin-login-submit-btn"
+                      disabled={startingRound === roundNumber}
+                      onClick={() => handleStartRound(roundNumber)}
+                    >
+                      <span className="btn-text">
+                        {startingRound === roundNumber ? `Starting Round ${roundNumber}...` : `Start Round ${roundNumber}`}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="loading-message premium-glow-text admin-state-message" style={{ marginTop: '0.6rem' }}>
+                  Round 1: {getRoundStatusText(1)} | Round 2: {getRoundStatusText(2)} | Round 3: {getRoundStatusText(3)}
+                </div>
+
+                {roundActionMessage && (
+                  <div className="loading-message premium-glow-text admin-state-message admin-login-error">
+                    {roundActionMessage}
+                  </div>
+                )}
+
+                {roundActionError && (
+                  <div className="error-message premium-glow-text admin-state-message admin-error-message admin-login-error">
+                    {roundActionError}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {!loading && isAdminAuthenticated && !error && leaderboard.length > 0 && (
             <div className="admin-leaderboard-table-container">
               <table className="admin-leaderboard-table">
@@ -411,6 +493,9 @@ export default function AdminDashboard() {
                     const round2Time = Number(entry.round2Time || 0)
                     const round3Score = Number(entry.round3Score || 0)
                     const round3Time = Number(entry.round3Time || 0)
+                    const hasRound1Data = round1Score > 0 || round1Time > 0
+                    const hasRound2Data = round2Score > 0 || round2Time > 0
+                    const hasRound3Data = round3Score > 0 || round3Time > 0
                     const totalTime = Number(entry.totalTime || entry.totalCompletionTime || 0)
                     
                     return (
@@ -431,16 +516,16 @@ export default function AdminDashboard() {
                           {entry.player2Name || 'Solo'}
                         </td>
                         <td className="admin-round-cell admin-round-cell-1">
-                          <div className="admin-round-score admin-round-score-1">{round1Score > 0 ? round1Score : '--'}</div>
-                          <div className="admin-round-time">{round1Score > 0 ? formatTime(round1Time) : '--'}</div>
+                          <div className="admin-round-score admin-round-score-1">{hasRound1Data ? round1Score : '--'}</div>
+                          <div className="admin-round-time">{hasRound1Data ? formatTime(round1Time) : '--'}</div>
                         </td>
                         <td className="admin-round-cell admin-round-cell-2">
-                          <div className="admin-round-score admin-round-score-2">{round2Score > 0 ? round2Score : '--'}</div>
-                          <div className="admin-round-time">{round2Score > 0 ? formatTime(round2Time) : '--'}</div>
+                          <div className="admin-round-score admin-round-score-2">{hasRound2Data ? round2Score : '--'}</div>
+                          <div className="admin-round-time">{hasRound2Data ? formatTime(round2Time) : '--'}</div>
                         </td>
                         <td className="admin-round-cell admin-round-cell-3">
-                          <div className="admin-round-score admin-round-score-3">{round3Score > 0 ? round3Score : '--'}</div>
-                          <div className="admin-round-time">{round3Score > 0 ? formatTime(round3Time) : '--'}</div>
+                          <div className="admin-round-score admin-round-score-3">{hasRound3Data ? round3Score : '--'}</div>
+                          <div className="admin-round-time">{hasRound3Data ? formatTime(round3Time) : '--'}</div>
                         </td>
                         <td className="admin-total-score">
                           {entry.totalScore || 0}

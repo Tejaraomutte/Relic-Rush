@@ -1,14 +1,16 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const roundRoutes = require("./routes/roundRoutes");
+const { resetRoundStatesToWaiting } = require("./controllers/roundControlController");
 
 const app = express();
-
-// Connect to MongoDB
-connectDB();
+const server = http.createServer(app);
 
 const defaultAllowedOrigins = [
   'http://localhost:3000',
@@ -42,6 +44,24 @@ app.use(cors({
 }));
 app.use(express.json());
 
+const io = new Server(server, {
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
+    methods: ['GET', 'POST']
+  }
+});
+
+app.set("io", io);
+
+io.on("connection", (socket) => {
+  socket.on("disconnect", () => {});
+});
+
 
 app.get("/", (req, res) => {
   res.send("Relic Rush Backend Running 🚀");
@@ -49,9 +69,23 @@ app.get("/", (req, res) => {
 
 app.use("/api", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api", roundRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const bootstrap = async () => {
+  try {
+    await connectDB();
+    await resetRoundStatesToWaiting();
+    console.log("🔄 Round states reset to waiting on server startup");
+
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Server bootstrap failed:", error.message);
+    process.exit(1);
+  }
+};
+
+bootstrap();

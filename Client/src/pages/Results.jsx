@@ -303,7 +303,10 @@ export default function Results({ lampsRemaining = 1 }) {
           )}
 
           {isRound1TransitionMode && showRound1LampStage && (
-            <button className="res-btn-gold" onClick={() => navigate('/round2')}>
+            <button
+              className="res-btn-gold"
+              onClick={() => navigate('/waiting', { state: { mode: 'await-round-start', targetRound: 2 } })}
+            >
               Next Round
             </button>
           )}
@@ -315,7 +318,10 @@ export default function Results({ lampsRemaining = 1 }) {
           )}
 
           {isRound2TransitionMode && showRound2LampStage && (
-            <button className="res-btn-gold" onClick={() => navigate('/round3')}>
+            <button
+              className="res-btn-gold"
+              onClick={() => navigate('/waiting', { state: { mode: 'await-round-start', targetRound: 3 } })}
+            >
               Next Round
             </button>
           )}

@@ -209,6 +209,58 @@ export async function updateTeamByAdmin(token, teamId, payload) {
     }
 }
 
+export async function getRoundStatuses(token) {
+    const response = await fetch(`${API_URL}/round-status`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+    })
+
+    if (!response.ok) {
+        const text = await response.text().catch(() => response.statusText)
+        throw new Error(text || `Failed to fetch round statuses (${response.status})`)
+    }
+
+    return await response.json()
+}
+
+export async function getRoundStatus(token, roundNumber) {
+    const response = await fetch(`${API_URL}/round-status/${roundNumber}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+    })
+
+    if (!response.ok) {
+        const text = await response.text().catch(() => response.statusText)
+        throw new Error(text || `Failed to fetch round ${roundNumber} status (${response.status})`)
+    }
+
+    return await response.json()
+}
+
+export async function startRoundByAdmin(token, roundNumber, durationSeconds) {
+    const response = await fetch(`${API_URL}/admin/start-round/${roundNumber}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ durationSeconds })
+    })
+
+    if (!response.ok) {
+        const text = await response.text().catch(() => response.statusText)
+        throw new Error(text || `Failed to start round ${roundNumber} (${response.status})`)
+    }
+
+    return await response.json()
+}
+
 export function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;

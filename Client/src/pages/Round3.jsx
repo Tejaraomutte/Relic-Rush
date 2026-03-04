@@ -7,7 +7,9 @@ import ResultMessage from '../components/ResultMessage'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 import FlowBuilder from './flowchart/src/pages/FlowBuilder'
 import DebugRound from './flowchart/src/debug/DebugRound'
+import { getRoundStatus } from '../utils/api'
 import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted, clearGameSession } from '../utils/sessionManager'
+import { getRoundRemainingSeconds, getRoundStartConfig, setRoundStartConfig } from '../utils/roundGate'
 
 const ROUND_DURATION = 900
 const POINTS_PER_SOLVED_PROBLEM = 5
@@ -27,6 +29,8 @@ export default function Round3({ reduceLamps }) {
   const navigate = useNavigate()
   const hasReducedRef = useRef(false)
   const submittedRef = useRef(false)
+  const initialRoundStartState = getRoundStartConfig(3)
+  const initialRoundDuration = Number(initialRoundStartState?.durationSeconds || ROUND_DURATION)
   const initialRoundStateRef = useRef(loadRoundState(3))
   const initialRoundState = initialRoundStateRef.current
   
@@ -37,12 +41,24 @@ export default function Round3({ reduceLamps }) {
   })
   
   const [timeLeft, setTimeLeft] = useState(() => {
-    return initialRoundState?.timeLeft ?? ROUND_DURATION
+    if (Number.isFinite(initialRoundState?.timeLeft)) {
+      return initialRoundState.timeLeft
+    }
+
+    return getRoundRemainingSeconds(3, initialRoundDuration)
   })
 
-  const startedAtRef = useRef(initialRoundState?.startedAt ?? Date.now())
+  const startedAtRef = useRef(
+    initialRoundState?.startedAt ?? Number(initialRoundStartState?.startedAtMs || Date.now())
+  )
+  const [roundDurationSeconds, setRoundDurationSeconds] = useState(initialRoundDuration)
+  const [roundAccessLoading, setRoundAccessLoading] = useState(true)
   
-  const timeLeftRef = useRef(initialRoundState?.timeLeft ?? ROUND_DURATION)
+  const timeLeftRef = useRef(
+    Number.isFinite(initialRoundState?.timeLeft)
+      ? initialRoundState.timeLeft
+      : getRoundRemainingSeconds(3, initialRoundDuration)
+  )
   
   const [flowchartSolvedCount, setFlowchartSolvedCount] = useState(() => {
     return initialRoundState?.flowchartSolvedCount ?? 0
@@ -72,14 +88,69 @@ export default function Round3({ reduceLamps }) {
 
   // Route access by currentRound only (crash recovery safe)
   useEffect(() => {
-    const assignedRound = Number(localStorage.getItem('currentRound') || 1)
-    if (assignedRound === 1) {
-      navigate('/round1', { replace: true })
-      return
+    let isMounted = true
+
+    const ensureAccess = async () => {
+      const assignedRound = Number(localStorage.getItem('currentRound') || 1)
+      if (assignedRound === 1) {
+        navigate('/round1', { replace: true })
+        return
+      }
+
+      if (assignedRound === 2) {
+        navigate('/round2', { replace: true })
+        return
+      }
+
+      const token = sessionStorage.getItem('token')
+      if (!token) {
+        setRoundAccessLoading(false)
+        return
+      }
+
+      try {
+        const response = await getRoundStatus(token, 3)
+        if (!isMounted) return
+
+        if (response?.round?.isActive) {
+          setRoundStartConfig(response.round)
+
+          const duration = Number(response.round.durationSeconds || ROUND_DURATION)
+          const remaining = Math.max(Number(response.round.timeRemainingSeconds || 0), 0)
+
+          setRoundDurationSeconds(duration)
+          setTimeLeft(remaining)
+          timeLeftRef.current = remaining
+          startedAtRef.current = response?.round?.startedAt
+            ? new Date(response.round.startedAt).getTime()
+            : Date.now()
+
+          setRoundAccessLoading(false)
+          return
+        }
+
+        navigate('/waiting', {
+          replace: true,
+          state: {
+            mode: 'await-round-start',
+            targetRound: 3
+          }
+        })
+      } catch {
+        navigate('/waiting', {
+          replace: true,
+          state: {
+            mode: 'await-round-start',
+            targetRound: 3
+          }
+        })
+      }
     }
 
-    if (assignedRound === 2) {
-      navigate('/round2', { replace: true })
+    ensureAccess()
+
+    return () => {
+      isMounted = false
     }
   }, [navigate])
 
@@ -120,7 +191,7 @@ export default function Round3({ reduceLamps }) {
   }, [timeLeft])
 
   useEffect(() => {
-    if (isRoundLocked) return
+    if (roundAccessLoading || isRoundLocked) return
 
     const stopTimer = startTimer({
       duration: timeLeftRef.current,
@@ -130,7 +201,7 @@ export default function Round3({ reduceLamps }) {
     })
 
     return stopTimer
-  }, [isRoundLocked])
+  }, [isRoundLocked, roundAccessLoading])
 
   useEffect(() => {
     if (isRoundLocked || submittedRef.current) return
@@ -166,9 +237,11 @@ export default function Round3({ reduceLamps }) {
 
   const getProgressState = (flowSolved = flowchartSolvedRef.current, debugSolved = debugSolvedRef.current) => {
     const totalSolved = flowSolved + debugSolved
-    const canSubmitRound = totalSolved >= 4
+    const canSubmitRound = flowSolved >= 2 && debugSolved >= 2
 
     return {
+      flowSolved,
+      debugSolved,
       totalSolved,
       canSubmitRound
     }
@@ -182,7 +255,7 @@ export default function Round3({ reduceLamps }) {
 
     const round3Score = answeredCount * POINTS_PER_SOLVED_PROBLEM
     const totalScore = round1Score + round2Score + round3Score
-    const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, ROUND_DURATION)
+    const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, roundDurationSeconds)
 
     localStorage.setItem('round3Score', String(round3Score))
     localStorage.setItem('relicUnlocked', 'true')
@@ -214,7 +287,7 @@ export default function Round3({ reduceLamps }) {
           questionsSolved: answeredCount,
           questionTimes: [],
           actualTimeTakenSeconds: elapsedSeconds,
-          totalRoundTimeSeconds: ROUND_DURATION
+          totalRoundTimeSeconds: roundDurationSeconds
         }
       }
     })
@@ -234,10 +307,10 @@ export default function Round3({ reduceLamps }) {
   const handleSubmitRound = async () => {
     if (submittedRef.current || isRoundLocked) return
 
-    const { canSubmitRound } = getProgressState()
+    const { canSubmitRound, flowSolved, debugSolved } = getProgressState()
 
     if (!canSubmitRound) {
-      setStatusMessage('Solve at least 4 challenges before final submission.')
+      setStatusMessage(`Solve at least 2 Flowchart and 2 Debug challenges before final submission. Current: Flowchart ${flowSolved}/2, Debug ${debugSolved}/2.`)
       return
     }
 
@@ -264,10 +337,10 @@ export default function Round3({ reduceLamps }) {
       >
         <RoundHeader
           roundTitle="ROUND 3"
-          subtitle="Complete any 4 challenges before final submission."
+          subtitle="Complete at least 2 Flowchart and 2 Debug challenges before final submission."
           lampsRemaining={null}
           timeLeft={timeLeft}
-          showTimer={true}
+          showTimer={!roundAccessLoading}
         />
 
         {!activeSection ? (

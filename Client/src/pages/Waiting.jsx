@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import { submitRoundScore } from '../utils/api'
+import { getRoundStatus, submitRoundScore } from '../utils/api'
+import { getRealtimeSocket } from '../utils/realtime'
+import { getRoundPath, setRoundStartConfig } from '../utils/roundGate'
 import './Waiting.css'
 
 export default function Waiting() {
@@ -19,6 +21,8 @@ export default function Waiting() {
 
   const mode = location.state?.mode || restoredWaitingState?.mode || 'final'
   const resultData = location.state?.resultData || restoredWaitingState?.resultData || null
+  const targetRound = Number(location.state?.targetRound || restoredWaitingState?.targetRound || localStorage.getItem('currentRound') || 1)
+  const isAwaitStartMode = mode === 'await-round-start'
   const submissionPayload = resultData?.submissionPayload || null
   const totalRoundSeconds = Number(submissionPayload?.totalRoundTimeSeconds || 0)
   const actualTakenSeconds = Number(submissionPayload?.actualTimeTakenSeconds || resultData?.timeTakenSeconds || 0)
@@ -29,6 +33,7 @@ export default function Waiting() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [submitDone, setSubmitDone] = useState(false)
+  const [awaitMessage, setAwaitMessage] = useState('Waiting for Admin to Start the Round')
 
   const unlockKey = useMemo(() => {
     if (!submissionPayload) return ''
@@ -45,10 +50,69 @@ export default function Waiting() {
   }, [submissionPayload, mode])
 
   useEffect(() => {
+    if (isAwaitStartMode) {
+      sessionStorage.setItem('waitingState', JSON.stringify({ mode, targetRound }))
+      return
+    }
+
     if (!resultData) return
 
     sessionStorage.setItem('waitingState', JSON.stringify({ mode, resultData }))
-  }, [mode, resultData])
+  }, [isAwaitStartMode, mode, resultData, targetRound])
+
+  useEffect(() => {
+    if (!isAwaitStartMode) return undefined
+
+    const token = sessionStorage.getItem('token')
+    if (!token) return undefined
+
+    let isMounted = true
+
+    const moveToRound = (roundPayload) => {
+      if (!isMounted) return
+
+      setRoundStartConfig(roundPayload)
+      localStorage.setItem('currentRound', String(roundPayload.roundNumber))
+      sessionStorage.removeItem('waitingState')
+      navigate(getRoundPath(roundPayload.roundNumber), { replace: true })
+    }
+
+    const loadRoundStatus = async () => {
+      try {
+        const response = await getRoundStatus(token, targetRound)
+        if (!isMounted) return
+
+        if (response?.round?.isActive) {
+          moveToRound(response.round)
+          return
+        }
+
+        setAwaitMessage('Waiting for Admin to Start the Round')
+      } catch (error) {
+        if (!isMounted) return
+        setAwaitMessage(error?.message || 'Unable to check round status. Waiting for admin signal...')
+      }
+    }
+
+    loadRoundStatus()
+    const pollId = window.setInterval(loadRoundStatus, 2000)
+
+    const socket = getRealtimeSocket()
+    const handleRoundStarted = (payload) => {
+      if (Number(payload?.roundNumber) !== Number(targetRound)) {
+        return
+      }
+      moveToRound(payload)
+    }
+
+    socket.on('round:started', handleRoundStarted)
+
+    return () => {
+      isMounted = false
+      window.clearInterval(pollId)
+      socket.off('round:started', handleRoundStarted)
+    }
+  }, [isAwaitStartMode, navigate, targetRound])
 
   useEffect(() => {
     if (!submissionPayload || !unlockKey) {
@@ -209,48 +273,60 @@ export default function Waiting() {
       <Background />
       <main className="event-container waiting-page">
         <section className="waiting-card">
-          <h1 className="event-title waiting-title">Submission Received</h1>
-          <p className="event-subtitle waiting-subtitle">
-            Please wait while other players complete this round.
-          </p>
-
-          {submissionPayload ? (
+          {isAwaitStartMode ? (
             <>
-              <p className="event-description waiting-description">
-                You completed in {formatClock(boundedActualSeconds)}.
+              <h1 className="event-title waiting-title">Waiting for Admin to Start the Round</h1>
+              <p className="event-subtitle waiting-subtitle">
+                Round {targetRound} will begin for all teams at the same time.
               </p>
-              <p className="event-description waiting-description waiting-countdown">
-                Remaining Time: {formatClock(remainingSeconds)}
-              </p>
-              <p className="event-description waiting-description">
-                Result view unlocks when the full round time completes.
-              </p>
+              <p className="event-description waiting-description">{awaitMessage}</p>
             </>
           ) : (
-            <p className="event-description waiting-description">
-              Click Next when you are ready to view your round result.
-            </p>
-          )}
+            <>
+              <h1 className="event-title waiting-title">Submission Received</h1>
+              <p className="event-subtitle waiting-subtitle">
+                Please wait while other players complete this round.
+              </p>
 
-          {submitError && (
-            <p className="event-description waiting-error">{submitError}</p>
-          )}
+              {submissionPayload ? (
+                <>
+                  <p className="event-description waiting-description">
+                    You completed in {formatClock(boundedActualSeconds)}.
+                  </p>
+                  <p className="event-description waiting-description waiting-countdown">
+                    Remaining Time: {formatClock(remainingSeconds)}
+                  </p>
+                  <p className="event-description waiting-description">
+                    Result view unlocks when the full round time completes.
+                  </p>
+                </>
+              ) : (
+                <p className="event-description waiting-description">
+                  Click Next when you are ready to view your round result.
+                </p>
+              )}
 
-          <button
-            className="btn btn-golden waiting-next-btn"
-            onClick={handleSubmit}
-            disabled={isSubmitting || (submissionPayload && (remainingSeconds > 0 || !submitDone))}
-          >
-            {submissionPayload ? (isSubmitting ? 'Submitting...' : 'View Result') : 'Next'}
-          </button>
+              {submitError && (
+                <p className="event-description waiting-error">{submitError}</p>
+              )}
 
-          {submissionPayload && submitError && !isSubmitting && !submitDone && (
-            <button
-              className="btn btn-secondary waiting-next-btn"
-              onClick={performSubmission}
-            >
-              Retry Submit
-            </button>
+              <button
+                className="btn btn-golden waiting-next-btn"
+                onClick={handleSubmit}
+                disabled={isSubmitting || (submissionPayload && (remainingSeconds > 0 || !submitDone))}
+              >
+                {submissionPayload ? (isSubmitting ? 'Submitting...' : 'View Result') : 'Next'}
+              </button>
+
+              {submissionPayload && submitError && !isSubmitting && !submitDone && (
+                <button
+                  className="btn btn-secondary waiting-next-btn"
+                  onClick={performSubmission}
+                >
+                  Retry Submit
+                </button>
+              )}
+            </>
           )}
         </section>
       </main>

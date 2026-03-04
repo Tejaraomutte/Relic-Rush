@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 
-const solution = [
+const baseSolution = [
   ["#", "v", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#"],
   ["#", "a", "l", "g", "o", "r", "i", "t", "h", "m", "#", "#", "#", "#", "#"],
   ["#", "r", "#", "#", "#", "u", "#", "#", "#", "#", "#", "#", "#", "#", "#"],
@@ -24,6 +24,8 @@ function App({ onComplete }) {
     document.body.classList.add("game-kriss");
     return () => document.body.classList.remove("game-kriss");
   }, []);
+
+  const solution = baseSolution;
 
   const [grid, setGrid] = useState(
     solution.map(row => row.map(cell => (cell === "#" ? "#" : "")))
@@ -187,6 +189,9 @@ function App({ onComplete }) {
   return (
     <div className="container">
       <h1>Kriss Kross Puzzle</h1>
+      <p className="message kriss-question-message">
+        Fill the crossword grid using the given word list so every intersecting letter matches. Then click Submit.
+      </p>
 
       <div className="layout">
         <div className="grid-container">

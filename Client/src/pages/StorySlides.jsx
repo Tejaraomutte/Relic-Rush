@@ -237,7 +237,13 @@ export default function StorySlides() {
               className="story-slide-btn visible story-slide-btn-bottom-right"
               onClick={() => {
                 localStorage.setItem('storyCompleted', 'true');
-                navigate('/round1');
+                const currentRound = Number(localStorage.getItem('currentRound') || 1);
+                navigate('/waiting', {
+                  state: {
+                    mode: 'await-round-start',
+                    targetRound: Math.min(3, Math.max(1, currentRound))
+                  }
+                });
               }}
               disabled={buttonDisabled}
               style={{ pointerEvents: buttonDisabled ? 'none' : 'auto' }}

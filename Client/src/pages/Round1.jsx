@@ -8,7 +8,9 @@ import ResultMessage from '../components/ResultMessage'
 import ScoreDisplay from '../components/ScoreDisplay'
 import LampDisplay from '../components/LampDisplay'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
+import { getRoundStatus } from '../utils/api'
 import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
+import { getRoundRemainingSeconds, getRoundStartConfig, setRoundStartConfig } from '../utils/roundGate'
 
 const questions = [
   {
@@ -153,6 +155,8 @@ const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
 export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
 
+  const initialRoundStartState = getRoundStartConfig(ROUND_NUMBER)
+  const initialRoundDuration = Number(initialRoundStartState?.durationSeconds || ROUND_DURATION)
   const initialRoundStateRef = useRef(loadRoundState(1))
   const initialRoundState = initialRoundStateRef.current
   
@@ -167,11 +171,21 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   })
   
   const [timeLeft, setTimeLeft] = useState(() => {
-    return initialRoundState?.timeLeft ?? ROUND_DURATION
+    if (Number.isFinite(initialRoundState?.timeLeft)) {
+      return initialRoundState.timeLeft
+    }
+
+    return getRoundRemainingSeconds(ROUND_NUMBER, initialRoundDuration)
   })
-  const timeLeftRef = useRef(initialRoundState?.timeLeft ?? ROUND_DURATION)
+  const timeLeftRef = useRef(
+    Number.isFinite(initialRoundState?.timeLeft)
+      ? initialRoundState.timeLeft
+      : getRoundRemainingSeconds(ROUND_NUMBER, initialRoundDuration)
+  )
   
-  const startedAtRef = useRef(initialRoundState?.startedAt ?? Date.now())
+  const startedAtRef = useRef(
+    initialRoundState?.startedAt ?? Number(initialRoundStartState?.startedAtMs || Date.now())
+  )
   
   const submittedRef = useRef(false)
   const selectedAnswersRef = useRef([])
@@ -179,6 +193,8 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const [resultType, setResultType] = useState('')
   const [isComplete, setIsComplete] = useState(false)
   const [isAnswerLocked, setIsAnswerLocked] = useState(false)
+  const [roundDurationSeconds, setRoundDurationSeconds] = useState(initialRoundDuration)
+  const [roundAccessLoading, setRoundAccessLoading] = useState(true)
   const [finalScore, setFinalScore] = useState(0)
   const [lampsAfter, setLampsAfter] = useState(lampsRemaining)
   const [hasReduced, setHasReduced] = useState(false)
@@ -195,14 +211,69 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
 
   // Route access by currentRound only (crash recovery safe)
   useEffect(() => {
-    const assignedRound = Number(localStorage.getItem('currentRound') || 1)
-    if (assignedRound === 2) {
-      navigate('/round2', { replace: true })
-      return
+    let isMounted = true
+
+    const ensureAccess = async () => {
+      const assignedRound = Number(localStorage.getItem('currentRound') || 1)
+      if (assignedRound === 2) {
+        navigate('/round2', { replace: true })
+        return
+      }
+
+      if (assignedRound === 3) {
+        navigate('/round3', { replace: true })
+        return
+      }
+
+      const token = sessionStorage.getItem('token')
+      if (!token) {
+        setRoundAccessLoading(false)
+        return
+      }
+
+      try {
+        const response = await getRoundStatus(token, ROUND_NUMBER)
+        if (!isMounted) return
+
+        if (response?.round?.isActive) {
+          setRoundStartConfig(response.round)
+
+          const duration = Number(response.round.durationSeconds || ROUND_DURATION)
+          const remaining = Math.max(Number(response.round.timeRemainingSeconds || 0), 0)
+
+          setRoundDurationSeconds(duration)
+          setTimeLeft(remaining)
+          timeLeftRef.current = remaining
+          startedAtRef.current = response?.round?.startedAt
+            ? new Date(response.round.startedAt).getTime()
+            : Date.now()
+
+          setRoundAccessLoading(false)
+          return
+        }
+
+        navigate('/waiting', {
+          replace: true,
+          state: {
+            mode: 'await-round-start',
+            targetRound: ROUND_NUMBER
+          }
+        })
+      } catch {
+        navigate('/waiting', {
+          replace: true,
+          state: {
+            mode: 'await-round-start',
+            targetRound: ROUND_NUMBER
+          }
+        })
+      }
     }
 
-    if (assignedRound === 3) {
-      navigate('/round3', { replace: true })
+    ensureAccess()
+
+    return () => {
+      isMounted = false
     }
   }, [navigate])
 
@@ -280,7 +351,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
 
   useEffect(() => {
     // DEVELOPMENT MODE: Allow direct access without login
-    if (isComplete || isAnswerLocked) return
+    if (roundAccessLoading || isComplete || isAnswerLocked) return
 
     const stopTimer = startTimer({
       duration: timeLeftRef.current,
@@ -290,7 +361,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     })
 
     return stopTimer
-  }, [navigate, isComplete, isAnswerLocked])
+  }, [navigate, isComplete, isAnswerLocked, roundAccessLoading])
 
   const onTimeUp = async () => {
     if (submittedRef.current) return
@@ -356,8 +427,8 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     }, 0)
 
     const score = correctCount * POINTS_PER_QUESTION
-    const questionsSolved = answeredCount
-    const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, ROUND_DURATION)
+    const questionsSolved = correctCount
+    const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, roundDurationSeconds)
     const qualificationStatus = score >= QUALIFICATION_SCORE ? 'Qualified' : 'Not Qualified'
 
     setFinalScore(score)
@@ -391,7 +462,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
           questionsSolved,
           questionTimes: [],
           actualTimeTakenSeconds: elapsedSeconds,
-          totalRoundTimeSeconds: ROUND_DURATION
+          totalRoundTimeSeconds: roundDurationSeconds
         }
       }
     })
@@ -423,7 +494,7 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
           subtitle=""
           lampsRemaining={null}
           timeLeft={timeLeft}
-          showTimer={!isComplete}
+          showTimer={!isComplete && !roundAccessLoading}
         />
 
         {!isComplete ? (

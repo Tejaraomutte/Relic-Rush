@@ -625,117 +625,133 @@ const submitScore = async (req, res) => {
 
     const safeTeamName = authenticatedTeamName || requestedTeamName;
 
-    const user = await User.findOne({ teamName: safeTeamName });
+    const MAX_SAVE_RETRIES = 3;
 
-    if (!user) {
-      return res.status(403).json({
-        message: "User not registered"
+    for (let attempt = 1; attempt <= MAX_SAVE_RETRIES; attempt += 1) {
+      const user = await User.findOne({ teamName: safeTeamName });
+
+      if (!user) {
+        return res.status(403).json({
+          message: "User not registered"
+        });
+      }
+
+      const upsertRound = (roundPayload) => {
+        const existingIndex = (user.rounds || []).findIndex(
+          (item) => item.roundNumber === roundPayload.roundNumber
+        );
+
+        if (existingIndex >= 0) {
+          user.rounds[existingIndex] = {
+            ...user.rounds[existingIndex].toObject(),
+            ...roundPayload
+          };
+        } else {
+          user.rounds.push(roundPayload);
+        }
+      };
+
+      const upsertFinalRoundScore = (roundNumber, roundScore) => {
+        const existingIndex = (user.rounds || []).findIndex(
+          (item) => item.roundNumber === roundNumber
+        );
+
+        if (existingIndex >= 0) {
+          const existingRound = user.rounds[existingIndex];
+          user.rounds[existingIndex] = {
+            ...existingRound.toObject(),
+            roundScore: toNumber(roundScore, existingRound.roundScore || 0)
+          };
+        } else {
+          user.rounds.push(buildRoundPayload({
+            roundNumber,
+            score: roundScore,
+            questionsSolved: 0,
+            questionTimes: [],
+            totalRoundTime: 0
+          }));
+        }
+      };
+
+      if (round === "final") {
+        if (round1 !== undefined) {
+          upsertFinalRoundScore(1, round1);
+        }
+        if (round2 !== undefined) {
+          upsertFinalRoundScore(2, round2);
+        }
+        if (round3 !== undefined) {
+          upsertFinalRoundScore(3, round3);
+        }
+
+        user.currentRound = 3;
+      } else {
+        const numericRound = Number(round);
+        if (![1, 2, 3].includes(numericRound)) {
+          return res.status(400).json({ message: "Invalid round number" });
+        }
+
+        const roundAccess = resolveRoundAccess(user);
+        if (roundAccess.eventCompleted) {
+          return res.status(409).json({
+            message: "Event already completed. Round submission is not allowed."
+          });
+        }
+
+        if (numericRound !== roundAccess.nextRound) {
+          return res.status(409).json({
+            message: `Invalid round submission. Expected round ${roundAccess.nextRound}.`,
+            expectedRound: roundAccess.nextRound
+          });
+        }
+
+        if (numericRound === 1) {
+          user.rounds = (user.rounds || []).filter((item) => item.roundNumber !== 2 && item.roundNumber !== 3);
+        }
+
+        if (numericRound === 2) {
+          user.rounds = (user.rounds || []).filter((item) => item.roundNumber !== 3);
+        }
+
+        upsertRound(buildRoundPayload({
+          roundNumber: numericRound,
+          score,
+          questionsSolved,
+          questionTimes,
+          totalRoundTime
+        }));
+
+        if (numericRound === 1) {
+          user.currentRound = 2;
+        } else if (numericRound === 2) {
+          user.currentRound = 3;
+        } else {
+          user.currentRound = 3;
+        }
+      }
+
+      user.rounds.sort((a, b) => a.roundNumber - b.roundNumber);
+      user.markModified("rounds");
+
+      try {
+        await user.save();
+      } catch (saveError) {
+        if (saveError?.name === "VersionError" && attempt < MAX_SAVE_RETRIES) {
+          continue;
+        }
+        throw saveError;
+      }
+
+      return res.json({
+        success: true,
+        message: "Score submitted successfully",
+        totalScore: user.totalScore,
+        rounds: user.rounds
       });
     }
 
-    const upsertRound = (roundPayload) => {
-      const existingIndex = (user.rounds || []).findIndex(
-        (item) => item.roundNumber === roundPayload.roundNumber
-      );
-
-      if (existingIndex >= 0) {
-        user.rounds[existingIndex] = {
-          ...user.rounds[existingIndex].toObject(),
-          ...roundPayload
-        };
-      } else {
-        user.rounds.push(roundPayload);
-      }
-    };
-
-    const upsertFinalRoundScore = (roundNumber, roundScore) => {
-      const existingIndex = (user.rounds || []).findIndex(
-        (item) => item.roundNumber === roundNumber
-      );
-
-      if (existingIndex >= 0) {
-        const existingRound = user.rounds[existingIndex];
-        user.rounds[existingIndex] = {
-          ...existingRound.toObject(),
-          roundScore: toNumber(roundScore, existingRound.roundScore || 0)
-        };
-      } else {
-        user.rounds.push(buildRoundPayload({
-          roundNumber,
-          score: roundScore,
-          questionsSolved: 0,
-          questionTimes: [],
-          totalRoundTime: 0
-        }));
-      }
-    };
-
-    if (round === "final") {
-      if (round1 !== undefined) {
-        upsertFinalRoundScore(1, round1);
-      }
-      if (round2 !== undefined) {
-        upsertFinalRoundScore(2, round2);
-      }
-      if (round3 !== undefined) {
-        upsertFinalRoundScore(3, round3);
-      }
-
-      user.currentRound = 3;
-    } else {
-      const numericRound = Number(round);
-      if (![1, 2, 3].includes(numericRound)) {
-        return res.status(400).json({ message: "Invalid round number" });
-      }
-
-      const roundAccess = resolveRoundAccess(user);
-      if (roundAccess.eventCompleted) {
-        return res.status(409).json({
-          message: "Event already completed. Round submission is not allowed."
-        });
-      }
-
-      if (numericRound !== roundAccess.nextRound) {
-        return res.status(409).json({
-          message: `Invalid round submission. Expected round ${roundAccess.nextRound}.`,
-          expectedRound: roundAccess.nextRound
-        });
-      }
-
-      if (numericRound === 1) {
-        user.rounds = (user.rounds || []).filter((item) => item.roundNumber !== 2 && item.roundNumber !== 3);
-      }
-
-      if (numericRound === 2) {
-        user.rounds = (user.rounds || []).filter((item) => item.roundNumber !== 3);
-      }
-
-      upsertRound(buildRoundPayload({
-        roundNumber: numericRound,
-        score,
-        questionsSolved,
-        questionTimes,
-        totalRoundTime
-      }));
-
-      if (numericRound === 1) {
-        user.currentRound = 2;
-      } else if (numericRound === 2) {
-        user.currentRound = 3;
-      } else {
-        user.currentRound = 3;
-      }
-    }
-
-    user.rounds.sort((a, b) => a.roundNumber - b.roundNumber);
-    user.markModified("rounds");
-    await user.save();
-
-    res.json({
-      success: true,
-      message: "Score submitted successfully",
-      totalScore: user.totalScore,
-      rounds: user.rounds
+    return res.status(409).json({
+      message: "Concurrent update detected. Please retry submission."
     });
 
   } catch (error) {

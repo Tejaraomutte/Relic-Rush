@@ -141,11 +141,21 @@ export default function Home() {
     localStorage.setItem('storyCompleted', 'true')
 
     if (currentRound === 2) {
-      navigate('/round2')
+      navigate('/waiting', {
+        state: {
+          mode: 'await-round-start',
+          targetRound: 2
+        }
+      })
       return
     }
 
-    navigate('/round3')
+    navigate('/waiting', {
+      state: {
+        mode: 'await-round-start',
+        targetRound: 3
+      }
+    })
   }
 
   /* ─── Navbar scroll shadow ─── */
