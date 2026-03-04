@@ -9,7 +9,6 @@ const generateToken = (id, role) => {
 };
 
 const normalizeTeamName = (value = "") => value.trim();
-const normalizeEmail = (value = "") => value.trim().toLowerCase();
 const normalizeOptionalName = (value = "") => {
   const normalized = String(value || "").trim();
   return normalized || null;
@@ -154,9 +153,8 @@ const buildRoundPayload = ({ roundNumber, score, questionsSolved, questionTimes,
 /* ================= REGISTER ================= */
 const registerUser = async (req, res) => {
   try {
-    const { teamName, email, password, role, adminRegistrationKey } = req.body;
+    const { teamName, password, role, adminRegistrationKey } = req.body;
     const safeTeamName = normalizeTeamName(teamName);
-    const safeEmail = email ? normalizeEmail(email) : null;
 
     if (!safeTeamName || !password) {
       return res.status(400).json({
@@ -186,7 +184,6 @@ const registerUser = async (req, res) => {
 
     const user = await User.create({
       teamName: safeTeamName,
-      email: safeEmail,
       role: requestedRole,
       password,
       rounds: []
@@ -302,7 +299,6 @@ const getAdminLeaderboard = async (req, res) => {
         $project: {
           _id: 1,
           teamName: 1,
-          email: { $ifNull: ["$email", null] },
           player1Name: { $ifNull: ["$player1Name", ""] },
           player2Name: { $ifNull: ["$player2Name", null] },
           teamMembers: { $ifNull: ["$teamMembers", []] },
@@ -443,7 +439,6 @@ const updateTeamByAdmin = async (req, res) => {
       teamName,
       player1Name,
       player2Name,
-      email,
       password,
       round1Score,
       round1Time,
@@ -465,7 +460,6 @@ const updateTeamByAdmin = async (req, res) => {
     const safeTeamName = normalizeTeamName(teamName);
     const safePlayer1Name = normalizeTeamName(player1Name);
     const safePlayer2Name = normalizeOptionalName(player2Name);
-    const safeEmail = email ? normalizeEmail(email) : null;
     const safePassword = String(password || "").trim();
 
     if (!safeTeamName || !safePlayer1Name) {
@@ -485,18 +479,10 @@ const updateTeamByAdmin = async (req, res) => {
       }
     }
 
-    if (safeEmail) {
-      const existingEmail = await User.findOne({ _id: { $ne: user._id }, email: safeEmail });
-      if (existingEmail) {
-        return res.status(400).json({ message: "Email already exists" });
-      }
-    }
-
     user.teamName = safeTeamName;
     user.player1Name = safePlayer1Name;
     user.player2Name = safePlayer2Name;
     user.teamMembers = Array.from(new Set([safePlayer1Name, safePlayer2Name].filter(Boolean)));
-    user.email = safeEmail;
     user.isLoggedIn = parseBoolean(isLoggedIn, Boolean(user.isLoggedIn));
     user.currentRound = Math.min(3, Math.max(1, toNumber(currentRound, toNumber(user.currentRound, 1))));
 
@@ -544,7 +530,6 @@ const updateTeamByAdmin = async (req, res) => {
         teamName: user.teamName,
         player1Name: user.player1Name,
         player2Name: user.player2Name,
-        email: user.email,
         isLoggedIn: user.isLoggedIn,
         currentRound: user.currentRound,
         round1Score: user.round1Score,

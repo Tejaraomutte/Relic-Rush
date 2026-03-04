@@ -10,7 +10,6 @@ const roundSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   teamName: { type: String, required: true, unique: true, trim: true },
-  email: { type: String, trim: true, lowercase: true, unique: true, sparse: true },
   player1Name: { type: String, trim: true, default: "" },
   player2Name: { type: String, trim: true, default: null },
   teamMembers: {

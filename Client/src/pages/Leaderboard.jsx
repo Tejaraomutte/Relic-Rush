@@ -30,7 +30,6 @@ export default function AdminDashboard() {
     teamName: '',
     player1Name: '',
     player2Name: '',
-    email: '',
     password: '',
     round1Score: 0,
     round1Time: 0,
@@ -186,7 +185,6 @@ export default function AdminDashboard() {
       teamName: team.teamName || '',
       player1Name: team.player1Name || '',
       player2Name: team.player2Name || '',
-      email: team.email || '',
       password: '',
       round1Score: Number(team.round1Score || 0),
       round1Time: Number(team.round1Time || 0),
@@ -224,7 +222,6 @@ export default function AdminDashboard() {
       teamName: String(editForm.teamName || '').trim(),
       player1Name: String(editForm.player1Name || '').trim(),
       player2Name: String(editForm.player2Name || '').trim(),
-      email: String(editForm.email || '').trim(),
       password: String(editForm.password || '').trim(),
       round1Score: Number(editForm.round1Score || 0),
       round1Time: Number(editForm.round1Time || 0),
@@ -472,7 +469,6 @@ export default function AdminDashboard() {
                   <input className="form-input login-glass-input" name="teamName" value={editForm.teamName} onChange={handleEditFieldChange} placeholder="Team Name" required />
                   <input className="form-input login-glass-input" name="player1Name" value={editForm.player1Name} onChange={handleEditFieldChange} placeholder="Player 1 Name" required />
                   <input className="form-input login-glass-input" name="player2Name" value={editForm.player2Name} onChange={handleEditFieldChange} placeholder="Player 2 Name (Optional)" />
-                  <input className="form-input login-glass-input" name="email" value={editForm.email} onChange={handleEditFieldChange} placeholder="Email" />
                   <input type="password" className="form-input login-glass-input" name="password" value={editForm.password} onChange={handleEditFieldChange} placeholder="Password (leave blank to keep same)" />
 
                   <div className="admin-edit-grid">
