@@ -87,7 +87,9 @@ export default function Login() {
       localStorage.removeItem('genieRevealPlayed')
 
       const currentRound = Number(loginResponse?.roundAccess?.nextRound || loginResponse.currentRound || 1)
-      const eventCompleted = Boolean(loginResponse?.roundAccess?.eventCompleted || loginResponse?.eventCompleted)
+      const eventCompleted = Boolean(loginResponse?.eventCompleted)
+      const progressReset = Boolean(loginResponse?.progressReset)
+      const isFirstLogin = Boolean(loginResponse?.isFirstLogin)
       const roundAccess = loginResponse?.roundAccess || {}
 
       localStorage.setItem('currentRound', String(currentRound))
@@ -109,12 +111,28 @@ export default function Login() {
       if (loginResponse.role === 'admin') {
         redirectPath = '/admin-dashboard'
       } else {
-        localStorage.setItem('storyUnlocked', 'false')
-        localStorage.setItem('storyCompleted', 'false')
+        const shouldUseOnboardingFlow = isFirstLogin && currentRound === 1 && (progressReset || Number(roundAccess?.nextRound || 1) === 1)
+
         if (eventCompleted) {
+          localStorage.setItem('storyUnlocked', 'true')
+          localStorage.setItem('storyCompleted', 'true')
           localStorage.setItem('relicUnlocked', 'true')
+          redirectPath = '/results'
+        } else if (shouldUseOnboardingFlow) {
+          localStorage.setItem('storyUnlocked', 'false')
+          localStorage.setItem('storyCompleted', 'false')
+          localStorage.setItem('relicUnlocked', 'false')
+          redirectPath = '/home'
+        } else {
+          localStorage.setItem('storyUnlocked', 'true')
+          localStorage.setItem('storyCompleted', 'true')
+          localStorage.setItem('relicUnlocked', 'false')
+          redirectPath = '/waiting'
+          redirectState = {
+            mode: 'await-round-start',
+            targetRound: currentRound
+          }
         }
-        redirectPath = '/home'
       }
       
       setTimeout(() => {

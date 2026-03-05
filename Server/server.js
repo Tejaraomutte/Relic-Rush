@@ -73,13 +73,30 @@ app.use("/api", roundRoutes);
 
 const PORT = process.env.PORT || 5000;
 
+server.on("error", (error) => {
+  if (error?.code === "EADDRINUSE") {
+    console.error(`❌ Port ${PORT} is already in use. Stop the existing backend instance and restart.`);
+    process.exit(1);
+    return;
+  }
+
+  console.error("❌ Server runtime error:", error.message);
+  process.exit(1);
+});
+
 const bootstrap = async () => {
   try {
     await connectDB();
-    await resetRoundStatesToWaiting();
-    console.log("🔄 Round states reset to waiting on server startup");
+    server.listen(PORT, "0.0.0.0", async () => {
+      try {
+        await resetRoundStatesToWaiting();
+        console.log("🔄 Round states reset to waiting on server startup");
+      } catch (resetError) {
+        console.error("❌ Failed to reset round states:", resetError.message);
+        process.exit(1);
+        return;
+      }
 
-    server.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {

@@ -105,6 +105,21 @@ const resolveRoundAccess = (user) => {
   };
 };
 
+const isProgressResetFromRoundAccess = (roundAccess) => {
+  const rounds = roundAccess?.rounds || {};
+  const snapshots = [rounds.round1, rounds.round2, rounds.round3].filter(Boolean);
+
+  if (snapshots.length === 0) {
+    return true;
+  }
+
+  return snapshots.every((snapshot) => {
+    const score = toNumber(snapshot?.score, 0);
+    const time = toNumber(snapshot?.time, 0);
+    return score <= 0 && time <= 0;
+  });
+};
+
 const buildLoginSummary = (user) => {
   const rounds = Array.isArray(user.rounds) ? user.rounds : [];
   const getRoundScore = (roundNumber) => {
@@ -234,16 +249,17 @@ const loginUser = async (req, res) => {
     }
 
     const userRole = user.role || "participant";
-    const roundAccess = resolveRoundAccess(user);
+    const isFirstParticipantLogin = userRole === "participant" && !user.isLoggedIn;
+    let roundAccess = resolveRoundAccess(user);
+    let progressReset = isProgressResetFromRoundAccess(roundAccess);
 
-    const effectiveCurrentRound = roundAccess.eventCompleted ? 3 : roundAccess.nextRound;
-
-    // One-time login enforcement: only for participants, admins can login multiple times
-    if (userRole === "participant" && user.isLoggedIn) {
-      return res.status(403).json({
-        message: "Login already used. Only one login allowed."
-      });
+    if (userRole === "participant" && !user.isLoggedIn && progressReset) {
+      await PlayerRoundProgress.deleteMany({ userId: user._id });
+      roundAccess = resolveRoundAccess(user);
+      progressReset = isProgressResetFromRoundAccess(roundAccess);
     }
+
+    const effectiveCurrentRound = progressReset ? 1 : (roundAccess.eventCompleted ? 3 : roundAccess.nextRound);
 
     // Set isLoggedIn and normalize currentRound for participants (admins don't need this flag)
     if (userRole === "participant") {
@@ -268,6 +284,8 @@ const loginUser = async (req, res) => {
       ...buildLoginSummary(user),
       currentRound: effectiveCurrentRound,
       eventCompleted: roundAccess.eventCompleted,
+      progressReset,
+      isFirstLogin: isFirstParticipantLogin,
       roundAccess,
       token: generateToken(user._id, userRole),
       role: userRole
