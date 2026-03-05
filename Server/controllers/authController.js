@@ -65,12 +65,14 @@ const getRoundSnapshot = (user, roundNumber) => {
   const score = toNumber(existingRound?.roundScore, toNumber(user?.[flatScoreKey], 0));
   const time = toNumber(existingRound?.totalRoundTime, toNumber(user?.[flatTimeKey], 0));
 
+  const isFilled = score > 0 && time > 0;
+
   return {
     roundNumber,
     score,
     time,
-    canStart: score === 0 && time === 0,
-    isCompleted: score !== 0 || time !== 0
+    canStart: !isFilled,
+    isCompleted: isFilled
   };
 };
 
@@ -127,9 +129,9 @@ const buildLoginSummary = (user) => {
     currentRound: clampRound(user.currentRound),
     isLoggedIn: true,
     rounds: {
-      round1Played: round1Score !== 0 || round1Time !== 0,
-      round2Played: round2Score !== 0 || round2Time !== 0,
-      round3Played: round3Score !== 0 || round3Time !== 0
+      round1Played: round1Score > 0 && round1Time > 0,
+      round2Played: round2Score > 0 && round2Time > 0,
+      round3Played: round3Score > 0 && round3Time > 0
     },
     scores: {
       round1: round1Score,
@@ -233,6 +235,7 @@ const loginUser = async (req, res) => {
 
     const userRole = user.role || "participant";
     const roundAccess = resolveRoundAccess(user);
+
     const effectiveCurrentRound = roundAccess.eventCompleted ? 3 : roundAccess.nextRound;
 
     // One-time login enforcement: only for participants, admins can login multiple times
@@ -529,6 +532,16 @@ const updateTeamByAdmin = async (req, res) => {
     user.rounds = nextRounds;
     user.markModified("rounds");
     await user.save();
+
+    const shouldClearProgressForReset =
+      user.role === "participant" &&
+      !Boolean(user.isLoggedIn) &&
+      Array.isArray(user.rounds) &&
+      user.rounds.length === 0;
+
+    if (shouldClearProgressForReset) {
+      await PlayerRoundProgress.deleteMany({ userId: user._id });
+    }
 
     return res.json({
       message: "Team updated successfully",

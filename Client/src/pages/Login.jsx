@@ -2,7 +2,28 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/Login.css'
 import { loginUser } from '../utils/api'
-import { initGameSession, clearGameSession } from '../utils/sessionManager'
+import { clearGameSession, initGameSessionFromDashboard } from '../utils/sessionManager'
+import { clearRoundStartConfig } from '../utils/roundGate'
+
+const clearTransientRoundKeys = () => {
+  try {
+    sessionStorage.removeItem('waitingState')
+
+    const keysToRemove = []
+    for (let index = 0; index < sessionStorage.length; index += 1) {
+      const key = sessionStorage.key(index)
+      if (!key) continue
+
+      if (key.startsWith('waitingUnlockTs:') || key.startsWith('waitingSubmitDone:')) {
+        keysToRemove.push(key)
+      }
+    }
+
+    keysToRemove.forEach((key) => sessionStorage.removeItem(key))
+  } catch (error) {
+    console.error('Failed to clear transient round keys:', error)
+  }
+}
 
 export default function Login() {
   const navigate = useNavigate()
@@ -56,29 +77,30 @@ export default function Login() {
       localStorage.setItem('round2Score', String(loginResponse?.scores?.round2 || 0))
       localStorage.setItem('round3Score', String(loginResponse?.scores?.round3 || 0))
       localStorage.setItem('lampsRemaining', '4')
+      clearRoundStartConfig(1)
+      clearRoundStartConfig(2)
+      clearRoundStartConfig(3)
+      clearTransientRoundKeys()
       localStorage.removeItem('storyUnlocked')
       localStorage.removeItem('storyCompleted')
       localStorage.removeItem('relicUnlocked')
       localStorage.removeItem('genieRevealPlayed')
 
-      // Initialize game session for participants
-      if (loginResponse.role !== 'admin') {
-        clearGameSession() // Clear any stale session
-        initGameSession() // Start fresh session
-      }
-
       const currentRound = Number(loginResponse?.roundAccess?.nextRound || loginResponse.currentRound || 1)
       const eventCompleted = Boolean(loginResponse?.roundAccess?.eventCompleted || loginResponse?.eventCompleted)
       const roundAccess = loginResponse?.roundAccess || {}
-      const hasAnyCompletedRound = Boolean(
-        roundAccess?.rounds?.round1?.isCompleted ||
-        roundAccess?.rounds?.round2?.isCompleted ||
-        roundAccess?.rounds?.round3?.isCompleted
-      )
-      const isFirstLoginFlow = loginResponse.role !== 'admin' && !eventCompleted && currentRound === 1 && !hasAnyCompletedRound
 
       localStorage.setItem('currentRound', String(currentRound))
       localStorage.setItem('eventCompleted', eventCompleted ? 'true' : 'false')
+
+      if (loginResponse.role !== 'admin') {
+        clearGameSession()
+        initGameSessionFromDashboard({
+          roundAccess,
+          currentRound,
+          eventCompleted
+        })
+      }
 
       // Redirect based on role
       let redirectPath = '/home'

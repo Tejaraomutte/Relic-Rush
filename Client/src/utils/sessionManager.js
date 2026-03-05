@@ -98,20 +98,25 @@ export const isRoundCompleted = (roundNumber) => {
 
 // Initialize new game session
 export const initGameSession = () => {
-  const existingSession = loadGameSession()
-
-  if (existingSession && hasAnyRoundProgress(existingSession) && !existingSession.round3Completed) {
-    updateGameSession({
-      startedAt: existingSession.startedAt || Date.now()
-    })
-    return
-  }
-
   saveGameSession({
     currentRound: 1,
     round1Completed: false,
     round2Completed: false,
     round3Completed: false,
     startedAt: Date.now()
+  })
+}
+
+export const initGameSessionFromDashboard = ({ roundAccess, currentRound, eventCompleted } = {}) => {
+  const rounds = roundAccess?.rounds || {}
+  const normalizedCurrentRound = Number(currentRound)
+
+  saveGameSession({
+    currentRound: Number.isFinite(normalizedCurrentRound) ? Math.min(3, Math.max(1, normalizedCurrentRound)) : 1,
+    round1Completed: Boolean(rounds?.round1?.isCompleted),
+    round2Completed: Boolean(rounds?.round2?.isCompleted),
+    round3Completed: Boolean(rounds?.round3?.isCompleted || eventCompleted),
+    startedAt: Date.now(),
+    source: 'dashboard-sync'
   })
 }
