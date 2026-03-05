@@ -261,6 +261,41 @@ export async function startRoundByAdmin(token, roundNumber, durationSeconds) {
     return await response.json()
 }
 
+export async function enterRoundProgress(token, roundNumber) {
+    const response = await fetch(`${API_URL}/round-progress/${roundNumber}/enter`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+    })
+
+    if (!response.ok) {
+        const text = await response.text().catch(() => response.statusText)
+        throw new Error(text || `Failed to initialize round ${roundNumber} progress (${response.status})`)
+    }
+
+    return await response.json()
+}
+
+export async function completeRoundProgress(token, roundNumber, payload = {}) {
+    const response = await fetch(`${API_URL}/round-progress/${roundNumber}/complete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+        const text = await response.text().catch(() => response.statusText)
+        throw new Error(text || `Failed to complete round ${roundNumber} progress (${response.status})`)
+    }
+
+    return await response.json()
+}
+
 export function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;

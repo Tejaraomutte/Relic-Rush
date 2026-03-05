@@ -8,9 +8,8 @@ import ResultMessage from '../components/ResultMessage'
 import ScoreDisplay from '../components/ScoreDisplay'
 import LampDisplay from '../components/LampDisplay'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
-import { getRoundStatus } from '../utils/api'
+import { enterRoundProgress, getRoundStatus } from '../utils/api'
 import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
-import { getRoundRemainingSeconds, getRoundStartConfig, setRoundStartConfig } from '../utils/roundGate'
 
 const questions = [
   {
@@ -155,10 +154,9 @@ const getElapsedSecondsFromStart = (startedAt, maxDurationSeconds) => {
 export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
   const navigate = useNavigate()
 
-  const initialRoundStartState = getRoundStartConfig(ROUND_NUMBER)
-  const initialRoundDuration = Number(initialRoundStartState?.durationSeconds || ROUND_DURATION)
   const initialRoundStateRef = useRef(loadRoundState(1))
   const initialRoundState = initialRoundStateRef.current
+  const initialRoundDuration = Number(initialRoundState?.roundDurationSeconds || ROUND_DURATION)
   
   // Initialize state with saved values or defaults - load fresh on each mount
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
@@ -175,16 +173,16 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
       return initialRoundState.timeLeft
     }
 
-    return getRoundRemainingSeconds(ROUND_NUMBER, initialRoundDuration)
+    return initialRoundDuration
   })
   const timeLeftRef = useRef(
     Number.isFinite(initialRoundState?.timeLeft)
       ? initialRoundState.timeLeft
-      : getRoundRemainingSeconds(ROUND_NUMBER, initialRoundDuration)
+      : initialRoundDuration
   )
   
   const startedAtRef = useRef(
-    initialRoundState?.startedAt ?? Number(initialRoundStartState?.startedAtMs || Date.now())
+    initialRoundState?.startedAt ?? Number(Date.now())
   )
   
   const submittedRef = useRef(false)
@@ -205,7 +203,8 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
       currentQuestionIndex,
       selectedAnswers,
       timeLeft,
-      startedAt: startedAtRef.current
+      startedAt: startedAtRef.current,
+      roundDurationSeconds
     })
   }
 
@@ -236,16 +235,17 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
         if (!isMounted) return
 
         if (response?.round?.isActive) {
-          setRoundStartConfig(response.round)
+          const progressResponse = await enterRoundProgress(token, ROUND_NUMBER)
+          if (!isMounted) return
 
-          const duration = Number(response.round.durationSeconds || ROUND_DURATION)
-          const remaining = Math.max(Number(response.round.timeRemainingSeconds || 0), 0)
+          const duration = Number(progressResponse?.progress?.duration || response.round.durationSeconds || ROUND_DURATION)
+          const remaining = Math.max(Number(progressResponse?.progress?.remainingTime ?? duration), 0)
 
           setRoundDurationSeconds(duration)
           setTimeLeft(remaining)
           timeLeftRef.current = remaining
-          startedAtRef.current = response?.round?.startedAt
-            ? new Date(response.round.startedAt).getTime()
+          startedAtRef.current = progressResponse?.progress?.startTime
+            ? new Date(progressResponse.progress.startTime).getTime()
             : Date.now()
 
           setRoundAccessLoading(false)
@@ -386,7 +386,8 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
       currentQuestionIndex,
       selectedAnswers: newAnswers,
       timeLeft: timeLeftRef.current,
-      startedAt: startedAtRef.current
+      startedAt: startedAtRef.current,
+      roundDurationSeconds
     })
   }
 
@@ -406,7 +407,8 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
         currentQuestionIndex: nextQuestionIndex,
         selectedAnswers,
         timeLeft: timeLeftRef.current,
-        startedAt: startedAtRef.current
+        startedAt: startedAtRef.current,
+        roundDurationSeconds
       })
 
       setCurrentQuestionIndex(prev => prev + 1)

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Background from '../components/Background'
-import { getRoundStatus, submitRoundScore } from '../utils/api'
+import { completeRoundProgress, getRoundStatus, submitRoundScore } from '../utils/api'
 import { getRealtimeSocket } from '../utils/realtime'
 import { getRoundPath, setRoundStartConfig } from '../utils/roundGate'
 import './Waiting.css'
@@ -198,6 +198,13 @@ export default function Waiting() {
         }
       )
 
+      const token = sessionStorage.getItem('token')
+      if (token) {
+        await completeRoundProgress(token, submissionPayload.roundNumber, {
+          score: submissionPayload.roundScore
+        })
+      }
+
       const numericRound = Number(submissionPayload.roundNumber)
       if (numericRound === 1) {
         localStorage.setItem('currentRound', '2')
@@ -218,6 +225,13 @@ export default function Waiting() {
       )
 
       if (treatedAsAlreadySubmitted) {
+        const token = sessionStorage.getItem('token')
+        if (token) {
+          completeRoundProgress(token, submissionPayload.roundNumber, {
+            score: submissionPayload.roundScore
+          }).catch(() => {})
+        }
+
         const numericRound = Number(submissionPayload.roundNumber)
         if (numericRound === 1) {
           localStorage.setItem('currentRound', '2')

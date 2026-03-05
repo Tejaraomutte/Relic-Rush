@@ -7,9 +7,8 @@ import ResultMessage from '../components/ResultMessage'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
 import FlowBuilder from './flowchart/src/pages/FlowBuilder'
 import DebugRound from './flowchart/src/debug/DebugRound'
-import { getRoundStatus } from '../utils/api'
+import { enterRoundProgress, getRoundStatus } from '../utils/api'
 import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted, clearGameSession } from '../utils/sessionManager'
-import { getRoundRemainingSeconds, getRoundStartConfig, setRoundStartConfig } from '../utils/roundGate'
 
 const ROUND_DURATION = 900
 const POINTS_PER_SOLVED_PROBLEM = 5
@@ -29,10 +28,9 @@ export default function Round3({ reduceLamps }) {
   const navigate = useNavigate()
   const hasReducedRef = useRef(false)
   const submittedRef = useRef(false)
-  const initialRoundStartState = getRoundStartConfig(3)
-  const initialRoundDuration = Number(initialRoundStartState?.durationSeconds || ROUND_DURATION)
   const initialRoundStateRef = useRef(loadRoundState(3))
   const initialRoundState = initialRoundStateRef.current
+  const initialRoundDuration = Number(initialRoundState?.roundDurationSeconds || ROUND_DURATION)
   
   // Initialize state with saved values or defaults - load fresh on each mount
   const [activeSection, setActiveSection] = useState(() => {
@@ -45,11 +43,11 @@ export default function Round3({ reduceLamps }) {
       return initialRoundState.timeLeft
     }
 
-    return getRoundRemainingSeconds(3, initialRoundDuration)
+    return initialRoundDuration
   })
 
   const startedAtRef = useRef(
-    initialRoundState?.startedAt ?? Number(initialRoundStartState?.startedAtMs || Date.now())
+    initialRoundState?.startedAt ?? Number(Date.now())
   )
   const [roundDurationSeconds, setRoundDurationSeconds] = useState(initialRoundDuration)
   const [roundAccessLoading, setRoundAccessLoading] = useState(true)
@@ -57,7 +55,7 @@ export default function Round3({ reduceLamps }) {
   const timeLeftRef = useRef(
     Number.isFinite(initialRoundState?.timeLeft)
       ? initialRoundState.timeLeft
-      : getRoundRemainingSeconds(3, initialRoundDuration)
+      : initialRoundDuration
   )
   
   const [flowchartSolvedCount, setFlowchartSolvedCount] = useState(() => {
@@ -82,7 +80,8 @@ export default function Round3({ reduceLamps }) {
       debugSolvedCount,
       activeSection,
       timeLeft,
-      startedAt: startedAtRef.current
+      startedAt: startedAtRef.current,
+      roundDurationSeconds
     })
   }
 
@@ -113,16 +112,17 @@ export default function Round3({ reduceLamps }) {
         if (!isMounted) return
 
         if (response?.round?.isActive) {
-          setRoundStartConfig(response.round)
+          const progressResponse = await enterRoundProgress(token, 3)
+          if (!isMounted) return
 
-          const duration = Number(response.round.durationSeconds || ROUND_DURATION)
-          const remaining = Math.max(Number(response.round.timeRemainingSeconds || 0), 0)
+          const duration = Number(progressResponse?.progress?.duration || response.round.durationSeconds || ROUND_DURATION)
+          const remaining = Math.max(Number(progressResponse?.progress?.remainingTime ?? duration), 0)
 
           setRoundDurationSeconds(duration)
           setTimeLeft(remaining)
           timeLeftRef.current = remaining
-          startedAtRef.current = response?.round?.startedAt
-            ? new Date(response.round.startedAt).getTime()
+          startedAtRef.current = progressResponse?.progress?.startTime
+            ? new Date(progressResponse.progress.startTime).getTime()
             : Date.now()
 
           setRoundAccessLoading(false)
@@ -358,7 +358,8 @@ export default function Round3({ reduceLamps }) {
                       debugSolvedCount: debugSolvedRef.current,
                       activeSection: option.key,
                       timeLeft: timeLeftRef.current,
-                      startedAt: startedAtRef.current
+                      startedAt: startedAtRef.current,
+                      roundDurationSeconds
                     })
                   }}
                 >
@@ -379,7 +380,8 @@ export default function Round3({ reduceLamps }) {
                     debugSolvedCount: debugSolvedRef.current,
                     activeSection: 'flowchart',
                     timeLeft: timeLeftRef.current,
-                    startedAt: startedAtRef.current
+                    startedAt: startedAtRef.current,
+                    roundDurationSeconds
                   })
                 }}
                 disabled={isRoundLocked || activeSection === 'flowchart'}
@@ -395,7 +397,8 @@ export default function Round3({ reduceLamps }) {
                     debugSolvedCount: debugSolvedRef.current,
                     activeSection: 'debug',
                     timeLeft: timeLeftRef.current,
-                    startedAt: startedAtRef.current
+                    startedAt: startedAtRef.current,
+                    roundDurationSeconds
                   })
                 }}
                 disabled={isRoundLocked || activeSection === 'debug'}
@@ -418,7 +421,8 @@ export default function Round3({ reduceLamps }) {
                     debugSolvedCount: debugSolvedRef.current,
                     activeSection,
                     timeLeft: timeLeftRef.current,
-                    startedAt: startedAtRef.current
+                    startedAt: startedAtRef.current,
+                    roundDurationSeconds
                   })
                 }}
               />
@@ -434,7 +438,8 @@ export default function Round3({ reduceLamps }) {
                     debugSolvedCount: payload.solvedCount,
                     activeSection,
                     timeLeft: timeLeftRef.current,
-                    startedAt: startedAtRef.current
+                    startedAt: startedAtRef.current,
+                    roundDurationSeconds
                   })
                 }}
               />

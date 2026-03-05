@@ -1,5 +1,12 @@
 const User = require("../models/user");
+const PlayerRoundProgress = require("../models/playerRoundProgress");
 const jwt = require("jsonwebtoken");
+
+const DEFAULT_ROUND_DURATIONS = {
+  1: 600,
+  2: 1200,
+  3: 900
+};
 
 /* ================= TOKEN ================= */
 const generateToken = (id, role) => {
@@ -740,6 +747,33 @@ const submitScore = async (req, res) => {
           continue;
         }
         throw saveError;
+      }
+
+      if (round !== "final") {
+        const numericRound = Number(round);
+        if ([1, 2, 3].includes(numericRound)) {
+          const parsedDuration = Number(req.body?.totalRoundTimeAllowed);
+          const fallbackDuration = Number.isFinite(parsedDuration) && parsedDuration > 0
+            ? Math.floor(parsedDuration)
+            : DEFAULT_ROUND_DURATIONS[numericRound] || 600;
+
+          await PlayerRoundProgress.findOneAndUpdate(
+            { userId: user._id, roundId: numericRound },
+            {
+              $set: {
+                completed: true,
+                score: toNumber(score, 0)
+              },
+              $setOnInsert: {
+                userId: user._id,
+                roundId: numericRound,
+                startTime: new Date(),
+                duration: fallbackDuration
+              }
+            },
+            { upsert: true }
+          );
+        }
       }
 
       return res.json({
