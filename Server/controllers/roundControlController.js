@@ -71,7 +71,36 @@ const getOrCreateRoundControl = async () => {
   return existing;
 };
 
-const refreshExpiredRounds = async (roundControl) => roundControl;
+const refreshExpiredRounds = async (roundControl) => {
+  if (!roundControl) return roundControl;
+
+  let changed = false;
+  const now = Date.now();
+
+  roundControl.rounds = (roundControl.rounds || []).map((roundState) => {
+    if (roundState.status !== "active") {
+      return roundState;
+    }
+
+    const endsAtTs = roundState.endsAt ? new Date(roundState.endsAt).getTime() : null;
+    if (endsAtTs && endsAtTs <= now) {
+      changed = true;
+      return {
+        ...roundState.toObject(),
+        status: "completed"
+      };
+    }
+
+    return roundState;
+  });
+
+  if (changed) {
+    roundControl.markModified("rounds");
+    await roundControl.save();
+  }
+
+  return roundControl;
+};
 
 const getRoundState = (roundControl, roundNumber) =>
   (roundControl.rounds || []).find((entry) => entry.roundNumber === roundNumber);
@@ -112,6 +141,20 @@ const computeRemainingTime = (startTime, duration) => {
 const mapRoundState = (roundState) => {
   const isActive = roundState?.status === "active";
   const durationSeconds = Number(roundState.durationSeconds || DEFAULT_ROUND_DURATIONS[roundState.roundNumber] || 600);
+  const startedAtTs = roundState.startedAt ? new Date(roundState.startedAt).getTime() : null;
+  const endsAtTs = roundState.endsAt ? new Date(roundState.endsAt).getTime() : null;
+
+  let timeRemainingSeconds = 0;
+  if (isActive) {
+    if (endsAtTs) {
+      timeRemainingSeconds = Math.max(Math.ceil((endsAtTs - Date.now()) / 1000), 0);
+    } else if (startedAtTs) {
+      const elapsedSeconds = Math.max(Math.floor((Date.now() - startedAtTs) / 1000), 0);
+      timeRemainingSeconds = Math.max(durationSeconds - elapsedSeconds, 0);
+    } else {
+      timeRemainingSeconds = durationSeconds;
+    }
+  }
 
   return {
     roundNumber: roundState.roundNumber,
@@ -120,8 +163,8 @@ const mapRoundState = (roundState) => {
     startedAt: roundState.startedAt,
     endsAt: roundState.endsAt,
     isStarted: isActive,
-    isActive,
-    timeRemainingSeconds: isActive ? durationSeconds : 0
+    isActive: isActive && timeRemainingSeconds > 0,
+    timeRemainingSeconds
   };
 };
 
@@ -176,6 +219,13 @@ const startRound = async (req, res) => {
 
     roundControl.rounds = (roundControl.rounds || []).map((roundState) => {
       if (roundState.roundNumber < roundNumber && roundState.status === "waiting") {
+        return {
+          ...roundState.toObject(),
+          status: "completed"
+        };
+      }
+
+      if (roundState.roundNumber !== roundNumber && roundState.status === "active") {
         return {
           ...roundState.toObject(),
           status: "completed"
