@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/Login.css'
-import { loginUser } from '../utils/api'
+import { getRoundStatus, loginUser } from '../utils/api'
 import { clearGameSession, initGameSessionFromDashboard } from '../utils/sessionManager'
-import { clearRoundStartConfig } from '../utils/roundGate'
+import { clearRoundStartConfig, getRoundPath } from '../utils/roundGate'
 
 const clearTransientRoundKeys = () => {
   try {
@@ -112,12 +112,25 @@ export default function Login() {
         redirectPath = '/admin-dashboard'
       } else {
         const shouldUseOnboardingFlow = isFirstLogin && currentRound === 1 && (progressReset || Number(roundAccess?.nextRound || 1) === 1)
+        let isTargetRoundActive = false
+
+        try {
+          const roundStatus = await getRoundStatus(loginResponse.token, currentRound)
+          isTargetRoundActive = Boolean(roundStatus?.round?.isActive)
+        } catch {
+          isTargetRoundActive = false
+        }
 
         if (eventCompleted) {
           localStorage.setItem('storyUnlocked', 'true')
           localStorage.setItem('storyCompleted', 'true')
           localStorage.setItem('relicUnlocked', 'true')
           redirectPath = '/results'
+        } else if (isTargetRoundActive) {
+          localStorage.setItem('storyUnlocked', 'true')
+          localStorage.setItem('storyCompleted', 'true')
+          localStorage.setItem('relicUnlocked', 'false')
+          redirectPath = getRoundPath(currentRound)
         } else if (shouldUseOnboardingFlow) {
           localStorage.setItem('storyUnlocked', 'false')
           localStorage.setItem('storyCompleted', 'false')
