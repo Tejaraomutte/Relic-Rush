@@ -8,6 +8,13 @@ const roundSchema = new mongoose.Schema({
   roundScore: { type: Number, default: 0 }
 }, { _id: false });
 
+const playerRoundStateSchema = new mongoose.Schema({
+  roundNumber: { type: Number, required: true, min: 1, max: 3 },
+  roundStartTime: { type: Date, default: null },
+  roundDurationSeconds: { type: Number, default: 0, min: 0 },
+  roundCompleted: { type: Boolean, default: false }
+}, { _id: false });
+
 const userSchema = new mongoose.Schema({
   teamName: { type: String, required: true, unique: true, trim: true },
   player1Name: { type: String, trim: true, default: "" },
@@ -25,6 +32,10 @@ const userSchema = new mongoose.Schema({
   currentRound: { type: Number, default: 1, min: 1, max: 3 },
   rounds: {
     type: [roundSchema],
+    default: []
+  },
+  playerRoundState: {
+    type: [playerRoundStateSchema],
     default: []
   },
   roundsPlayed: {

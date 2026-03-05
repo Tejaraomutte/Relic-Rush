@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/Login.css'
-import { getRoundStatus, loginUser } from '../utils/api'
+import { loginUser } from '../utils/api'
 import { clearGameSession, initGameSessionFromDashboard } from '../utils/sessionManager'
-import { clearRoundStartConfig, getRoundPath } from '../utils/roundGate'
+import { clearRoundStartConfig } from '../utils/roundGate'
 
 const clearTransientRoundKeys = () => {
   try {
@@ -88,8 +88,6 @@ export default function Login() {
 
       const currentRound = Number(loginResponse?.roundAccess?.nextRound || loginResponse.currentRound || 1)
       const eventCompleted = Boolean(loginResponse?.eventCompleted)
-      const progressReset = Boolean(loginResponse?.progressReset)
-      const isFirstLogin = Boolean(loginResponse?.isFirstLogin)
       const roundAccess = loginResponse?.roundAccess || {}
 
       localStorage.setItem('currentRound', String(currentRound))
@@ -111,40 +109,17 @@ export default function Login() {
       if (loginResponse.role === 'admin') {
         redirectPath = '/admin-dashboard'
       } else {
-        const shouldUseOnboardingFlow = isFirstLogin && currentRound === 1 && (progressReset || Number(roundAccess?.nextRound || 1) === 1)
-        let isTargetRoundActive = false
-
-        try {
-          const roundStatus = await getRoundStatus(loginResponse.token, currentRound)
-          isTargetRoundActive = Boolean(roundStatus?.round?.isActive)
-        } catch {
-          isTargetRoundActive = false
-        }
-
         if (eventCompleted) {
           localStorage.setItem('storyUnlocked', 'true')
           localStorage.setItem('storyCompleted', 'true')
           localStorage.setItem('relicUnlocked', 'true')
           redirectPath = '/results'
-        } else if (isTargetRoundActive) {
+        } else {
+          // Every participant login starts at Home and goes through Story before waiting/round routing.
           localStorage.setItem('storyUnlocked', 'true')
-          localStorage.setItem('storyCompleted', 'true')
-          localStorage.setItem('relicUnlocked', 'false')
-          redirectPath = getRoundPath(currentRound)
-        } else if (shouldUseOnboardingFlow) {
-          localStorage.setItem('storyUnlocked', 'false')
           localStorage.setItem('storyCompleted', 'false')
           localStorage.setItem('relicUnlocked', 'false')
           redirectPath = '/home'
-        } else {
-          localStorage.setItem('storyUnlocked', 'true')
-          localStorage.setItem('storyCompleted', 'true')
-          localStorage.setItem('relicUnlocked', 'false')
-          redirectPath = '/waiting'
-          redirectState = {
-            mode: 'await-round-start',
-            targetRound: currentRound
-          }
         }
       }
       

@@ -1,5 +1,6 @@
 const RoundControl = require("../models/roundControl");
 const PlayerRoundProgress = require("../models/playerRoundProgress");
+const User = require("../models/user");
 
 const DEFAULT_ROUND_DURATIONS = {
   1: 600,
@@ -78,6 +79,29 @@ const getRoundState = (roundControl, roundNumber) =>
 const resolveRoundDuration = (roundState, roundNumber) =>
   Number(roundState?.durationSeconds || DEFAULT_ROUND_DURATIONS[roundNumber] || 600);
 
+const syncUserRoundState = async ({ userId, roundNumber, roundStartTime, roundDurationSeconds, roundCompleted }) => {
+  const user = await User.findById(userId);
+  if (!user) return;
+
+  const existing = Array.isArray(user.playerRoundState) ? user.playerRoundState : [];
+  const idx = existing.findIndex((entry) => Number(entry.roundNumber) === Number(roundNumber));
+  const nextEntry = {
+    roundNumber,
+    roundStartTime: roundStartTime || null,
+    roundDurationSeconds: Number(roundDurationSeconds || 0),
+    roundCompleted: Boolean(roundCompleted)
+  };
+
+  if (idx >= 0) {
+    existing[idx] = nextEntry;
+  } else {
+    existing.push(nextEntry);
+  }
+
+  user.playerRoundState = existing;
+  await user.save();
+};
+
 const computeRemainingTime = (startTime, duration) => {
   const safeDuration = Math.max(Number(duration) || 0, 0);
   const startedAtTs = startTime ? new Date(startTime).getTime() : Date.now();
@@ -147,6 +171,9 @@ const startRound = async (req, res) => {
     );
 
     const roundControl = await refreshExpiredRounds(await getOrCreateRoundControl());
+    const startedAt = new Date();
+    const endsAt = new Date(startedAt.getTime() + durationSeconds * 1000);
+
     roundControl.rounds = (roundControl.rounds || []).map((roundState) => {
       if (roundState.roundNumber < roundNumber && roundState.status === "waiting") {
         return {
@@ -163,8 +190,8 @@ const startRound = async (req, res) => {
         ...roundState.toObject(),
         status: "active",
         durationSeconds,
-        startedAt: null,
-        endsAt: null,
+        startedAt,
+        endsAt,
         startedBy: req.user?._id || null
       };
     });
@@ -176,8 +203,8 @@ const startRound = async (req, res) => {
       roundNumber,
       status: "active",
       durationSeconds,
-      startedAt: null,
-      endsAt: null,
+      startedAt,
+      endsAt,
       timeRemainingSeconds: durationSeconds
     };
 
@@ -203,7 +230,7 @@ const getOrCreatePlayerRoundProgress = async (req, res) => {
       return res.status(400).json({ message: "Invalid round number" });
     }
 
-    const roundControl = await getOrCreateRoundControl();
+    const roundControl = await refreshExpiredRounds(await getOrCreateRoundControl());
     const roundState = getRoundState(roundControl, roundNumber);
 
     if (!roundState || roundState.status !== "active") {
@@ -223,6 +250,14 @@ const getOrCreatePlayerRoundProgress = async (req, res) => {
         duration: resolveRoundDuration(roundState, roundNumber),
         completed: false,
         score: 0
+      });
+
+      await syncUserRoundState({
+        userId: req.user._id,
+        roundNumber,
+        roundStartTime: progress.startTime,
+        roundDurationSeconds: progress.duration,
+        roundCompleted: progress.completed
       });
     }
 
@@ -315,6 +350,14 @@ const completePlayerRound = async (req, res) => {
     );
 
     const remainingTime = computeRemainingTime(progress.startTime, progress.duration);
+
+    await syncUserRoundState({
+      userId: req.user._id,
+      roundNumber,
+      roundStartTime: progress.startTime,
+      roundDurationSeconds: progress.duration,
+      roundCompleted: progress.completed
+    });
 
     return res.json({
       success: true,

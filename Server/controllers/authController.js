@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const PlayerRoundProgress = require("../models/playerRoundProgress");
+const RoundControl = require("../models/roundControl");
 const jwt = require("jsonwebtoken");
 
 const DEFAULT_ROUND_DURATIONS = {
@@ -118,6 +119,67 @@ const isProgressResetFromRoundAccess = (roundAccess) => {
     const time = toNumber(snapshot?.time, 0);
     return score <= 0 && time <= 0;
   });
+};
+
+const getGlobalRoundState = async (roundNumber) => {
+  const roundControl = await RoundControl.findOne({ key: "global" }).lean();
+  const roundState = (roundControl?.rounds || []).find((entry) => Number(entry.roundNumber) === Number(roundNumber));
+
+  if (!roundState) {
+    return {
+      status: "waiting",
+      isActive: false,
+      timeRemainingSeconds: 0,
+      durationSeconds: DEFAULT_ROUND_DURATIONS[roundNumber] || 600,
+      startedAt: null,
+      endsAt: null
+    };
+  }
+
+  const durationSeconds = toNumber(roundState.durationSeconds, DEFAULT_ROUND_DURATIONS[roundNumber] || 600);
+  const endsAtTs = roundState.endsAt ? new Date(roundState.endsAt).getTime() : null;
+  const startedAtTs = roundState.startedAt ? new Date(roundState.startedAt).getTime() : null;
+  const now = Date.now();
+
+  let timeRemainingSeconds = 0;
+  if (roundState.status === "active") {
+    if (endsAtTs) {
+      timeRemainingSeconds = Math.max(Math.ceil((endsAtTs - now) / 1000), 0);
+    } else if (startedAtTs) {
+      const elapsedSeconds = Math.max(Math.floor((now - startedAtTs) / 1000), 0);
+      timeRemainingSeconds = Math.max(durationSeconds - elapsedSeconds, 0);
+    } else {
+      timeRemainingSeconds = durationSeconds;
+    }
+  }
+
+  const isActive = roundState.status === "active" && timeRemainingSeconds > 0;
+  const status = isActive ? "active" : (roundState.status === "active" ? "completed" : roundState.status);
+
+  return {
+    status,
+    isActive,
+    timeRemainingSeconds,
+    durationSeconds,
+    startedAt: roundState.startedAt || null,
+    endsAt: roundState.endsAt || null
+  };
+};
+
+const resolveLoginNavigation = ({ userRole, eventCompleted, isFirstLogin, currentRound, roundState }) => {
+  if (userRole === "admin") {
+    return { page: "admin-dashboard", targetRound: null, roundState: null };
+  }
+
+  if (eventCompleted) {
+    return { page: "results", targetRound: 3, roundState: null };
+  }
+
+  return {
+    page: "home",
+    targetRound: currentRound,
+    roundState
+  };
 };
 
 const buildLoginSummary = (user) => {
@@ -260,6 +322,14 @@ const loginUser = async (req, res) => {
     }
 
     const effectiveCurrentRound = progressReset ? 1 : (roundAccess.eventCompleted ? 3 : roundAccess.nextRound);
+    const globalRoundState = await getGlobalRoundState(effectiveCurrentRound);
+    const navigation = resolveLoginNavigation({
+      userRole,
+      eventCompleted: roundAccess.eventCompleted,
+      isFirstLogin: isFirstParticipantLogin,
+      currentRound: effectiveCurrentRound,
+      roundState: globalRoundState
+    });
 
     // Set isLoggedIn and normalize currentRound for participants (admins don't need this flag)
     if (userRole === "participant") {
@@ -287,6 +357,7 @@ const loginUser = async (req, res) => {
       progressReset,
       isFirstLogin: isFirstParticipantLogin,
       roundAccess,
+      navigation,
       token: generateToken(user._id, userRole),
       role: userRole
     });

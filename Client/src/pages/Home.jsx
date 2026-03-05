@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getRoundStatus } from '../utils/api'
+import { getRoundPath } from '../utils/roundGate'
 import Background from '../components/Background'
 import kalyanImg from '../assets/images/kalyan.jpg'
 import tejaImg from '../assets/images/tejasathvika.jpg'
@@ -118,9 +120,11 @@ export default function Home() {
   const [heroLampSrc, setHeroLampSrc] = useState(lampImg)
   const navigate = useNavigate()
 
-  const handleStartJourney = () => {
+  const handleStartJourney = async () => {
     const currentRound = Number(localStorage.getItem('currentRound') || 1)
     const eventCompleted = localStorage.getItem('eventCompleted') === 'true'
+    const storyCompleted = localStorage.getItem('storyCompleted') === 'true'
+    const token = sessionStorage.getItem('token')
 
     if (eventCompleted) {
       localStorage.setItem('storyUnlocked', 'true')
@@ -130,32 +134,42 @@ export default function Home() {
       return
     }
 
-    if (currentRound === 1) {
+    if (!token) {
+      navigate('/login')
+      return
+    }
+
+    if (!storyCompleted) {
       localStorage.setItem('storyUnlocked', 'true')
-      localStorage.setItem('storyCompleted', 'false')
       navigate('/story')
       return
     }
 
     localStorage.setItem('storyUnlocked', 'true')
     localStorage.setItem('storyCompleted', 'true')
+    localStorage.setItem('relicUnlocked', 'false')
 
-    if (currentRound === 2) {
+    try {
+      const response = await getRoundStatus(token, currentRound)
+      if (response?.round?.isActive) {
+        navigate(getRoundPath(currentRound))
+        return
+      }
+
       navigate('/waiting', {
         state: {
           mode: 'await-round-start',
-          targetRound: 2
+          targetRound: currentRound
         }
       })
-      return
+    } catch {
+      navigate('/waiting', {
+        state: {
+          mode: 'await-round-start',
+          targetRound: currentRound
+        }
+      })
     }
-
-    navigate('/waiting', {
-      state: {
-        mode: 'await-round-start',
-        targetRound: 3
-      }
-    })
   }
 
   /* ─── Navbar scroll shadow ─── */

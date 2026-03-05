@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/StorySlides.css";
+import { getRoundStatus } from '../utils/api'
+import { getRoundPath } from '../utils/roundGate'
 
 
 
@@ -111,6 +113,36 @@ export default function StorySlides() {
   const [fadeOut, setFadeOut] = useState(false);
   const navigate = useNavigate();
   const timerRef = useRef();
+
+  const enterArena = async () => {
+    localStorage.setItem('storyCompleted', 'true')
+
+    const currentRound = Number(localStorage.getItem('currentRound') || 1)
+    const safeRound = Math.min(3, Math.max(1, currentRound))
+    const token = sessionStorage.getItem('token')
+
+    if (!token) {
+      navigate('/login')
+      return
+    }
+
+    try {
+      const response = await getRoundStatus(token, safeRound)
+      if (response?.round?.isActive) {
+        navigate(getRoundPath(safeRound))
+        return
+      }
+    } catch {
+      // Fallback to waiting if round status cannot be fetched.
+    }
+
+    navigate('/waiting', {
+      state: {
+        mode: 'await-round-start',
+        targetRound: safeRound
+      }
+    })
+  }
 
   // Clean up timer on unmount
   useEffect(() => () => clearTimeout(timerRef.current), []);
@@ -235,16 +267,7 @@ export default function StorySlides() {
             </div>
             <button
               className="story-slide-btn visible story-slide-btn-bottom-right"
-              onClick={() => {
-                localStorage.setItem('storyCompleted', 'true');
-                const currentRound = Number(localStorage.getItem('currentRound') || 1);
-                navigate('/waiting', {
-                  state: {
-                    mode: 'await-round-start',
-                    targetRound: Math.min(3, Math.max(1, currentRound))
-                  }
-                });
-              }}
+              onClick={enterArena}
               disabled={buttonDisabled}
               style={{ pointerEvents: buttonDisabled ? 'none' : 'auto' }}
             >
