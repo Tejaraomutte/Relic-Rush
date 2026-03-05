@@ -68,9 +68,12 @@ export default function Results({ lampsRemaining = 1 }) {
   /* ───────── Load Scores ───────── */
 
   useEffect(() => {
-    const r1 = parseInt(localStorage.getItem('round1Score')) || 0
-    const r2 = parseInt(localStorage.getItem('round2Score')) || 0
-    const r3 = parseInt(localStorage.getItem('round3Score')) || 0
+    const r1 = Number(resultData?.round1Score ?? localStorage.getItem('round1Score') ?? 0)
+    const rawR2 = Number(resultData?.round2Score ?? localStorage.getItem('round2Score') ?? 0)
+    const rawR3 = Number(resultData?.round3Score ?? resultData?.submissionPayload?.roundScore ?? localStorage.getItem('round3Score') ?? 0)
+
+    const r2 = isRound1Mode ? 0 : rawR2
+    const r3 = isFinalMode ? rawR3 : 0
 
     setRound1Score(r1)
     setRound2Score(r2)
@@ -80,7 +83,14 @@ export default function Results({ lampsRemaining = 1 }) {
     if (isFinalMode) {
       submitFinalScore(r1, r2, r3, r1 + r2 + r3)
     }
-  }, [isFinalMode])
+  }, [isFinalMode, isRound1Mode, resultData])
+
+  useEffect(() => {
+    if (!isFinalMode) return
+
+    const finalRound3Score = Number(resultData?.submissionPayload?.roundScore ?? round3Score ?? 0)
+    localStorage.setItem('relicUnlocked', finalRound3Score >= 5 ? 'true' : 'false')
+  }, [isFinalMode, resultData, round3Score])
 
   const submitFinalScore = async (r1, r2, r3, total) => {
     const user = JSON.parse(sessionStorage.getItem('user'))
@@ -110,6 +120,9 @@ export default function Results({ lampsRemaining = 1 }) {
     resultData?.score ??
     (isFinalMode ? totalScore : isRound2Mode ? round2Score : round1Score)
 
+  const finalRound3Score = Number(resultData?.round3Score ?? resultData?.submissionPayload?.roundScore ?? round3Score ?? 0)
+  const isFinalQualified = finalRound3Score >= 5
+
   const effectiveRound1Score = isRound1Mode
     ? Number(resultData?.score ?? round1Score)
     : Number(round1Score)
@@ -121,7 +134,7 @@ export default function Results({ lampsRemaining = 1 }) {
       ? 'Disqualified'
       : resultData?.qualificationStatus) ||
     (isFinalMode
-      ? Boolean(resultData?.isWinner)
+      ? isFinalQualified
         ? 'Qualified'
         : 'Not Qualified'
       : 'Qualified')
@@ -186,12 +199,14 @@ export default function Results({ lampsRemaining = 1 }) {
       <>
         <Background />
         <main className="event-container result-container">
-          <div className="result-lamp-wrap">
-            <LampDisplay
-              lampsRemaining={1}
-              showMessage={true}
-            />
-          </div>
+          {isFinalQualified && (
+            <div className="result-lamp-wrap">
+              <LampDisplay
+                lampsRemaining={1}
+                showMessage={true}
+              />
+            </div>
+          )}
 
           <Reveal delay={100}>
             <div className="score-card result-panel-card">
@@ -211,6 +226,7 @@ export default function Results({ lampsRemaining = 1 }) {
                 <span>Status</span>
                 <span>{resolvedQualification}</span>
               </div>
+              
             </div>
           </Reveal>
 
@@ -218,13 +234,16 @@ export default function Results({ lampsRemaining = 1 }) {
             <div className="score-card">
               <div className="score-item">Round 1: {round1Score}</div>
               <div className="score-item">Round 2: {round2Score}</div>
-              <div className="score-item">Round 3: {round3Score}</div>
+              <div className="score-item">Round 3: {finalRound3Score}</div>
               <div className="score-item total-score">Total: {totalScore}</div>
             </div>
           </Reveal>
 
           <div className="result-actions">
-            <button className="res-btn-gold" onClick={handleViewLamp}>View Lamp</button>
+            {isFinalQualified && (
+              <button className="res-btn-gold" onClick={handleViewLamp}>View Lamp</button>
+            )}
+            {/* <button className="res-btn-gold" onClick={handleHome}>Return Home</button> */}
           </div>
         </main>
       </>

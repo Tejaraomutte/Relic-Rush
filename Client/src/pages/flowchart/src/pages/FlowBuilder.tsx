@@ -261,7 +261,9 @@ function FlowBuilderContent({
         <p>Some blocks in this challenge are FAKE.</p>
         <p>Choose and connect blocks carefully.</p>
         <p>Incorrect blocks may lead to wrong logic.</p>
+        <p>Dont change the text of the Block.</p>
         <p>Same blocks might be used more than one time.</p>
+        <p>Use Backspace to delete edge or block.</p>
       </section>
 
       <div className="app-shell" style={{ height: 'calc(100% - 72px)', minHeight: 520 }}>

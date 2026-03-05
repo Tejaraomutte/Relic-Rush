@@ -254,11 +254,12 @@ export default function Round3({ reduceLamps }) {
     const answeredCount = Math.max(0, Number(totalSolved) || 0)
 
     const round3Score = answeredCount * POINTS_PER_SOLVED_PROBLEM
+    const isQualified = round3Score >= 5
     const totalScore = round1Score + round2Score + round3Score
     const elapsedSeconds = getElapsedSecondsFromStart(startedAtRef.current, roundDurationSeconds)
 
     localStorage.setItem('round3Score', String(round3Score))
-    localStorage.setItem('relicUnlocked', 'true')
+    localStorage.setItem('relicUnlocked', isQualified ? 'true' : 'false')
 
     const user = JSON.parse(sessionStorage.getItem('user') || '{}')
 
@@ -276,10 +277,13 @@ export default function Round3({ reduceLamps }) {
       mode: 'final',
       resultData: {
         score: totalScore,
+        round1Score,
+        round2Score,
+        round3Score,
         timeTakenSeconds: elapsedSeconds,
-        qualificationStatus: canSubmitRound ? 'Qualified' : 'Not Qualified',
+        qualificationStatus: isQualified ? 'Qualified' : 'Not Qualified',
         wasAutoSubmitted,
-        isWinner: canSubmitRound,
+        isWinner: isQualified,
         submissionPayload: {
           roundNumber: 3,
           teamName: user?.teamName || '',
