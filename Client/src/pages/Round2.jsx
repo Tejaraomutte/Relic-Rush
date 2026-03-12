@@ -5,7 +5,7 @@ import RoundHeader from '../components/RoundHeader'
 import ResultMessage from '../components/ResultMessage'
 import AllGames from './all-games/src/App'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
-import { enterRoundProgress, getRoundStatus } from '../utils/api'
+import { completeRoundProgress, enterRoundProgress, getRoundStatus, submitRoundScore } from '../utils/api'
 import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
 
 const ROUND_DURATION = 1200
@@ -133,21 +133,25 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
           return
         }
 
-        navigate('/waiting', {
-          replace: true,
-          state: {
-            mode: 'await-round-start',
-            targetRound: 2
-          }
-        })
+        // OLD WAITING PAGE REDIRECT
+        // navigate('/waiting', {
+        //   replace: true,
+        //   state: {
+        //     mode: 'await-round-start',
+        //     targetRound: 2
+        //   }
+        // })
+        setRoundAccessLoading(false)
       } catch {
-        navigate('/waiting', {
-          replace: true,
-          state: {
-            mode: 'await-round-start',
-            targetRound: 2
-          }
-        })
+        // OLD WAITING PAGE REDIRECT
+        // navigate('/waiting', {
+        //   replace: true,
+        //   state: {
+        //     mode: 'await-round-start',
+        //     targetRound: 2
+        //   }
+        // })
+        setRoundAccessLoading(false)
       }
     }
 
@@ -318,6 +322,30 @@ export default function Round2({ reduceLamps, lampsRemaining = 4 }) {
     }
 
     const user = JSON.parse(sessionStorage.getItem('user') || '{}')
+
+    try {
+      await submitRoundScore(
+        user?.teamName || '',
+        2,
+        score,
+        questionsSolved,
+        [],
+        elapsedSeconds,
+        {
+          totalRoundTimeAllowed: roundDurationSeconds
+        }
+      )
+
+      const token = sessionStorage.getItem('token')
+      if (token) {
+        await completeRoundProgress(token, 2, { score })
+      }
+    } catch (submissionError) {
+      console.error('Round 2 score submission failed:', submissionError)
+    }
+
+    localStorage.setItem('currentRound', score >= QUALIFICATION_SCORE ? '3' : '2')
+
     showResults({
       navigate,
       mode: 'round2',

@@ -129,21 +129,25 @@ export default function Round3({ reduceLamps }) {
           return
         }
 
-        navigate('/waiting', {
-          replace: true,
-          state: {
-            mode: 'await-round-start',
-            targetRound: 3
-          }
-        })
+        // OLD WAITING PAGE REDIRECT
+        // navigate('/waiting', {
+        //   replace: true,
+        //   state: {
+        //     mode: 'await-round-start',
+        //     targetRound: 3
+        //   }
+        // })
+        setRoundAccessLoading(false)
       } catch {
-        navigate('/waiting', {
-          replace: true,
-          state: {
-            mode: 'await-round-start',
-            targetRound: 3
-          }
-        })
+        // OLD WAITING PAGE REDIRECT
+        // navigate('/waiting', {
+        //   replace: true,
+        //   state: {
+        //     mode: 'await-round-start',
+        //     targetRound: 3
+        //   }
+        // })
+        setRoundAccessLoading(false)
       }
     }
 

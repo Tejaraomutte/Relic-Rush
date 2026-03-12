@@ -126,22 +126,26 @@ export default function StorySlides() {
       return
     }
 
-    try {
-      const response = await getRoundStatus(token, safeRound)
-      if (response?.round?.isActive) {
-        navigate(getRoundPath(safeRound))
-        return
-      }
-    } catch {
-      // Fallback to waiting if round status cannot be fetched.
-    }
+    // OLD ADMIN-CONTROLLED ROUND AVAILABILITY CHECK
+    // try {
+    //   const response = await getRoundStatus(token, safeRound)
+    //   if (response?.round?.isActive) {
+    //     navigate(getRoundPath(safeRound))
+    //     return
+    //   }
+    // } catch {
+    //   // Fallback to waiting if round status cannot be fetched.
+    // }
+    //
+    // navigate('/waiting', {
+    //   state: {
+    //     mode: 'await-round-start',
+    //     targetRound: safeRound
+    //   }
+    // })
 
-    navigate('/waiting', {
-      state: {
-        mode: 'await-round-start',
-        targetRound: safeRound
-      }
-    })
+    // Public self-play mode: continue directly to round.
+    navigate(getRoundPath(safeRound))
   }
 
   // Clean up timer on unmount

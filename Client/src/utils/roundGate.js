@@ -6,6 +6,11 @@ const toNumber = (value, fallback = 0) => {
 }
 
 export const getRoundPath = (roundNumber) => {
+  // OLD 3-ROUND PATH MAPPING
+  // if (Number(roundNumber) === 1) return '/round1'
+  // if (Number(roundNumber) === 2) return '/round2'
+  // return '/round3'
+
   if (Number(roundNumber) === 1) return '/round1'
   if (Number(roundNumber) === 2) return '/round2'
   return '/round3'

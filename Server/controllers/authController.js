@@ -78,6 +78,34 @@ const getRoundSnapshot = (user, roundNumber) => {
 };
 
 const resolveRoundAccess = (user) => {
+  // OLD ADMIN-CONTROLLED / 3-ROUND ACCESS MODEL (kept for reference)
+  // const storedCurrentRound = clampRound(user?.currentRound);
+  //
+  // const rounds = {
+  //   round1: getRoundSnapshot(user, 1),
+  //   round2: getRoundSnapshot(user, 2),
+  //   round3: getRoundSnapshot(user, 3)
+  // };
+  //
+  // const orderedRounds = [rounds.round1, rounds.round2, rounds.round3];
+  //
+  // const firstStartableRound = orderedRounds.find((snapshot) => snapshot.canStart);
+  // if (firstStartableRound) {
+  //   return {
+  //     currentRound: storedCurrentRound,
+  //     nextRound: firstStartableRound.roundNumber,
+  //     eventCompleted: false,
+  //     rounds
+  //   };
+  // }
+  //
+  // return {
+  //   currentRound: storedCurrentRound,
+  //   nextRound: 3,
+  //   eventCompleted: true,
+  //   rounds
+  // };
+
   const storedCurrentRound = clampRound(user?.currentRound);
 
   const rounds = {
@@ -86,6 +114,7 @@ const resolveRoundAccess = (user) => {
     round3: getRoundSnapshot(user, 3)
   };
 
+  // Public self-play flow keeps gameplay routing through Round 3.
   const orderedRounds = [rounds.round1, rounds.round2, rounds.round3];
 
   const firstStartableRound = orderedRounds.find((snapshot) => snapshot.canStart);
@@ -99,7 +128,7 @@ const resolveRoundAccess = (user) => {
   }
 
   return {
-    currentRound: storedCurrentRound,
+    currentRound: 3,
     nextRound: 3,
     eventCompleted: true,
     rounds
@@ -294,23 +323,53 @@ const loginUser = async (req, res) => {
     const teamName = normalizeTeamName(req.body.teamName);
     const password = (req.body.password || "").trim();
 
-    const user = await User.findOne({
-      teamName: { $regex: `^${teamName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" }
-    });
+    // OLD CREDENTIAL-VALIDATED LOGIN
+    // const user = await User.findOne({
+    //   teamName: { $regex: `^${teamName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" }
+    // });
+    //
+    // if (!user) {
+    //   return res.status(400).json({
+    //     message: "Invalid credentials"
+    //   });
+    // }
+    //
+    // if (user.password !== password) {
+    //   return res.status(400).json({
+    //     message: "Invalid credentials"
+    //   });
+    // }
 
-    if (!user) {
+    if (!teamName || !password) {
       return res.status(400).json({
-        message: "Invalid credentials"
+        message: "teamName and password are required"
       });
     }
 
-    if (user.password !== password) {
-      return res.status(400).json({
-        message: "Invalid credentials"
+    let user = await User.findOne({
+      teamName: { $regex: `^${teamName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" }
+    });
+
+    // Public self-play: auto-create player if username does not exist.
+    if (!user) {
+      user = await User.create({
+        teamName,
+        password,
+        role: "participant",
+        rounds: [],
+        isLoggedIn: false,
+        currentRound: 1
       });
     }
 
     const userRole = user.role || "participant";
+
+    // Admin login remains strict: existing admin credentials must match.
+    if (userRole === "admin" && user.password !== password) {
+      return res.status(400).json({
+        message: "Invalid credentials"
+      });
+    }
     const isFirstParticipantLogin = userRole === "participant" && !user.isLoggedIn;
     let roundAccess = resolveRoundAccess(user);
     let progressReset = isProgressResetFromRoundAccess(roundAccess);
@@ -796,6 +855,10 @@ const submitScore = async (req, res) => {
         user.currentRound = 3;
       } else {
         const numericRound = Number(round);
+        // OLD PUBLIC/ADMIN 3-ROUND VALIDATION
+        // if (![1, 2, 3].includes(numericRound)) {
+        //   return res.status(400).json({ message: "Invalid round number" });
+        // }
         if (![1, 2, 3].includes(numericRound)) {
           return res.status(400).json({ message: "Invalid round number" });
         }

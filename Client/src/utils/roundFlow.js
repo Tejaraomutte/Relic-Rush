@@ -46,7 +46,16 @@ export async function autoSubmitRound({
 }
 
 export function showResults({ navigate, mode, resultData }) {
-  navigate('/waiting', {
+  // OLD WAITING PAGE TRANSITION
+  // navigate('/waiting', {
+  //   state: {
+  //     mode,
+  //     resultData
+  //   }
+  // })
+
+  // Public self-play flow: show results immediately after submit.
+  navigate('/results', {
     state: {
       mode,
       resultData

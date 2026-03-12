@@ -149,27 +149,31 @@ export default function Home() {
     localStorage.setItem('storyCompleted', 'true')
     localStorage.setItem('relicUnlocked', 'false')
 
-    try {
-      const response = await getRoundStatus(token, currentRound)
-      if (response?.round?.isActive) {
-        navigate(getRoundPath(currentRound))
-        return
-      }
+    // OLD ADMIN-CONTROLLED ROUND START CHECK
+    // try {
+    //   const response = await getRoundStatus(token, currentRound)
+    //   if (response?.round?.isActive) {
+    //     navigate(getRoundPath(currentRound))
+    //     return
+    //   }
+    //
+    //   navigate('/waiting', {
+    //     state: {
+    //       mode: 'await-round-start',
+    //       targetRound: currentRound
+    //     }
+    //   })
+    // } catch {
+    //   navigate('/waiting', {
+    //     state: {
+    //       mode: 'await-round-start',
+    //       targetRound: currentRound
+    //     }
+    //   })
+    // }
 
-      navigate('/waiting', {
-        state: {
-          mode: 'await-round-start',
-          targetRound: currentRound
-        }
-      })
-    } catch {
-      navigate('/waiting', {
-        state: {
-          mode: 'await-round-start',
-          targetRound: currentRound
-        }
-      })
-    }
+    // Public self-play mode: move directly to round play.
+    navigate(getRoundPath(currentRound))
   }
 
   /* ─── Navbar scroll shadow ─── */

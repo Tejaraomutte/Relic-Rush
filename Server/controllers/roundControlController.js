@@ -170,10 +170,23 @@ const mapRoundState = (roundState) => {
 
 const getRoundStatuses = async (req, res) => {
   try {
-    const roundControl = await refreshExpiredRounds(await getOrCreateRoundControl());
-    const rounds = (roundControl.rounds || [])
-      .sort((a, b) => a.roundNumber - b.roundNumber)
-      .map(mapRoundState);
+    // OLD ADMIN-CONTROLLED STATUS SOURCE
+    // const roundControl = await refreshExpiredRounds(await getOrCreateRoundControl());
+    // const rounds = (roundControl.rounds || [])
+    //   .sort((a, b) => a.roundNumber - b.roundNumber)
+    //   .map(mapRoundState);
+
+    // Public self-play mode: all rounds are available without admin start.
+    const rounds = [1, 2, 3].map((roundNumber) => ({
+      roundNumber,
+      status: "active",
+      durationSeconds: DEFAULT_ROUND_DURATIONS[roundNumber] || 600,
+      startedAt: null,
+      endsAt: null,
+      isStarted: true,
+      isActive: true,
+      timeRemainingSeconds: DEFAULT_ROUND_DURATIONS[roundNumber] || 600
+    }));
 
     return res.json({ rounds });
   } catch (error) {
@@ -188,14 +201,28 @@ const getRoundStatusByRound = async (req, res) => {
       return res.status(400).json({ message: "Invalid round number" });
     }
 
-    const roundControl = await refreshExpiredRounds(await getOrCreateRoundControl());
-    const roundState = (roundControl.rounds || []).find((entry) => entry.roundNumber === roundNumber);
+    // OLD ADMIN-CONTROLLED ROUND STATUS
+    // const roundControl = await refreshExpiredRounds(await getOrCreateRoundControl());
+    // const roundState = (roundControl.rounds || []).find((entry) => entry.roundNumber === roundNumber);
+    //
+    // if (!roundState) {
+    //   return res.status(404).json({ message: "Round state not found" });
+    // }
+    //
+    // return res.json({ round: mapRoundState(roundState) });
 
-    if (!roundState) {
-      return res.status(404).json({ message: "Round state not found" });
-    }
-
-    return res.json({ round: mapRoundState(roundState) });
+    return res.json({
+      round: {
+        roundNumber,
+        status: "active",
+        durationSeconds: DEFAULT_ROUND_DURATIONS[roundNumber] || 600,
+        startedAt: null,
+        endsAt: null,
+        isStarted: true,
+        isActive: true,
+        timeRemainingSeconds: DEFAULT_ROUND_DURATIONS[roundNumber] || 600
+      }
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -280,12 +307,19 @@ const getOrCreatePlayerRoundProgress = async (req, res) => {
       return res.status(400).json({ message: "Invalid round number" });
     }
 
-    const roundControl = await refreshExpiredRounds(await getOrCreateRoundControl());
-    const roundState = getRoundState(roundControl, roundNumber);
+    // OLD ADMIN-DEPENDENT ACTIVE ROUND CHECK
+    // const roundControl = await refreshExpiredRounds(await getOrCreateRoundControl());
+    // const roundState = getRoundState(roundControl, roundNumber);
+    //
+    // if (!roundState || roundState.status !== "active") {
+    //   return res.status(409).json({ message: "Round is not active" });
+    // }
 
-    if (!roundState || roundState.status !== "active") {
-      return res.status(409).json({ message: "Round is not active" });
-    }
+    const roundState = {
+      roundNumber,
+      status: "active",
+      durationSeconds: DEFAULT_ROUND_DURATIONS[roundNumber] || 600
+    };
 
     let progress = await PlayerRoundProgress.findOne({
       userId: req.user._id,

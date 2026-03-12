@@ -104,9 +104,10 @@ function StoryGuard({ children }) {
   const role = sessionStorage.getItem('role')
   const storyUnlocked = localStorage.getItem('storyUnlocked') === 'true'
 
-  if (role === 'admin') {
-    return <Navigate to="/admin-dashboard" replace />
-  }
+  // OLD ADMIN REDIRECT
+  // if (role === 'admin') {
+  //   return <Navigate to="/admin-dashboard" replace />
+  // }
 
   if (!storyUnlocked) {
     return <Navigate to="/home" replace />
@@ -122,9 +123,10 @@ function RoundGuard({ children }) {
   const storyUnlocked = localStorage.getItem('storyUnlocked') === 'true'
   const storyCompleted = localStorage.getItem('storyCompleted') === 'true'
 
-  if (role === 'admin') {
-    return <Navigate to="/admin-dashboard" replace />
-  }
+  // OLD ADMIN REDIRECT
+  // if (role === 'admin') {
+  //   return <Navigate to="/admin-dashboard" replace />
+  // }
 
   if (!storyUnlocked) {
     return <Navigate to="/home" replace />
@@ -143,9 +145,10 @@ function RelicStoryGuard({ children }) {
   const role = sessionStorage.getItem('role')
   const relicUnlocked = localStorage.getItem('relicUnlocked') === 'true'
 
-  if (role === 'admin') {
-    return <Navigate to="/admin-dashboard" replace />
-  }
+  // OLD ADMIN REDIRECT
+  // if (role === 'admin') {
+  //   return <Navigate to="/admin-dashboard" replace />
+  // }
 
   if (!relicUnlocked) {
     return <Navigate to="/home" replace />
@@ -281,6 +284,8 @@ function AppContent({ lampsRemaining, reduceLamps }) {
           }
         />
 
+        {/* OLD WAITING ROUTE */}
+        {/*
         <Route
           path="/waiting"
           element={
@@ -289,6 +294,8 @@ function AppContent({ lampsRemaining, reduceLamps }) {
             </ProtectedRoute>
           }
         />
+        */}
+        <Route path="/waiting" element={<Navigate to="/results" replace />} />
 
         <Route
           path="/results"

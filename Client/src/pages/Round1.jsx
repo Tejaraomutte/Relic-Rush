@@ -8,7 +8,7 @@ import ResultMessage from '../components/ResultMessage'
 import ScoreDisplay from '../components/ScoreDisplay'
 import LampDisplay from '../components/LampDisplay'
 import { startTimer, autoSubmitRound, showResults } from '../utils/roundFlow'
-import { enterRoundProgress, getRoundStatus } from '../utils/api'
+import { completeRoundProgress, enterRoundProgress, getRoundStatus, submitRoundScore } from '../utils/api'
 import { saveRoundState, loadRoundState, markRoundCompleted, isRoundCompleted } from '../utils/sessionManager'
 
 const questions = [
@@ -252,21 +252,25 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
           return
         }
 
-        navigate('/waiting', {
-          replace: true,
-          state: {
-            mode: 'await-round-start',
-            targetRound: ROUND_NUMBER
-          }
-        })
+        // OLD WAITING PAGE REDIRECT
+        // navigate('/waiting', {
+        //   replace: true,
+        //   state: {
+        //     mode: 'await-round-start',
+        //     targetRound: ROUND_NUMBER
+        //   }
+        // })
+        setRoundAccessLoading(false)
       } catch {
-        navigate('/waiting', {
-          replace: true,
-          state: {
-            mode: 'await-round-start',
-            targetRound: ROUND_NUMBER
-          }
-        })
+        // OLD WAITING PAGE REDIRECT
+        // navigate('/waiting', {
+        //   replace: true,
+        //   state: {
+        //     mode: 'await-round-start',
+        //     targetRound: ROUND_NUMBER
+        //   }
+        // })
+        setRoundAccessLoading(false)
       }
     }
 
@@ -437,6 +441,29 @@ export default function Round1({ reduceLamps, lampsRemaining = 4 }) {
     localStorage.setItem('round1Score', score.toString())
 
     const user = JSON.parse(sessionStorage.getItem('user') || '{}')
+
+    try {
+      await submitRoundScore(
+        user?.teamName || '',
+        ROUND_NUMBER,
+        score,
+        questionsSolved,
+        [],
+        elapsedSeconds,
+        {
+          totalRoundTimeAllowed: roundDurationSeconds
+        }
+      )
+
+      const token = sessionStorage.getItem('token')
+      if (token) {
+        await completeRoundProgress(token, ROUND_NUMBER, { score })
+      }
+    } catch (submissionError) {
+      console.error('Round 1 score submission failed:', submissionError)
+    }
+
+    localStorage.setItem('currentRound', score >= QUALIFICATION_SCORE ? '2' : '1')
 
     if (!hasReduced && reduceLamps) {
       setHasReduced(true)

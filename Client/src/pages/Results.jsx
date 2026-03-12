@@ -89,6 +89,9 @@ export default function Results({ lampsRemaining = 1 }) {
     if (!isFinalMode) return
 
     const finalRound3Score = Number(resultData?.submissionPayload?.roundScore ?? round3Score ?? 0)
+    // OLD PUBLIC FLOW OVERRIDE
+    // const finalRound2Score = Number(resultData?.round2Score ?? round2Score ?? localStorage.getItem('round2Score') ?? 0)
+    // localStorage.setItem('relicUnlocked', (finalRound3Score >= 10 || finalRound2Score >= 10) ? 'true' : 'false')
     localStorage.setItem('relicUnlocked', finalRound3Score >= 5 ? 'true' : 'false')
   }, [isFinalMode, resultData, round3Score])
 
@@ -127,6 +130,7 @@ export default function Results({ lampsRemaining = 1 }) {
     ? Number(resultData?.score ?? round1Score)
     : Number(round1Score)
   const isRound1Qualified = effectiveRound1Score >= 10
+  const isRound2Qualified = Number(resultData?.score ?? round2Score) >= 10
 
   const resolvedTime = resultData?.timeTakenSeconds
   const resolvedQualification =
@@ -140,7 +144,7 @@ export default function Results({ lampsRemaining = 1 }) {
       : 'Qualified')
 
   const isRound1TransitionMode = isRound1Mode && isRound1Qualified
-  const isRound2TransitionMode = isRound2Mode
+  const isRound2TransitionMode = isRound2Mode && isRound2Qualified
   const resultLampsRemaining = isRound1Mode
     ? 3
     : isRound2Mode
@@ -276,6 +280,15 @@ export default function Results({ lampsRemaining = 1 }) {
           </Reveal>
         )}
 
+        {isRound2Mode && !isRound2Qualified && (
+          <Reveal delay={80}>
+            <div className="res-hidden-msg">
+              <span>⚠️</span>
+              Round 2 not qualified. Game completed.
+            </div>
+          </Reveal>
+        )}
+
         {!(isRound1TransitionMode && showRound1LampStage) && !(isRound2TransitionMode && showRound2LampStage) && (
           <>
             <Reveal delay={100}>
@@ -324,7 +337,9 @@ export default function Results({ lampsRemaining = 1 }) {
           {isRound1TransitionMode && showRound1LampStage && (
             <button
               className="res-btn-gold"
-              onClick={() => navigate('/waiting', { state: { mode: 'await-round-start', targetRound: 2 } })}
+              // OLD ADMIN-CONTROLLED WAITING REDIRECT
+              // onClick={() => navigate('/waiting', { state: { mode: 'await-round-start', targetRound: 2 } })}
+              onClick={() => navigate('/round2')}
             >
               Next Round
             </button>
@@ -339,7 +354,9 @@ export default function Results({ lampsRemaining = 1 }) {
           {isRound2TransitionMode && showRound2LampStage && (
             <button
               className="res-btn-gold"
-              onClick={() => navigate('/waiting', { state: { mode: 'await-round-start', targetRound: 3 } })}
+              // OLD WAITING PAGE JUMP
+              // onClick={() => navigate('/waiting', { state: { mode: 'await-round-start', targetRound: 3 } })}
+              onClick={() => navigate('/round3')}
             >
               Next Round
             </button>
